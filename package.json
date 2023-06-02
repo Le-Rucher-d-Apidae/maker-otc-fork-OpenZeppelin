@@ -54,5 +54,8 @@
     "cleanBuildDir": "del-cli ./artifacts",
     "cleanDocsDir": "del-cli ./docs/generated/solidity-docs/natspec/",
     "clnBld": "npm run cleanBuildDir"
+  },
+  "dependencies": {
+    "pnpm": "^8.6.0"
   }
 }
