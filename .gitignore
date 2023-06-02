@@ -70,3 +70,5 @@ docs/generated
 # Don't ignore these files...
 #!.gitignore
 !*.md
+.vscode/settings.json
+pnpm-lock.yaml
