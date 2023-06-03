@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@0.3.0-beta.13",
@@ -7,20 +8,28 @@
     "@openzeppelin/contracts": "^4.8.2",
     "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "@primitivefi/hardhat-dodoc": "^0.2.3",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": ">=9.1.0",
     "chai": "^4.3.7",
     "concurrently": "^8.0.1",
     "del-cli": "^5.0.0",
     "dotenv": "^16.0.3",
     "ethers": "5.7.2",
     "hardhat": "^2.13.1",
+    "hardhat-contract-sizer": "^2.9.0",
     "hardhat-deploy": "^0.11.28",
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-tracer": "^2.2.2",
     "mocha": "^10.2.0",
-    "solc": "^0.8.19",
-    "solc-0.8": "npm:solc@^0.8.19",
+    "solc": "^0.8.20",
+    "solc-0.8": "npm:solc@^0.8.20",
     "solidity-coverage": "^0.8.2",
-    "solidity-docgen": "0.6.0-beta.35"
+    "solidity-docgen": "0.6.0-beta.35",
+    "ts-node": ">=8.0.0",
+    "typechain": "^8.1.0",
+    "typescript": ">=4.5.0"
   },
   "scripts": {
     "clean": "npx hardhat clean",
@@ -53,7 +62,8 @@
     "npm:cleanCache": "npm cache clean -f",
     "cleanBuildDir": "del-cli ./artifacts",
     "cleanDocsDir": "del-cli ./docs/generated/solidity-docs/natspec/",
-    "clnBld": "npm run cleanBuildDir"
+    "clnBld": "npm run cleanBuildDir",
+    "size" : "npx hardhat size-contracts --no-compile"
   },
   "dependencies": {
     "pnpm": "^8.6.0"
