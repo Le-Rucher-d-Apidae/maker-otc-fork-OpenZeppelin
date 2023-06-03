@@ -22,7 +22,6 @@
     "hardhat-gas-reporter": "^1.0.9",
     "hardhat-tracer": "^2.2.2",
     "mocha": "^10.2.0",
-    "pnpm": "^8.6.0",
     "solc": "^0.8.20",
     "solc-0.8": "npm:solc@^0.8.20",
     "solidity-coverage": "^0.8.2",
