@@ -115,12 +115,14 @@ contract SimpleMarket is EventfulMarket, Ownable {
     }
 
     modifier can_buy(uint id) {
-        require(isActive(id));
+        // require(isActive(id));
+        require(isOrderActive(id));
         _;
     }
 
     modifier can_cancel(uint id) {
-        require(isActive(id));
+        // require(isActive(id));
+        require(isOrderActive(id));
         //require(getOwner(id) == msg.sender);
         require(getOwner(id) == _msgSender());
         _;
@@ -181,7 +183,8 @@ contract SimpleMarket is EventfulMarket, Ownable {
     }
 
 
-    function isActive(uint id) public view returns (bool active) {
+    // function isActive(uint id) public view returns (bool active) {
+    function isOrderActive(uint id) public view returns (bool active) {
         return offers[id].timestamp > 0;
     }
 
