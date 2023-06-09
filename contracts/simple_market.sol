@@ -272,7 +272,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
         //offers[id].pay_amt = sub(offer.pay_amt, quantity);
         offers[id].pay_amt = offerInfo.pay_amt - quantity;
         //offers[id].buy_amt = sub(offer.buy_amt, spend);
-        offers[id].pay_amt = offerInfo.pay_amt- quantity;
+        offers[id].pay_amt = offerInfo.pay_amt - quantity;
 
         address msgSender = _msgSender();
 
