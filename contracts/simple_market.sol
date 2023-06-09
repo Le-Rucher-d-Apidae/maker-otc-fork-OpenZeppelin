@@ -114,13 +114,13 @@ contract SimpleMarket is EventfulMarket, Ownable {
         uint64   timestamp;
     }
 
-    modifier can_buy(uint id) {
+    modifier can_buy(uint id) virtual {
         // require(isActive(id));
         require(isOrderActive(id));
         _;
     }
 
-    modifier can_cancel(uint id) {
+    modifier can_cancel(uint id) virtual {
         // require(isActive(id));
         require(isOrderActive(id));
         require(getOwner(id) == msg.sender);
@@ -128,7 +128,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
         _;
     }
 
-    modifier can_offer {
+    modifier can_offer virtual{
         _;
     }
 
@@ -250,6 +250,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
         public
         can_buy(id)
         synchronized
+        virtual
         returns (bool)
     {
         //OfferInfo memory offer = offers[id];
@@ -317,6 +318,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
         public
         can_cancel(id)
         synchronized
+        virtual
         returns (bool success)
     {
         // read-only offer. Modify an offer by directly accessing offers[id]
@@ -351,6 +353,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
 
     function kill(bytes32 id)
         public
+        virtual
     {
         require(cancel(uint256(id)));
     }
@@ -362,6 +365,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
         uint128  buy_amt
     )
         public
+        virtual
         returns (bytes32 id)
     {
         return bytes32(offer(pay_amt, pay_gem, buy_amt, buy_gem));
@@ -374,6 +378,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
         synchronized
         checkOfferAmounts(_pay_amt, _buy_amt)
         checkOfferTokens(_pay_gem, _buy_gem)
+        virtual
         returns (uint id)
     {
         // Token amounts checked by modifier: checkOfferAmounts(pay_amt, buy_amt)
@@ -450,6 +455,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
 
     function take(bytes32 id, uint128 maxTakeAmount)
         public
+        virtual
     {
         require(buy(uint256(id), maxTakeAmount));
     }
