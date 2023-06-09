@@ -50,7 +50,7 @@ contract SuspendableMarket is SimpleMarket {
     }
 
     // after close, anyone can cancel an offer
-    modifier can_cancel(uint id) override {
+    modifier can_cancel(uint id) virtual override {
         // require(isActive(id));
         require(isOrderActive(id));
         require((msg.sender == getOwner(id)) || isMarketClosed());
