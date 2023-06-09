@@ -21,6 +21,8 @@
 // pragma solidity ^0.5.12;
 // pragma solidity >= 0.8.18 < 0.9.0;
 // pragma solidity ^0.8.20;
+
+
 pragma solidity ^0.8.18; // latest HH supported version
 
 import "./suspendable_market.sol";
@@ -38,7 +40,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract MatchingMarket is MatchingEvents, SuspendableMarket {
+contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
@@ -69,7 +71,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
 
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
-    modifier can_cancel(uint id) {
+    modifier can_cancel (uint id) override {
         // require(isActive(id), "Offer was deleted or taken, or never existed.");
         require(isOrderActive(id), "Offer was deleted or taken, or never existed.");
 
@@ -82,23 +84,24 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
 
     // ---- Public entrypoints ---- //
 
-    function make(
+    function make (
         ERC20    pay_gem,
         ERC20    buy_gem,
         uint128  pay_amt,
         uint128  buy_amt
     )
         public
+        override
         returns (bytes32)
     {
         return bytes32(offer(pay_amt, pay_gem, buy_amt, buy_gem));
     }
 
-    function take(bytes32 id, uint128 maxTakeAmount) public {
+    function take(bytes32 id, uint128 maxTakeAmount) public override {
         require(buy(uint256(id), maxTakeAmount));
     }
 
-    function kill(bytes32 id) public {
+    function kill(bytes32 id) public override {
         require(cancel(uint256(id)));
     }
 
@@ -110,8 +113,8 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
     //     * keepers should call insert(id,pos)
     //       to put offer in the sorted list.
     //
-// DISABLED
-/*
+
+    // Force any offer into the sorted list.
     function offer(
         uint pay_amt,    //maker (ask) sell how much
         ERC20 pay_gem,   //maker (ask) sell which token
@@ -119,13 +122,16 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
         ERC20 buy_gem    //taker (ask) buy which token
     )
         public
+        override
         returns (uint)
     {
-        require(!locked, "Reentrancy attempt");
-        return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
+        // require(!locked, "Reentrancy attempt");
+        // return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
+        return offer(pay_amt, pay_gem, buy_amt, buy_gem, 0, true);
     }
-*/
+
     // Make a new offer. Takes funds from the caller into market escrow.
+/*
     function offer(
         uint pay_amt,    //maker (ask) sell how much
         ERC20 pay_gem,   //maker (ask) sell which token
@@ -139,7 +145,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
     {
         return offer(pay_amt, pay_gem, buy_amt, buy_gem, pos, true);
     }
-
+*/
     function offer(
         uint pay_amt,    //maker (ask) sell how much
         ERC20 pay_gem,   //maker (ask) sell which token
@@ -150,9 +156,10 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
     )
         public
         can_offer
+        synchronized
         returns (uint)
     {
-        require(!locked, "Reentrancy attempt");
+        // require(!locked, "Reentrancy attempt");
         require(_dust[address(pay_gem)] <= pay_amt);
 
         return _matcho(pay_amt, pay_gem, buy_amt, buy_gem, pos, rounding);
@@ -162,9 +169,11 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
     function buy(uint id, uint amount)
         public
         can_buy(id)
+        synchronized
+        override
         returns (bool)
     {
-        require(!locked, "Reentrancy attempt");
+        // require(!locked, "Reentrancy attempt");
         return _buys(id, amount);
     }
 
@@ -172,9 +181,11 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
     function cancel(uint id)
         public
         can_cancel(id)
+        synchronized
+        override
         returns (bool success)
     {
-        require(!locked, "Reentrancy attempt");
+        // require(!locked, "Reentrancy attempt");
         if (isOfferSorted(id)) {
             require(_unsort(id));
         } else {
@@ -207,9 +218,10 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
     //  Function should be called by keepers.
     function del_rank(uint id)
         public
+        synchronized
         returns (bool)
     {
-        require(!locked, "Reentrancy attempt");
+        // require(!locked, "Reentrancy attempt");
         // require(!isActive(id) && _rank[id].delb != 0 && _rank[id].delb < block.number - 10);
         require(!isOrderActive(id) && _rank[id].delb != 0 && _rank[id].delb < block.number - 10);
         delete _rank[id];
@@ -298,9 +310,10 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
 
     function sellAllAmount(ERC20 pay_gem, uint pay_amt, ERC20 buy_gem, uint min_fill_amount)
         public
+        synchronized
         returns (uint fill_amt)
     {
-        require(!locked, "Reentrancy attempt");
+        // require(!locked, "Reentrancy attempt");
         uint offerId;
         while (pay_amt > 0) {                           //while there is amount to sell
             offerId = getBestOffer(buy_gem, pay_gem);   //Get the best offer for the token pair
@@ -330,9 +343,10 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
 
     function buyAllAmount(ERC20 buy_gem, uint buy_amt, ERC20 pay_gem, uint max_fill_amount)
         public
+        synchronized
         returns (uint fill_amt)
     {
-        require(!locked, "Reentrancy attempt");
+        // require(!locked, "Reentrancy attempt");
         uint offerId;
         while (buy_amt > 0) {                           //Meanwhile there is amount to buy
             offerId = getBestOffer(buy_gem, pay_gem);   //Get the best offer for the token pair
@@ -564,6 +578,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
     // Takes funds from the caller into market escrow.
     // ****Available to authorized contracts only!**********
     // Keepers should call insert(id,pos) to put offer in the sorted list.
+/* 
     function _offeru(
         uint pay_amt,      //maker (ask) sell how much
         ERC20 pay_gem,     //maker (ask) sell which token
@@ -580,6 +595,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket {
         emit LogUnsortedOffer(id);
     }
 
+ */
     //put offer into the sorted list
     function _sort(
         uint id,    //maker (ask) id
