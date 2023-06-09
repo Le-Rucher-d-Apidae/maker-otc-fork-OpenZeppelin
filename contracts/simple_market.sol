@@ -123,8 +123,8 @@ contract SimpleMarket is EventfulMarket, Ownable {
     modifier can_cancel(uint id) {
         // require(isActive(id));
         require(isOrderActive(id));
-        //require(getOwner(id) == msg.sender);
-        require(getOwner(id) == _msgSender());
+        require(getOwner(id) == msg.sender);
+        // require(getOwner(id) == _msgSender());
         _;
     }
 
@@ -133,7 +133,7 @@ contract SimpleMarket is EventfulMarket, Ownable {
     }
 
     modifier synchronized {
-        require(!locked);
+        require(!locked, "Reentrancy attempt");
         locked = true;
         _;
         locked = false;
@@ -274,14 +274,15 @@ contract SimpleMarket is EventfulMarket, Ownable {
         //offers[id].buy_amt = sub(offer.buy_amt, spend);
         offers[id].pay_amt = offerInfo.pay_amt - quantity;
 
-        address msgSender = _msgSender();
+        // address msgSender = _msgSender();
 
         // safeTransferFrom(offer.buy_gem, msg.sender, offer.owner, spend);
-        // safeTransferFrom(offerInfo.buy_gem, msg.sender, offerInfo.owner, spend);
-        safeTransferFrom(offerInfo.buy_gem, msgSender, offerInfo.owner, spend);
+        safeTransferFrom(offerInfo.buy_gem, msg.sender, offerInfo.owner, spend);
+        // safeTransferFrom(offerInfo.buy_gem, msgSender, offerInfo.owner, spend);
+
         // safeTransfer(offer.pay_gem, msg.sender, quantity);
-        // safeTransfer(offerInfo.pay_gem, msg.sender, quantity);
-        safeTransfer(offerInfo.pay_gem, msgSender, quantity);
+        safeTransfer(offerInfo.pay_gem, msg.sender, quantity);
+        // safeTransfer(offerInfo.pay_gem, msgSender, quantity);
 
         emit LogItemUpdate(id);
         emit LogTake(
@@ -294,8 +295,8 @@ contract SimpleMarket is EventfulMarket, Ownable {
             offerInfo.pay_gem,
             //offer.buy_gem,
             offerInfo.pay_gem,
-            // msg.sender,
-            msgSender,
+            msg.sender,
+            // msgSender,
             uint128(quantity),
             uint128(spend),
             //uint64(now)
@@ -428,15 +429,16 @@ contract SimpleMarket is EventfulMarket, Ownable {
             _pay_amt, _pay_gem, _buy_amt, _buy_gem, msgSender, uint64(block.timestamp)
         );
 
-        //safeTransferFrom(_pay_gem, msg.sender, address(this), _pay_amt);
-        safeTransferFrom(_pay_gem, msgSender, address(this), _pay_amt);
+        safeTransferFrom(_pay_gem, msg.sender, address(this), _pay_amt);
+        // safeTransferFrom(_pay_gem, msgSender, address(this), _pay_amt);
         
 
         emit LogItemUpdate(id);
         emit LogMake(
             bytes32(id),
             keccak256(abi.encodePacked(_pay_gem, _buy_gem)),
-            msgSender,//msg.sender,
+            msg.sender,
+            // msgSender,
             _pay_gem,
             _buy_gem,
             uint128(_pay_amt),
