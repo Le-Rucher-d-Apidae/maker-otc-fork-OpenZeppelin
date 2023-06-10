@@ -15,7 +15,6 @@
     "concurrently": "^8.0.1",
     "del-cli": "^5.0.0",
     "dotenv": "^16.0.3",
-    "ethereum-waffle": "^4.0.10",
     "ethers": "5.7.2",
     "hardhat": "^2.13.1",
     "hardhat-contract-sizer": "^2.9.0",
