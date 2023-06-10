@@ -72,3 +72,7 @@ docs/generated
 !*.md
 .vscode/settings.json
 pnpm-lock.yaml
+
+# Foundry
+cache_forge
+artifacts_forge
