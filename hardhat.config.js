@@ -30,6 +30,8 @@ require("hardhat-gas-reporter")
 require("solidity-docgen")
 // require("solidity-coverage")
 
+require("@nomicfoundation/hardhat-foundry");
+
 // https://www.npmjs.com/package/hardhat-tracer
 require("hardhat-tracer")
 
