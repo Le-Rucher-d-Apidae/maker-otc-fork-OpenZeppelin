@@ -28,7 +28,8 @@ pragma solidity ^0.8.18; // latest HH supported version
 // import "ds-test/test.sol";
 import "forge-std/Test.sol";
 
-import "ds-token/base.sol";
+// import "ds-token/base.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "../contracts/simple_market.sol";
 
@@ -74,6 +75,15 @@ contract VmCheat {
         vm.warp(1);
     }
 }
+
+
+
+contract DSTokenBase is ERC20{
+    constructor(uint _initialSupply) ERC20("Test", "TST") {
+        _mint(msg.sender, _initialSupply ** decimals());
+    }
+}
+
 
 // contract SimpleMarketTest is DSTest, HevmCheat, EventfulMarket {
 contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
