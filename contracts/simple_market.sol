@@ -256,14 +256,13 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
       return (offerInfo.pay_amt, offerInfo.pay_gem,
               offerInfo.buy_amt, offerInfo.buy_gem);
     }
-
+/*
     function setmainTradableToken(ERC20 _erc20) public onlyOwner {
         // Allow to set only once
         if (address(mainTradableToken) == NULL_ADDRESS) {
             mainTradableToken = _erc20;
         }
     }
-
 
     function allowToken(ERC20 _erc20) public onlyOwner {
         require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
@@ -283,7 +282,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         // existing orders will remain active (no checks are made on buys)
         delete tradableTokens[_erc20];
     }
-
+*/
     // ---- Public entrypoints ---- //
 
     function bump(bytes32 id_)

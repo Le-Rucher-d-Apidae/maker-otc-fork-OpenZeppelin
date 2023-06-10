@@ -25,7 +25,7 @@
 
 pragma solidity ^0.8.18; // latest HH supported version
 
-import "./suspendable_market.sol";
+import "./restricted_suspendable_simple_market.sol";
 import "./lib/dapphub/ds-math/math.sol";
 
 interface PriceOracleLike {
@@ -40,7 +40,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
+contract MatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer

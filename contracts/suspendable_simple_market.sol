@@ -25,11 +25,11 @@ pragma solidity ^0.8.18; // latest HH supported version
 import "./simple_market.sol";
 
 
-contract SuspendableMarket is SimpleMarket {
+contract SuspendableSimpleMarket is SimpleMarket {
     bool public closed;
     bool public suspended;
 
-    constructor(ERC20 _mainTradableToken, bool _suspended) SimpleMarket(_mainTradableToken) {
+    constructor(bool _suspended) SimpleMarket() {
         suspended = _suspended;
     }
 
