@@ -128,7 +128,7 @@ contract SimpleMarketErrorCodes {
 contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
     //using Address for address;
-    address NULL_ADDRESS = address(0x0);
+    address public NULL_ADDRESS = address(0x0);
 
     uint public last_offer_id; // 0 when deployed
 
@@ -245,7 +245,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     }
 */
     modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) virtual {
-        console2.log( "checkOfferTokens SimpleMarket" );
+        console2.log( "modifier checkOfferTokens:SimpleMarket" );
 
         require(address(_pay_gem) != NULL_ADDRESS);
         require(address(_buy_gem) != NULL_ADDRESS);
@@ -344,7 +344,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         //offers[id].pay_amt = sub(offer.pay_amt, quantity);
         offers[id].pay_amt = offerInfo.pay_amt - quantity;
         //offers[id].buy_amt = sub(offer.buy_amt, spend);
-        offers[id].pay_amt = offerInfo.pay_amt - quantity;
+        offers[id].buy_amt = offerInfo.buy_amt - spend;
 
         // address msgSender = _msgSender();
 
