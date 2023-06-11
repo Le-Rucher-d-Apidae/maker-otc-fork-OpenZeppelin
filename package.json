@@ -32,7 +32,9 @@
     "typescript": ">=4.5.0"
   },
   "scripts": {
-    "clean": "npx hardhat clean",
+    "cleanHH": "npx hardhat clean",
+    "cleanForge": "forge clean",
+    "clean": "npm run cleanHH && npm run cleanForge",
     "dodoc": "npx hardhat dodoc",
     "docgen": "npx hardhat docgen",
     "docall": "concurrently \"npm run dodoc\" \"npm run docgen\"",
