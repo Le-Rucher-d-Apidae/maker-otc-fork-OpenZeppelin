@@ -18,24 +18,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// pragma solidity ^0.5.12;
-
 // pragma solidity >= 0.8.18 < 0.9.0;
 // pragma solidity ^0.8.20;
 pragma solidity ^0.8.18; // latest HH supported version
 
 
-// import "ds-test/test.sol";
-import "forge-std/Test.sol";
+import "forge-std/Test.sol"; // import "ds-test/test.sol";
 import "forge-std/Vm.sol";
-// import "forge-std/console22.sol";
 import "forge-std/console2.sol";
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";// import "ds-token/base.sol";
 
-// import "ds-token/base.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-// import "../contracts/simple_market.sol";
 import "../contracts/simple_market.sol";
 
 contract MarketTester {
@@ -56,32 +49,18 @@ contract MarketTester {
     }
 }
 
-/* 
-interface Hevm {
-    function warp(uint256) external;
-}
-*/
-// interface Vm {
-//     function warp(uint256 x) external;
-//     // function expectRevert(bytes calldata) external;
-// }
-
-// contract HevmCheat {
 contract VmCheat {
-    // Hevm hevm;
     Vm vm;
 
     address public NULL_ADDRESS = address(0x0);
 
-    // CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
     bytes20 constant CHEAT_CODE =
-        // bytes20(uint160(uint256(keccak256('hevm cheat code'))));
-        bytes20(uint160(uint256(keccak256('vm cheat code')))); // 60cbb3c63596fd5eb38546f5f835497c59c5c4906c0169b282e283dc3259e396
+        // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
+        bytes20(uint160(uint256(keccak256('vm cheat code')))); // 0xf835497c59c5c4906c0169b282e283dc3259e396
 
     function setUp() public virtual {
-        // hevm = Hevm(address(CHEAT_CODE));
-        // console2.log(CHEAT_CODE);
-        // console2.log("VmCheat: setUp()");
+        console2.log("VmCheat: setUp()");
+        // console2.logBytes20(CHEAT_CODE);
         vm = Vm(address(CHEAT_CODE));
         // vm.warp(1);
     }
@@ -95,8 +74,8 @@ contract DSTokenBase is ERC20{
     }
 }
 
+// Exact same test as SimpleMarketTest, but with Suspend & Stop checks added
 
-// contract SimpleMarketTest is DSTest, HevmCheat, EventfulMarket {
 contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     ERC20 dai;
@@ -105,7 +84,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
 
     function setUp() public override {
         super.setUp();
-        // console2.log("SimpleMarketTest: setUp()");
+        console2.log("SimpleMarketTest: setUp()");
 
         otc = new SimpleMarket();
         user1 = new MarketTester(otc);
@@ -113,7 +92,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
     }
-    function testBasicTrade() public {
+    function testSmplMrktBasicTrade() public {
         dai.transfer(address(user1), 100);
         user1.doApprove(address(otc), 100, dai);
         mkr.approve(address(otc), 30);
@@ -153,7 +132,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
 
  */
     }
-    function testPartiallyFilledOrderMkr() public {
+    function testSmplMrktPartiallyFilledOrderMkr() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
         mkr.approve(address(otc), 200);
@@ -199,7 +178,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         emit LogItemUpdate(id);
  */
     }
-    function testPartiallyFilledOrderDai() public {
+    function testSmplMrktPartiallyFilledOrderDai() public {
         mkr.transfer(address(user1), 10); // Move 10 MKR to user1
         user1.doApprove(address(otc), 10, mkr); // user1 approve spending 10 MKR to OTC
         dai.approve(address(otc), 500); // Approve 500 DAI to OTC
@@ -260,7 +239,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         emit LogItemUpdate(id);
  */
     }
-    function testPartiallyFilledOrderMkrExcessQuantity() public {
+    function testSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
         mkr.approve(address(otc), 200);
@@ -300,7 +279,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         emit LogItemUpdate(id);
  */
     }
-    function testInsufficientlyFilledOrder() public {
+    function testSmplMrktInsufficientlyFilledOrder() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 10, dai);
 
@@ -309,7 +288,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         bool success = user1.doBuy(id, 1);
         assertTrue(!success);
     }
-    function testCancel() public {
+    function testSmplMrktCancel() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
@@ -329,30 +308,29 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
 
  */
     }
-    function testFailCancelNotOwner() public {
+    function testSmplMrktFailCancelNotOwner() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         user1.doCancel(id);
     }
-    function testFailCancelInactive() public {
+    function testSmplMrktFailCancelInactive() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
         otc.cancel(id);
     }
-    function testFailBuyInactive() public {
+    function testSmplMrktFailBuyInactive() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
         otc.buy(id, 0);
     }
-    function testFailOfferNotEnoughFunds() public {
-        // mkr.transfer(address(0x0), mkr.balanceOf(address(this)) - 29);
+    function testSmplMrktFailOfferNotEnoughFunds() public {
         mkr.transfer(NULL_ADDRESS, mkr.balanceOf(address(this)) - 29);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(id >= 0);     //ugly hack to stop compiler from throwing a warning for unused var id
     }
-    function testFailBuyNotEnoughFunds() public {
+    function testSmplMrktFailBuyNotEnoughFunds() public {
         uint256 id = otc.offer(30, mkr, 101, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 101, dai);
@@ -362,7 +340,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testFailBuyNotEnoughApproval() public {
+    function testSmplMrktFailBuyNotEnoughApproval() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 99, dai);
@@ -372,30 +350,25 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testFailOfferSameToken() public {
+    function testSmplMrktFailOfferSameToken() public {
         dai.approve(address(otc), 200);
         otc.offer(100, dai, 100, dai);
     }
-    function testBuyTooMuch() public {
+    function testSmplMrktBuyTooMuch() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(!otc.buy(id, 50));
     }
-    function testFailOverflow() public {
+    function testSmplMrktFailOverflow() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
-        // this should throw because of safeMul being used.
-        // other buy failures will return false
-        // uint256 p = type(uint256).max;
-
         otc.buy(id, uint(type(uint256).max+1));
     }
-    function testFailTransferFromEOA() public {
+    function testSmplMrktFailTransferFromEOA() public {
         otc.offer(30, ERC20(address(123)), 100, dai);
     }
 }
 
-// contract TransferTest is DSTest, HevmCheat {
 contract TransferTest is DSTest, VmCheat {
     MarketTester user1;
     ERC20 dai;
@@ -404,7 +377,7 @@ contract TransferTest is DSTest, VmCheat {
 
     function setUp() public override{
         super.setUp();
-        // console2.log("TransferTest: setUp()");
+        console2.log("TransferTest: setUp()");
 
         otc = new SimpleMarket();
         user1 = new MarketTester(otc);
@@ -419,7 +392,7 @@ contract TransferTest is DSTest, VmCheat {
 }
 
 contract OfferTransferTest is TransferTest {
-    function testOfferTransfersFromSeller() public {
+    function testSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
         uint256 balance_after = mkr.balanceOf(address(this));
@@ -427,7 +400,7 @@ contract OfferTransferTest is TransferTest {
         assertEq(balance_before - balance_after, 30);
         assertTrue(id > 0);
     }
-    function testOfferTransfersToMarket() public {
+    function testSmplMrktOfferTransfersToMarket() public {
         uint256 balance_before = mkr.balanceOf(address(otc));
         uint256 id = otc.offer(30, mkr, 100, dai);
         uint256 balance_after = mkr.balanceOf(address(otc));
@@ -438,7 +411,7 @@ contract OfferTransferTest is TransferTest {
 }
 
 contract BuyTransferTest is TransferTest {
-    function testBuyTransfersFromBuyer() public {
+    function testSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
@@ -447,7 +420,7 @@ contract BuyTransferTest is TransferTest {
 
         assertEq(balance_before - balance_after, 100);
     }
-    function testBuyTransfersToSeller() public {
+    function testSmplMrktBuyTransfersToSeller() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(this));
@@ -456,7 +429,7 @@ contract BuyTransferTest is TransferTest {
 
         assertEq(balance_after - balance_before, 100);
     }
-    function testBuyTransfersFromMarket() public {
+    function testSmplMrktBuyTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
@@ -465,7 +438,7 @@ contract BuyTransferTest is TransferTest {
 
         assertEq(balance_before - balance_after, 30);
     }
-    function testBuyTransfersToBuyer() public {
+    function testSmplMrktBuyTransfersToBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(user1));
@@ -477,7 +450,7 @@ contract BuyTransferTest is TransferTest {
 }
 
 contract PartialBuyTransferTest is TransferTest {
-    function testBuyTransfersFromBuyer() public {
+    function testSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
@@ -486,7 +459,7 @@ contract PartialBuyTransferTest is TransferTest {
 
         assertEq(balance_before - balance_after, 50);
     }
-    function testBuyTransfersToSeller() public {
+    function testSmplMrktBuyTransfersToSeller() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(this));
@@ -495,7 +468,7 @@ contract PartialBuyTransferTest is TransferTest {
 
         assertEq(balance_after - balance_before, 50);
     }
-    function testBuyTransfersFromMarket() public {
+    function testSmplMrktBuyTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
@@ -504,7 +477,7 @@ contract PartialBuyTransferTest is TransferTest {
 
         assertEq(balance_before - balance_after, 15);
     }
-    function testBuyTransfersToBuyer() public {
+    function testSmplMrktBuyTransfersToBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(user1));
@@ -513,7 +486,7 @@ contract PartialBuyTransferTest is TransferTest {
 
         assertEq(balance_after - balance_before, 15);
     }
-    function testBuyOddTransfersFromBuyer() public {
+    function testSmplMrktBuyOddTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
@@ -525,7 +498,7 @@ contract PartialBuyTransferTest is TransferTest {
 }
 
 contract CancelTransferTest is TransferTest {
-    function testCancelTransfersFromMarket() public {
+    function testSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
@@ -534,7 +507,7 @@ contract CancelTransferTest is TransferTest {
 
         assertEq(balance_before - balance_after, 30);
     }
-    function testCancelTransfersToSeller() public {
+    function testSmplMrktCancelTransfersToSeller() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(this));
@@ -543,7 +516,7 @@ contract CancelTransferTest is TransferTest {
 
         assertEq(balance_after - balance_before, 30);
     }
-    function testCancelPartialTransfersFromMarket() public {
+    function testSmplMrktCancelPartialTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
         user1.doBuy(id, 15);
 
@@ -553,7 +526,7 @@ contract CancelTransferTest is TransferTest {
 
         assertEq(balance_before - balance_after, 15);
     }
-    function testCancelPartialTransfersToSeller() public {
+    function testSmplMrktCancelPartialTransfersToSeller() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
         user1.doBuy(id, 15);
 
@@ -574,7 +547,7 @@ contract GasTest is DSTest, VmCheat {
 
     function setUp() public override {
         super.setUp();
-        // console2.log("GasTest: setUp()");
+        console2.log("GasTest: setUp()");
 
         otc = new SimpleMarket();
 
@@ -586,31 +559,31 @@ contract GasTest is DSTest, VmCheat {
 
         id = otc.offer(30, mkr, 100, dai);
     }
-    function testNewMarket()
+    function testSmplMrktNewMarket()
         public
         logs_gas
     {
         new SimpleMarket();
     }
-    function testNewOffer()
+    function testSmplMrktNewOffer()
         public
         logs_gas
     {
         otc.offer(30, mkr, 100, dai);
     }
-    function testBuy()
+    function testSmplMrktBuy()
         public
         logs_gas
     {
         otc.buy(id, 30);
     }
-    function testBuyPartial()
+    function testSmplMrktBuyPartial()
         public
         logs_gas
     {
         otc.buy(id, 15);
     }
-    function testCancel()
+    function testSmplMrktCancel()
         public
         logs_gas
     {
