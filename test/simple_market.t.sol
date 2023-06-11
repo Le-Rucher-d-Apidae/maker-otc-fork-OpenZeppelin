@@ -71,6 +71,8 @@ contract VmCheat {
     // Hevm hevm;
     Vm vm;
 
+    address public NULL_ADDRESS = address(0x0);
+
     // CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
     bytes20 constant CHEAT_CODE =
         // bytes20(uint160(uint256(keccak256('hevm cheat code'))));
@@ -175,8 +177,10 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         assertEq(25, user1_dai_balance_before - user1_dai_balance_after);
         assertEq(190, sell_val);
         assertEq(475, buy_val);
-        assertTrue(address(sell_token) != address(0));
-        assertTrue(address(buy_token) != address(0));
+        // assertTrue(address(sell_token) != address(0));
+        // assertTrue(address(buy_token) != address(0));
+        assertTrue(address(sell_token) != NULL_ADDRESS);
+        assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
 /* 
@@ -196,31 +200,46 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
  */
     }
     function testPartiallyFilledOrderDai() public {
-        mkr.transfer(address(user1), 10);
-        user1.doApprove(address(otc), 10, mkr);
-        dai.approve(address(otc), 500);
+        mkr.transfer(address(user1), 10); // Move 10 MKR to user1
+        user1.doApprove(address(otc), 10, mkr); // user1 approve spending 10 MKR to OTC
+        dai.approve(address(otc), 500); // Approve 500 DAI to OTC
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
+        console.log("my_mkr_balance_before", my_mkr_balance_before);
         uint256 my_dai_balance_before = dai.balanceOf(address(this));
+        console.log("my_dai_balance_before", my_dai_balance_before);
         uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
+        console.log("user1_mkr_balance_before", user1_mkr_balance_before);
         uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
+        console.log("user1_dai_balance_before", user1_dai_balance_before);
 
+        // Offer : Sell 500 DAI, buy 200 MKR (buy DAI with MKR) 4 MKR = 10 DAI
         uint256 id = otc.offer(500, dai, 200, mkr);
+        console.log("id", id);
+        // Buy for 10 DAI of MKR (spend 4 MKR)
         assertTrue(user1.doBuy(id, 10));
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
+        console.log("my_mkr_balance_after", my_mkr_balance_after);
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
+        console.log("my_dai_balance_after", my_dai_balance_after);
         uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
+        console.log("user1_mkr_balance_after", user1_mkr_balance_after);
         uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
+        console.log("user1_dai_balance_after", user1_dai_balance_after);
         (uint256 sell_val, ERC20 sell_token, uint256 buy_val, ERC20 buy_token) = otc.getOffer(id);
+        console.log("sell_val", sell_val, "buy_val", buy_val);
 
         assertEq(500, my_dai_balance_before - my_dai_balance_after);
         assertEq(4, my_mkr_balance_after - my_mkr_balance_before);
         assertEq(10, user1_dai_balance_after - user1_dai_balance_before);
         assertEq(4, user1_mkr_balance_before - user1_mkr_balance_after);
         assertEq(490, sell_val);
-        assertEq(196, buy_val);
-        assertTrue(address(sell_token) != address(0));
-        assertTrue(address(buy_token) != address(0));
+        assertEq(196, buy_val); // FAILS HERE
+
+        // assertTrue(address(sell_token) != address(0));
+        // assertTrue(address(buy_token) != address(0));
+       assertTrue(address(sell_token) != NULL_ADDRESS);
+       assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
 
@@ -266,8 +285,10 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         assertEq(0, user1_mkr_balance_before - user1_mkr_balance_after);
         assertEq(200, sell_val);
         assertEq(500, buy_val);
-        assertTrue(address(sell_token) != address(0));
-        assertTrue(address(buy_token) != address(0));
+        // assertTrue(address(sell_token) != address(0));
+        // assertTrue(address(buy_token) != address(0));
+        assertTrue(address(sell_token) != NULL_ADDRESS);
+        assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
 
@@ -326,7 +347,8 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         otc.buy(id, 0);
     }
     function testFailOfferNotEnoughFunds() public {
-        mkr.transfer(address(0x0), mkr.balanceOf(address(this)) - 29);
+        // mkr.transfer(address(0x0), mkr.balanceOf(address(this)) - 29);
+        mkr.transfer(NULL_ADDRESS, mkr.balanceOf(address(this)) - 29);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(id >= 0);     //ugly hack to stop compiler from throwing a warning for unused var id
     }
