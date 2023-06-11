@@ -308,29 +308,29 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
 
  */
     }
-    function testSmplMrktFailCancelNotOwner() public {
+    function testFailSmplMrktCancelNotOwner() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         user1.doCancel(id);
     }
-    function testSmplMrktFailCancelInactive() public {
+    function testFailSmplMrktCancelInactive() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
         otc.cancel(id);
     }
-    function testSmplMrktFailBuyInactive() public {
+    function testFailSmplMrktBuyInactive() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
         otc.buy(id, 0);
     }
-    function testSmplMrktFailOfferNotEnoughFunds() public {
+    function testFailSmplMrktOfferNotEnoughFunds() public {
         mkr.transfer(NULL_ADDRESS, mkr.balanceOf(address(this)) - 29);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(id >= 0);     //ugly hack to stop compiler from throwing a warning for unused var id
     }
-    function testSmplMrktFailBuyNotEnoughFunds() public {
+    function testFailSmplMrktBuyNotEnoughFunds() public {
         uint256 id = otc.offer(30, mkr, 101, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 101, dai);
@@ -340,7 +340,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testSmplMrktFailBuyNotEnoughApproval() public {
+    function testFailSmplMrktBuyNotEnoughApproval() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 99, dai);
@@ -350,7 +350,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testSmplMrktFailOfferSameToken() public {
+    function testFailSmplMrktOfferSameToken() public {
         dai.approve(address(otc), 200);
         otc.offer(100, dai, 100, dai);
     }
@@ -359,12 +359,12 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(!otc.buy(id, 50));
     }
-    function testSmplMrktFailOverflow() public {
+    function testFailSmplMrktOverflow() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         otc.buy(id, uint(type(uint256).max+1));
     }
-    function testSmplMrktFailTransferFromEOA() public {
+    function testFailSmplMrktTransferFromEOA() public {
         otc.offer(30, ERC20(address(123)), 100, dai);
     }
 }
