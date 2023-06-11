@@ -49,7 +49,7 @@
     "startLocalNode": "npx hardhat node",
     "nodeV": "npx hardhat node --verbose",
     "testHH": "npx hardhat test",
-    "testFoundry": "forge test",
+    "testFoundry": "forge test -vv",
     "testAll": "npm run testHH && npm run testFoundry",
     "testPG": "npx hardhat test --network localhost --grep PayableGreeter",
     "testTrace": "npx hardhat test --trace",
