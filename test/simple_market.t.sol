@@ -27,6 +27,10 @@ pragma solidity ^0.8.18; // latest HH supported version
 
 // import "ds-test/test.sol";
 import "forge-std/Test.sol";
+import "forge-std/Vm.sol";
+// import "forge-std/console22.sol";
+import "forge-std/console2.sol";
+
 
 // import "ds-token/base.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -69,13 +73,15 @@ contract VmCheat {
 
     // CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
     bytes20 constant CHEAT_CODE =
-        bytes20(uint160(uint256(keccak256('hevm cheat code'))));
+        // bytes20(uint160(uint256(keccak256('hevm cheat code'))));
+        bytes20(uint160(uint256(keccak256('vm cheat code')))); // 60cbb3c63596fd5eb38546f5f835497c59c5c4906c0169b282e283dc3259e396
 
     function setUp() public virtual {
         // hevm = Hevm(address(CHEAT_CODE));
+        // console2.log(CHEAT_CODE);
+        // console2.log("VmCheat: setUp()");
         vm = Vm(address(CHEAT_CODE));
-
-        vm.warp(1);
+        // vm.warp(1);
     }
 }
 
@@ -83,7 +89,7 @@ contract VmCheat {
 
 contract DSTokenBase is ERC20{
     constructor(uint _initialSupply) ERC20("Test", "TST") {
-        _mint(msg.sender, _initialSupply ** decimals());
+        _mint(msg.sender, _initialSupply );
     }
 }
 
@@ -97,6 +103,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
 
     function setUp() public override {
         super.setUp();
+        // console2.log("SimpleMarketTest: setUp()");
 
         otc = new SimpleMarket();
         user1 = new MarketTester(otc);
@@ -375,6 +382,7 @@ contract TransferTest is DSTest, VmCheat {
 
     function setUp() public override{
         super.setUp();
+        // console2.log("TransferTest: setUp()");
 
         otc = new SimpleMarket();
         user1 = new MarketTester(otc);
@@ -544,6 +552,7 @@ contract GasTest is DSTest, VmCheat {
 
     function setUp() public override {
         super.setUp();
+        // console2.log("GasTest: setUp()");
 
         otc = new SimpleMarket();
 
