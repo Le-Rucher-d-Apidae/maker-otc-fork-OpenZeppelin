@@ -93,12 +93,14 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     ERC20 dai;
     ERC20 mkr;
+    ERC20 mainTradablesToken;
     SimpleMarket otc;
 
     function setUp() public override {
         super.setUp();
 
-        otc = new SimpleMarket();
+        mainTradablesToken = new DSTokenBase(10 ** 9);
+        otc = new SimpleMarket( mainTradablesToken );
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -369,6 +371,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
 // contract TransferTest is DSTest, HevmCheat {
 contract TransferTest is DSTest, VmCheat {
     MarketTester user1;
+    ERC20 mainTradablesToken;
     ERC20 dai;
     ERC20 mkr;
     SimpleMarket otc;
@@ -376,7 +379,8 @@ contract TransferTest is DSTest, VmCheat {
     function setUp() public override{
         super.setUp();
 
-        otc = new SimpleMarket();
+        mainTradablesToken = new DSTokenBase(10 ** 9);
+        otc = new SimpleMarket( mainTradablesToken );
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -537,6 +541,7 @@ contract CancelTransferTest is TransferTest {
 
 // contract GasTest is DSTest, HevmCheat {
 contract GasTest is DSTest, VmCheat {
+    ERC20 mainTradablesToken;
     ERC20 dai;
     ERC20 mkr;
     SimpleMarket otc;
@@ -545,7 +550,8 @@ contract GasTest is DSTest, VmCheat {
     function setUp() public override {
         super.setUp();
 
-        otc = new SimpleMarket();
+        mainTradablesToken = new DSTokenBase(10 ** 9);
+        otc = new SimpleMarket( mainTradablesToken );
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -559,7 +565,7 @@ contract GasTest is DSTest, VmCheat {
         public
         logs_gas
     {
-        new SimpleMarket();
+        new SimpleMarket( mainTradablesToken );
     }
     function testNewOffer()
         public

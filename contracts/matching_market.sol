@@ -62,7 +62,8 @@ contract MatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DS
     
 
     // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
-    constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
+    // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
+    constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
         dustToken = _dustToken;
         dustLimit = _dustLimit;
         priceOracle = _priceOracle;

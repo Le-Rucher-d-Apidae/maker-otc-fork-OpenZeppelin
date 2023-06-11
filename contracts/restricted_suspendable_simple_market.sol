@@ -22,6 +22,9 @@
 // pragma solidity ^0.8.20;
 pragma solidity ^0.8.18; // latest HH supported version
 
+// import "hardhat/console.sol";
+import "forge-std/console2.sol";
+
 import "./suspendable_simple_market.sol";
 
 contract RestrictedSuspendableSimpleMarketErrorCodes {
@@ -80,38 +83,12 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
         _;
     }
 
-    modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) {
+    modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) override {
         // Since tradable tokens are whitelisted, no need to check for address(0x0)
-        //require(address(pay_gem) != address(0x0));
-        //require(address(buy_gem) != address(0x0));
-        // Tokens must be different
-        // require(pay_gem != buy_gem);
-
         // Check for token : one must be mainTradableToken, other must be tradable
-        // allow only:
-        //  - mainTradableToken / tradableTokens[_buy_gem])
-        //  - tradableTokens[_pay_gem]) / mainTradableToken
+        console2.log( "checkOfferTokens RestrictedSuspendableSimpleMarket" );
 
-        /*
         // Sell mainTradableToken
-        _pay_gem==mainTradableToken
-        ?
-        // Buy token must be tradable
-        // require(tradableTokens[_buy_gem], "buy token not allowed")
-        require(tradableTokens[_buy_gem], _T001)
-        :
-        // Buy mainTradableToken
-        _buy_gem==mainTradableToken
-            ?
-            // Sold token must be tradable
-            // require( tradableTokens[_pay_gem], "sell token not allowed" ):
-            require( tradableTokens[_pay_gem], _T002 ):
-            // mainTradableToken is neither sold or bought : revert
-            // revert("wrong trading pair") ;
-            revert(_T003) ;
-            // revert InvalidTradingPair(_pay_gem, _buy_gem);
-        */
-       // Sell mainTradableToken
         if (_pay_gem==mainTradableToken) {
             // Buy token must be tradable
             require(tradableTokens[_buy_gem], _T001);
@@ -137,12 +114,12 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
         require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
         require(!tradableTokens[_erc20],"Already allowed");
         require(address(_erc20) != address(0x0));
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
         tradableTokens[_erc20] = true;
     }
 

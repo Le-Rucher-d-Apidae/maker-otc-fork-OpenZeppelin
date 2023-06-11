@@ -122,7 +122,7 @@ contract ErrorCodes {
 }
 
 //contract SimpleMarket is EventfulMarket, DSMath {
-contract SimpleMarket is EventfulMarket, ErrorCodes, Ownable {
+contract SimpleMarket_OLD is EventfulMarket, ErrorCodes, Ownable {
 
     //using Address for address;
     address NULL_ADDRESS = address(0x0);

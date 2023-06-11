@@ -22,6 +22,9 @@
 // pragma solidity ^0.8.20;
 pragma solidity ^0.8.18; // latest HH supported version
 
+// import "hardhat/console.sol";
+import "forge-std/console2.sol";
+
 /*
 import "ds-math/math.sol";
 import "erc20/erc20.sol";
@@ -241,6 +244,16 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         _;
     }
 */
+    modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) virtual {
+        console2.log( "checkOfferTokens SimpleMarket" );
+
+        require(address(_pay_gem) != NULL_ADDRESS);
+        require(address(_buy_gem) != NULL_ADDRESS);
+        // Tokens must be different
+        require(_pay_gem != _buy_gem);
+        _;
+    }
+
 
     // function isActive(uint id) public view returns (bool active) {
     function isOrderActive(uint id) public view returns (bool active) {
@@ -435,7 +448,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         can_offer
         synchronized
         checkOfferAmounts(_pay_amt, _buy_amt)
-        // checkOfferTokens(_pay_gem, _buy_gem)
+        checkOfferTokens(_pay_gem, _buy_gem)
         virtual
         returns (uint id)
     {
