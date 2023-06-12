@@ -76,7 +76,7 @@ contract DSTokenBase is ERC20{
 
 // Exact same test as SimpleMarketTest, but with Suspend & Stop checks added
 
-contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
+contract SimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     ERC20 dai;
     ERC20 mkr;
@@ -84,7 +84,7 @@ contract SimpleMarketTest is DSTest, VmCheat, EventfulMarket {
 
     function setUp() public override {
         super.setUp();
-        console2.log("SimpleMarketTest: setUp()");
+        console2.log("SimpleMarket_Test: setUp()");
 
         otc = new SimpleMarket();
         user1 = new MarketTester(otc);
@@ -391,7 +391,7 @@ contract TransferTest is DSTest, VmCheat {
     }
 }
 
-contract OfferTransferTest is TransferTest {
+contract SimpleMarket_OfferTransferTest is TransferTest {
     function testSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -410,7 +410,7 @@ contract OfferTransferTest is TransferTest {
     }
 }
 
-contract BuyTransferTest is TransferTest {
+contract SimpleMarket_BuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -449,7 +449,7 @@ contract BuyTransferTest is TransferTest {
     }
 }
 
-contract PartialBuyTransferTest is TransferTest {
+contract SimpleMarket_PartialBuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -497,7 +497,7 @@ contract PartialBuyTransferTest is TransferTest {
     }
 }
 
-contract CancelTransferTest is TransferTest {
+contract SimpleMarket_CancelTransferTest is TransferTest {
     function testSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -538,7 +538,7 @@ contract CancelTransferTest is TransferTest {
     }
 }
 
-contract GasTest is DSTest, VmCheat {
+contract SimpleMarket_GasTest is DSTest, VmCheat {
     ERC20 dai;
     ERC20 mkr;
     SimpleMarket otc;
