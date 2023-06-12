@@ -538,7 +538,6 @@ contract CancelTransferTest is TransferTest {
     }
 }
 
-// contract GasTest is DSTest, HevmCheat {
 contract GasTest is DSTest, VmCheat {
     ERC20 dai;
     ERC20 mkr;
