@@ -111,9 +111,10 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     }
 
     function allowToken(ERC20 _erc20) public onlyOwner {
+        require(address(mainTradableToken) != NULL_ADDRESS,"mainTradableToken must be set first");
         require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
         require(!tradableTokens[_erc20],"Already allowed");
-        require(address(_erc20) != address(0x0));
+        require(address(_erc20) != NULL_ADDRESS);
         // TODO: check is ERC20
         // TODO: check is ERC20
         // TODO: check is ERC20
