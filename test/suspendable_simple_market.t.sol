@@ -370,7 +370,11 @@ contract SuspendableSimpleMarketTest is DSTest, VmCheat, EventfulMarket {
     }
 }
 
-contract TransferTest is DSTest, VmCheat {
+// ----------------------------------------------------------------------------
+
+// Same tests as Simple market (market is NOT suspended or closed)
+
+contract TransferTest_OpenMarket is DSTest, VmCheat {
     MarketTester user1;
     ERC20 dai;
     ERC20 mkr;
@@ -378,7 +382,7 @@ contract TransferTest is DSTest, VmCheat {
 
     function setUp() public override{
         super.setUp();
-        console2.log("TransferTest: setUp()");
+        console2.log("TransferTest_OpenMarket: setUp()");
 
         otc = new SuspendableSimpleMarket(false);
         user1 = new MarketTester(otc);
@@ -392,7 +396,7 @@ contract TransferTest is DSTest, VmCheat {
     }
 }
 
-contract OfferTransferTest is TransferTest {
+contract OfferTransferTest is TransferTest_OpenMarket {
     function testSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -411,7 +415,7 @@ contract OfferTransferTest is TransferTest {
     }
 }
 
-contract BuyTransferTest is TransferTest {
+contract BuyTransferTest is TransferTest_OpenMarket {
     function testSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -450,7 +454,7 @@ contract BuyTransferTest is TransferTest {
     }
 }
 
-contract PartialBuyTransferTest is TransferTest {
+contract PartialBuyTransferTest is TransferTest_OpenMarket {
     function testSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -498,7 +502,7 @@ contract PartialBuyTransferTest is TransferTest {
     }
 }
 
-contract CancelTransferTest is TransferTest {
+contract CancelTransferTest is TransferTest_OpenMarket {
     function testSuspdblSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -538,6 +542,201 @@ contract CancelTransferTest is TransferTest {
         assertEq(balance_after - balance_before, 15);
     }
 }
+
+// ----------------------------------------------------------------------------
+
+// Same tests as above, but with the market suspended
+
+contract TransferTest_SuspendedMarket is DSTest, VmCheat {
+    MarketTester user1;
+    ERC20 dai;
+    ERC20 mkr;
+    SuspendableSimpleMarket otc;
+
+    function setUp() public override{
+        super.setUp();
+        console2.log("TransferTest_SuspendedMarket: setUp()");
+
+        otc = new SuspendableSimpleMarket(true);
+        user1 = new MarketTester(otc);
+
+        dai = new DSTokenBase(10 ** 9);
+        mkr = new DSTokenBase(10 ** 6);
+
+        dai.transfer(address(user1), 100);
+        user1.doApprove(address(otc), 100, dai);
+        mkr.approve(address(otc), 30);
+    }
+}
+
+contract OfferTransferTestSuspended is TransferTest_SuspendedMarket {
+    function testFailSuspndSuspdblSmplMrktOfferTransfersFromSeller() public {
+        uint256 balance_before = mkr.balanceOf(address(this));
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        uint256 balance_after = mkr.balanceOf(address(this));
+
+        assertEq(balance_before - balance_after, 30);
+        assertTrue(id > 0);
+    }
+    function testFailSuspndSuspdblSmplMrktOfferTransfersToMarket() public {
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_after - balance_before, 30);
+        assertTrue(id > 0);
+    }
+}
+
+contract BuyTransferTestSuspended is TransferTest_SuspendedMarket {
+    function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(user1));
+        user1.doBuy(id, 30);
+        uint256 balance_after = dai.balanceOf(address(user1));
+
+        assertEq(balance_before - balance_after, 100);
+    }
+    function testFailSuspndSuspdblSmplMrktBuyTransfersToSeller() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(this));
+        user1.doBuy(id, 30);
+        uint256 balance_after = dai.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 100);
+    }
+    function testFailSuspndSuspdblSmplMrktBuyTransfersFromMarket() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        user1.doBuy(id, 30);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 30);
+    }
+    function testFailSuspndSuspdblSmplMrktBuyTransfersToBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(user1));
+        user1.doBuy(id, 30);
+        uint256 balance_after = mkr.balanceOf(address(user1));
+
+        assertEq(balance_after - balance_before, 30);
+    }
+}
+
+contract PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
+    function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(user1));
+        user1.doBuy(id, 15);
+        uint256 balance_after = dai.balanceOf(address(user1));
+
+        assertEq(balance_before - balance_after, 50);
+    }
+    function testFailSuspndSuspdblSmplMrktBuyTransfersToSeller() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(this));
+        user1.doBuy(id, 15);
+        uint256 balance_after = dai.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 50);
+    }
+    function testFailSuspndSuspdblSmplMrktBuyTransfersFromMarket() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        user1.doBuy(id, 15);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 15);
+    }
+    function testFailSuspndSuspdblSmplMrktBuyTransfersToBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(user1));
+        user1.doBuy(id, 15);
+        uint256 balance_after = mkr.balanceOf(address(user1));
+
+        assertEq(balance_after - balance_before, 15);
+    }
+    function testFailSuspndSuspdblSmplMrktBuyOddTransfersFromBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(user1));
+        user1.doBuy(id, 17);
+        uint256 balance_after = dai.balanceOf(address(user1));
+
+        assertEq(balance_before - balance_after, 56);
+    }
+}
+
+contract CancelTransferTestSuspended is TransferTest_SuspendedMarket {
+    function testSuspndSuspdblSmplMrktCancelTransfersFromMarket() public {
+        // Unsuspend to allow offer
+        otc.unsuspendMarket();
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        // Suspend and test cancellation
+        otc.suspendMarket();
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 30);
+    }
+    function testSuspndSuspdblSmplMrktCancelTransfersToSeller() public {
+        // Unsuspend to allow offer
+        otc.unsuspendMarket();
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        // Suspend and test cancellation
+        otc.suspendMarket();
+
+        uint256 balance_before = mkr.balanceOf(address(this));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 30);
+    }
+    function testSuspndSuspdblSmplMrktCancelPartialTransfersFromMarket() public {
+        // Unsuspend to allow offer & buy
+        otc.unsuspendMarket();
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        user1.doBuy(id, 15);
+        // Suspend and test cancellation
+        otc.suspendMarket();
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 15);
+    }
+    function testSuspndSuspdblSmplMrktCancelPartialTransfersToSeller() public {
+        // Unsuspend to allow offer & buy
+        otc.unsuspendMarket();
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        user1.doBuy(id, 15);
+        // Suspend and test cancellation
+        otc.suspendMarket();
+
+        uint256 balance_before = mkr.balanceOf(address(this));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 15);
+    }
+}
+
+
+// ============================================================================
+
+
+// --- Gas Tests ---
 
 // contract GasTest is DSTest, HevmCheat {
 contract GasTest is DSTest, VmCheat {
