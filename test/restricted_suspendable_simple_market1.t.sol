@@ -76,7 +76,7 @@ contract DSTokenBase is ERC20{
 }
 
 
-contract RestrictedSuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
+contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     ERC20 dai;
     ERC20 mkr;
@@ -395,7 +395,7 @@ contract TransferTest_OpenMarket is DSTest, VmCheat {
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_OfferTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarket_OfferTransferTestOpened is TransferTest_OpenMarket {
     function testFailRstrctdSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -414,7 +414,7 @@ contract RestrictedSuspendableSimpleMarket_OfferTransferTestOpened is TransferTe
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarket {
     function testFailRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -453,7 +453,7 @@ contract RestrictedSuspendableSimpleMarket_BuyTransferTestOpened is TransferTest
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
     function testFailRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -501,7 +501,7 @@ contract RestrictedSuspendableSimpleMarket_PartialBuyTransferTestOpened is Trans
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_CancelTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarket_CancelTransferTestOpened is TransferTest_OpenMarket {
     function testFailRstrctdSuspdblSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -568,7 +568,7 @@ contract TransferTest_SuspendedMarket is DSTest, VmCheat {
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarket_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -587,7 +587,7 @@ contract RestrictedSuspendableSimpleMarket_OfferTransferTestSuspended is Transfe
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarket_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -626,7 +626,7 @@ contract RestrictedSuspendableSimpleMarket_BuyTransferTestSuspended is TransferT
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -674,7 +674,7 @@ contract RestrictedSuspendableSimpleMarket_PartialBuyTransferTestSuspended is Tr
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarket_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktCancelTransfersFromMarket() public {
         // Unsuspend to allow offer
         otc.unsuspendMarket();
@@ -758,7 +758,7 @@ contract TransferTest_ClosedMarket is DSTest, VmCheat {
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_OfferTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarket_OfferTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -777,7 +777,7 @@ contract RestrictedSuspendableSimpleMarket_OfferTransferTestClosed is TransferTe
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_BuyTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarket_BuyTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -816,7 +816,7 @@ contract RestrictedSuspendableSimpleMarket_BuyTransferTestClosed is TransferTest
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -864,7 +864,7 @@ contract RestrictedSuspendableSimpleMarket_PartialBuyTransferTestClosed is Trans
     }
 }
 
-contract RestrictedSuspendableSimpleMarket_CancelTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarket_CancelTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -958,7 +958,7 @@ contract RestrictedSuspendableSimpleMarket_CancelTransferTestClosed is TransferT
 
 // --- Gas Tests ---
 
-contract RestrictedSuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
     ERC20 dai;
     ERC20 mkr;
     RestrictedSuspendableSimpleMarket otc;
@@ -1014,7 +1014,7 @@ contract RestrictedSuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat
 
 // Same tests as above, but with the market suspended
 
-contract RestrictedSuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
     ERC20 dai;
     ERC20 mkr;
     RestrictedSuspendableSimpleMarket otc;
@@ -1069,7 +1069,7 @@ contract RestrictedSuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, Vm
 
 // Same tests as above, but with the market closed
 
-contract RestrictedSuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
     ERC20 dai;
     ERC20 mkr;
     RestrictedSuspendableSimpleMarket otc;
@@ -1124,7 +1124,7 @@ contract RestrictedSuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmChe
 
 // Same tests as above, but with the market closed & unsuspended
 
-contract RestrictedSuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
     ERC20 dai;
     ERC20 mkr;
     RestrictedSuspendableSimpleMarket otc;
