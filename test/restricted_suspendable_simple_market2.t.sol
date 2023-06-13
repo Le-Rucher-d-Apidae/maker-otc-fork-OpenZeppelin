@@ -80,24 +80,27 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
     MarketTester user1;
     ERC20 dai; // main token
     ERC20 mkr; // authorized token
-    ERC20 aave; // authorized token
-    ERC20 crv; // another token
+    ERC20 mkr2; // AuthorizedToken token
+    ERC20 aave; // UnauthorizedToken token
+    ERC20 crv; // UnauthorizedToken token
     RestrictedSuspendableSimpleMarket otc;
 
     function setUp() public override {
         super.setUp();
-        console2.log("RestrictedSuspendableSimpleMarket_Test: setUp()");
+        console2.log("Restricted2SuspendableSimpleMarket_Test: setUp()");
 
-        dai = new DSTokenBase(10 ** 9);
+        dai = new DSTokenBase(10 ** 9); // MainTradableToken
+        mkr = new DSTokenBase(10 ** 6); // AuthorizedToken
+        mkr2 = new DSTokenBase(10 ** 6); // AuthorizedToken
 
         otc = new RestrictedSuspendableSimpleMarket(dai, false);
         otc.allowToken(mkr);
+        otc.allowToken(mkr2);
 
         user1 = new MarketTester(otc);
 
-        mkr = new DSTokenBase(10 ** 6);
-        aave = new DSTokenBase(10 ** 6);
-        crv = new DSTokenBase(10 ** 6);
+        aave = new DSTokenBase(10 ** 6); // UnauthorizedToken
+        crv = new DSTokenBase(10 ** 6); // UnauthorizedToken
     }
     function testRstrctdSuspdblSmplMrktBasicTrade() public {
         dai.transfer(address(user1), 100);
@@ -361,10 +364,6 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testFailRstrctdSuspdblSmplMrktOfferSameToken() public {
-        dai.approve(address(otc), 200);
-        otc.offer(100, dai, 100, dai);
-    }
     function testRstrctdSuspdblSmplMrktBuyTooMuch() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -378,33 +377,110 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
     function testFailRstrctdSuspdblSmplMrktTransferFromEOA() public {
         otc.offer(30, ERC20(address(123)), 100, dai);
     }
+
+    // Tokens tests
+
+    // Twice the same token
+    // Main token
+    function testFailRstrctdSuspdblSmplMrktOfferTwiceMainToken() public {
+        
+        dai.approve(address(otc), 200);
+        otc.offer(100, dai, 100, dai);
+    }
+    // Twice the same token
+    // Authorized token
+    function testFailRstrctdSuspdblSmplMrktOfferTwiceAuthorizedToken() public {
+        mkr.approve(address(otc), 200);
+        otc.offer(100, mkr, 100, mkr);
+    }
+    // Twice the same token
+    // Unauthorized token
+    function testFailRstrctdSuspdblSmplMrktOfferTwiceUnauthorizedToken() public {
+        aave.approve(address(otc), 200);
+        otc.offer(100, aave, 100, aave);
+    }
+
+    // Differents tokens
+    // Main token and authorized token
+    function testRstrctdSuspdblSmplMrktOfferMainTokenAndAuthorizedToken() public {
+        dai.approve(address(otc), 100);
+        mkr2.approve(address(otc), 100);
+        otc.offer(100, dai, 100, mkr2);
+    }
+
+    // Differents tokens
+    // Authorized token and Main token (swap token order)
+    function testRstrctdSuspdblSmplMrktOfferMainTokenAndAuthorizedToken2() public {
+        dai.approve(address(otc), 100);
+        mkr2.approve(address(otc), 100);
+        otc.offer(100, mkr2, 100, dai);
+    }
+
+    // Differents tokens
+    // Main token and unauthorized token
+    function testFailRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenNoMainToken() public {
+        dai.approve(address(otc), 100);
+        aave.approve(address(otc), 100);
+        otc.offer(100, aave, 100, dai);
+    }
+
+    // Differents tokens
+    // Authorized token and unauthorized token
+    function testFailRstrctdSuspdblSmplMrktOfferDifferentUnauthorizedTokenAuthorizedTokenNoMainToken() public {
+        mkr.approve(address(otc), 100);
+        aave.approve(address(otc), 100);
+        otc.offer(100, aave, 100, mkr);
+    }
+
+
+    // Differents tokens
+    // Authorized token and Authorized token
+    function testFailRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenAuthorizedTokenNoMainToken() public {
+        mkr.approve(address(otc), 100);
+        mkr2.approve(address(otc), 100);
+        otc.offer(100, mkr2, 100, mkr);
+    }
+
 }
 
 // ----------------------------------------------------------------------------
 
 // Same tests as Simple market (market is NOT suspended or closed)
 
-/*
 
 contract TransferTest_OpenMarket is DSTest, VmCheat {
     MarketTester user1;
-    ERC20 dai;
-    ERC20 mkr;
+    ERC20 dai; // main token
+    ERC20 mkr; // authorized token
+    ERC20 mkr2; // AuthorizedToken token
+    ERC20 aave; // UnauthorizedToken token
+    ERC20 crv; // UnauthorizedToken token
     RestrictedSuspendableSimpleMarket otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_OpenMarket: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(false);
-        user1 = new MarketTester(otc);
+        dai = new DSTokenBase(10 ** 9); // MainTradableToken
+        mkr = new DSTokenBase(10 ** 6); // AuthorizedToken
+        mkr2 = new DSTokenBase(10 ** 6); // AuthorizedToken
 
-        dai = new DSTokenBase(10 ** 9);
-        mkr = new DSTokenBase(10 ** 6);
+        otc = new RestrictedSuspendableSimpleMarket(dai, false);
+        otc.allowToken(mkr);
+        otc.allowToken(mkr2);
+        user1 = new MarketTester(otc);
 
         dai.transfer(address(user1), 100);
         user1.doApprove(address(otc), 100, dai);
         mkr.approve(address(otc), 30);
+        mkr2.approve(address(otc), 30);
+
+        aave = new DSTokenBase(10 ** 6); // UnauthorizedToken
+        crv = new DSTokenBase(10 ** 6); // UnauthorizedToken
+
+        aave.transfer(address(user1), 100);
+        user1.doApprove(address(otc), 100, dai);
+        aave.approve(address(otc), 30);
     }
 }
 
@@ -417,6 +493,33 @@ contract Restricted2SuspendableSimpleMarket_OfferTransferTestOpened is TransferT
         assertEq(balance_before - balance_after, 30);
         assertTrue(id > 0);
     }
+    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller2() public {
+        uint256 balance_before = mkr2.balanceOf(address(this));
+        uint256 id = otc.offer(30, mkr2, 100, dai);
+        uint256 balance_after = mkr2.balanceOf(address(this));
+
+        assertEq(balance_before - balance_after, 30);
+        assertTrue(id > 0);
+    }
+    function testFailRstrctdSuspdblSmplMrktOfferTransfersFromSeller() public {
+        // Fail because main token is missing from offer
+        uint256 balance_before = mkr2.balanceOf(address(this));
+        uint256 id = otc.offer(30, mkr2, 100, mkr);
+        uint256 balance_after = mkr2.balanceOf(address(this));
+
+        assertEq(balance_before - balance_after, 30);
+        assertTrue(id > 0);
+    }
+    function testFailRstrctdSuspdblSmplMrktOfferTransfersFromSeller2() public {
+        // Fail because unauthorized token
+        uint256 balance_before = aave.balanceOf(address(this));
+        uint256 id = otc.offer(30, aave, 100, dai);
+        uint256 balance_after = aave.balanceOf(address(this));
+
+        assertEq(balance_before - balance_after, 30);
+        assertTrue(id > 0);
+    }
+
     function testRstrctdSuspdblSmplMrktOfferTransfersToMarket() public {
         uint256 balance_before = mkr.balanceOf(address(otc));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -425,7 +528,46 @@ contract Restricted2SuspendableSimpleMarket_OfferTransferTestOpened is TransferT
         assertEq(balance_after - balance_before, 30);
         assertTrue(id > 0);
     }
+    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket2() public {
+        uint256 balance_before = mkr2.balanceOf(address(otc));
+        uint256 id = otc.offer(30, mkr2, 100, dai);
+        uint256 balance_after = mkr2.balanceOf(address(otc));
+
+        assertEq(balance_after - balance_before, 30);
+        assertTrue(id > 0);
+    }
+    function testFailRstrctdSuspdblSmplMrktOfferTransfersToMarket() public {
+        // Fail because main token is missing from offer
+        uint256 balance_before = mkr2.balanceOf(address(otc));
+        uint256 id = otc.offer(30, mkr2, 100, mkr);
+        uint256 balance_after = mkr2.balanceOf(address(otc));
+
+        assertEq(balance_after - balance_before, 30);
+        assertTrue(id > 0);
+    }
+    function testFailRstrctdSuspdblSmplMrktOfferTransfersToMarket2() public {
+        // Fail because unauthorized token
+        uint256 balance_before = aave.balanceOf(address(otc));
+        uint256 id = otc.offer(30, aave, 100, dai);
+        uint256 balance_after = mkr2.balanceOf(address(otc));
+
+        assertEq(balance_after - balance_before, 30);
+        assertTrue(id > 0);
+    }
 }
+
+
+
+
+
+
+
+
+
+// TODO: ->
+
+
+
 
 contract Restricted2SuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarket {
     function testRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
@@ -556,6 +698,7 @@ contract Restricted2SuspendableSimpleMarket_CancelTransferTestOpened is Transfer
 }
 
 // ----------------------------------------------------------------------------
+/*
 
 // Same tests as above, but with the market suspended
 
