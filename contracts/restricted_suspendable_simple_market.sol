@@ -63,6 +63,7 @@ contract RestrictedSuspendableSimpleMarketErrorCodes {
 }
 
 // Invalid Trading pair
+// @notice mean mùain token is missing from the pair
 // @param buyToken token to buy.
 // @param sellToken token to sell.
 error InvalidTradingPair(ERC20 buyToken, ERC20 sellToken);
