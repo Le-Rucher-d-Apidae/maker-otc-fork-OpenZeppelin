@@ -93,9 +93,6 @@ contract SimpleMarketErrorCodes {
     string internal constant _S000 = "S000_REENTRANCY_ATTEMPT";
 
     // T Series = Trades/Offers
-    // string internal constant _T001 = "T001_BUY_TOKEN_NOT_ALLOWED";
-    // string internal constant _T002 = "T002_SELL_TOKEN_NOT_ALLOWED";
-    // string internal constant _T003 = "T003_WRONG_TRADING_PAIR";
 
 /*
     string internal constant _S101 = "S101_NOT_AUTHORIZED";
