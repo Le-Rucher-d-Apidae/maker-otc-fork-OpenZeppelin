@@ -77,6 +77,7 @@ contract DSTokenBase is ERC20{
 }
 
 
+
 contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     ERC20 dai; // main token
@@ -163,8 +164,8 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
         uint256 id = otc.offer(30, aave, 100, dai);
 
-        vm.expectRevert();
         // assertTrue(user1.doBuy(id, 30));
+        vm.expectRevert();
         user1.doBuy(id, 30);
 
         uint256 my_aave_balance_after = aave.balanceOf(address(this));
@@ -481,22 +482,27 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
     // Tokens tests
 
     // Twice the same token
-    // Main token
-    function testFailRstrctdSuspdblSmplMrktOfferTwiceMainToken() public {
-        
+    // Main token only: main token is not whitelisted as an authorized token
+    function testRstrctdSuspdblSmplMrktOfferTwiceMainToken() public {
         dai.approve(address(otc), 200);
+        // FAIL. Reason: T001_BUY_TOKEN_NOT_ALLOWED
+        vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
         otc.offer(100, dai, 100, dai);
     }
     // Twice the same token
-    // Authorized token
-    function testFailRstrctdSuspdblSmplMrktOfferTwiceAuthorizedToken() public {
+    // Authorized token only: main token missing from offer
+    function testRstrctdSuspdblSmplMrktOfferTwiceAuthorizedToken() public {
         mkr.approve(address(otc), 200);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, mkr) );
         otc.offer(100, mkr, 100, mkr);
     }
     // Twice the same token
     // Unauthorized token
-    function testFailRstrctdSuspdblSmplMrktOfferTwiceUnauthorizedToken() public {
+    function testRstrctdSuspdblSmplMrktOfferTwiceUnauthorizedToken() public {
         aave.approve(address(otc), 200);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, aave, aave) );
         otc.offer(100, aave, 100, aave);
     }
 
@@ -518,26 +524,42 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
     // Differents tokens
     // Main token and unauthorized token
-    function testFailRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenNoMainToken() public {
+    function testRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenNoMainToken() public {
         dai.approve(address(otc), 100);
         aave.approve(address(otc), 100);
+        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
+        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
         otc.offer(100, aave, 100, dai);
     }
 
     // Differents tokens
+    // Unauthorized token and main token (swap token order)
+    function testRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenNoMainToken2() public {
+        dai.approve(address(otc), 100);
+        aave.approve(address(otc), 100);
+        // FAIL. Reason: T001_BUY_TOKEN_NOT_ALLOWED
+        vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
+        otc.offer(100, dai, 100, aave);
+    }
+
+    // Differents tokens
     // Authorized token and unauthorized token
-    function testFailRstrctdSuspdblSmplMrktOfferDifferentUnauthorizedTokenAuthorizedTokenNoMainToken() public {
+    function testRstrctdSuspdblSmplMrktOfferDifferentUnauthorizedTokenAuthorizedTokenNoMainToken() public {
         mkr.approve(address(otc), 100);
         aave.approve(address(otc), 100);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, aave, mkr) );
         otc.offer(100, aave, 100, mkr);
     }
 
 
     // Differents tokens
     // Authorized token and Authorized token
-    function testFailRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenAuthorizedTokenNoMainToken() public {
+    function testRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenAuthorizedTokenNoMainToken() public {
         mkr.approve(address(otc), 100);
         mkr2.approve(address(otc), 100);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr2, mkr) );
         otc.offer(100, mkr2, 100, mkr);
     }
 
@@ -601,23 +623,27 @@ contract Restricted2SuspendableSimpleMarket_OfferTransferTestOpened is TransferT
         assertEq(balance_before - balance_after, 30);
         assertTrue(id > 0);
     }
-    function testFailRstrctdSuspdblSmplMrktOfferTransfersFromSeller() public {
+    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller3() public {
         // Fail because main token is missing from offer
         uint256 balance_before = mkr2.balanceOf(address(this));
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr2, mkr) );
         uint256 id = otc.offer(30, mkr2, 100, mkr);
         uint256 balance_after = mkr2.balanceOf(address(this));
 
-        assertEq(balance_before - balance_after, 30);
-        assertTrue(id > 0);
+        assertEq(balance_before - balance_after, 0);
+        assertTrue(id == 0);
     }
-    function testFailRstrctdSuspdblSmplMrktOfferTransfersFromSeller2() public {
+    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller4() public {
         // Fail because unauthorized token
         uint256 balance_before = aave.balanceOf(address(this));
+        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
+        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
         uint256 id = otc.offer(30, aave, 100, dai);
         uint256 balance_after = aave.balanceOf(address(this));
 
-        assertEq(balance_before - balance_after, 30);
-        assertTrue(id > 0);
+        assertEq(balance_before - balance_after, 0);
+        assertTrue(id == 0);
     }
 
     function testRstrctdSuspdblSmplMrktOfferTransfersToMarket() public {
@@ -636,23 +662,27 @@ contract Restricted2SuspendableSimpleMarket_OfferTransferTestOpened is TransferT
         assertEq(balance_after - balance_before, 30);
         assertTrue(id > 0);
     }
-    function testFailRstrctdSuspdblSmplMrktOfferTransfersToMarket() public {
+    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket3() public {
         // Fail because main token is missing from offer
         uint256 balance_before = mkr2.balanceOf(address(otc));
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr2, mkr) );
         uint256 id = otc.offer(30, mkr2, 100, mkr);
         uint256 balance_after = mkr2.balanceOf(address(otc));
 
-        assertEq(balance_after - balance_before, 30);
-        assertTrue(id > 0);
+        assertEq(balance_after - balance_before, 0);
+        assertTrue(id == 0);
     }
-    function testFailRstrctdSuspdblSmplMrktOfferTransfersToMarket2() public {
+    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket4() public {
         // Fail because unauthorized token
         uint256 balance_before = aave.balanceOf(address(otc));
+        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
+        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
         uint256 id = otc.offer(30, aave, 100, dai);
         uint256 balance_after = mkr2.balanceOf(address(otc));
 
-        assertEq(balance_after - balance_before, 30);
-        assertTrue(id > 0);
+        assertEq(balance_after - balance_before, 0);
+        assertTrue(id == 0);
     }
 }
 
