@@ -55,15 +55,14 @@ contract VmCheat {
     address public NULL_ADDRESS = address(0x0);
     ERC20 public NULL_ERC20 = ERC20(NULL_ADDRESS);
 
-    bytes20 constant CHEAT_CODE =
-        // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
-        bytes20(uint160(uint256(keccak256('vm cheat code')))); // 0xf835497c59c5c4906c0169b282e283dc3259e396
+    // bytes20 constant CHEAT_CODE = bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
+    address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
 
     function setUp() public virtual {
         console2.log("VmCheat: setUp()");
         // console2.logBytes20(CHEAT_CODE);
         vm = Vm(address(CHEAT_CODE));
-        // vm.warp(1);
+        vm.warp(1);
     }
 }
 
