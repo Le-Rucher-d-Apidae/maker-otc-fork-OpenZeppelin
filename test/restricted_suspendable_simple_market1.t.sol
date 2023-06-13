@@ -91,7 +91,7 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
     }
-    function testFailRstrctdSuspdblSmplMrktBasicTrade() public {
+    function testRstrctdSuspdblSmplMrktBasicTrade() public {
         dai.transfer(address(user1), 100);
         user1.doApprove(address(otc), 100, dai);
         mkr.approve(address(otc), 30);
@@ -101,16 +101,22 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
 
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
-        assertTrue(user1.doBuy(id, 30));
+
+        vm.expectRevert();
+        // assertTrue(user1.doBuy(id, 30));
+        user1.doBuy(id, 30);
+
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
         uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
-        assertEq(30, my_mkr_balance_before - my_mkr_balance_after);
-        assertEq(100, my_dai_balance_after - my_dai_balance_before);
-        assertEq(30, user1_mkr_balance_after - user1_mkr_balance_before);
-        assertEq(100, user1_dai_balance_before - user1_dai_balance_after);
+        assertEq(/* 30 */0, my_mkr_balance_before - my_mkr_balance_after);
+        assertEq(/* 100 */0, my_dai_balance_after - my_dai_balance_before);
+        assertEq(/* 30 */0, user1_mkr_balance_after - user1_mkr_balance_before);
+        assertEq(/* 100 */0, user1_dai_balance_before - user1_dai_balance_after);
 
         // TODO: migrate Events checks
 
@@ -131,7 +137,7 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
  */
     }
-    function testFailRstrctdSuspdblSmplMrktPartiallyFilledOrderMkr() public {
+    function testRstrctdSuspdblSmplMrktPartiallyFilledOrderMkr() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
         mkr.approve(address(otc), 200);
@@ -141,24 +147,27 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
 
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(200, mkr, 500, dai);
-        assertTrue(user1.doBuy(id, 10));
+        // assertTrue(user1.doBuy(id, 10));
+        vm.expectRevert();
+        user1.doBuy(id, 10);
+        
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
         uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
         (uint256 sell_val, ERC20 sell_token, uint256 buy_val, ERC20 buy_token) = otc.getOffer(id);
 
-        assertEq(200, my_mkr_balance_before - my_mkr_balance_after);
-        assertEq(25, my_dai_balance_after - my_dai_balance_before);
-        assertEq(10, user1_mkr_balance_after - user1_mkr_balance_before);
-        assertEq(25, user1_dai_balance_before - user1_dai_balance_after);
-        assertEq(190, sell_val);
-        assertEq(475, buy_val);
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
-        assertTrue(address(sell_token) != NULL_ADDRESS);
-        assertTrue(address(buy_token) != NULL_ADDRESS);
+        assertEq(/* 200 */0, my_mkr_balance_before - my_mkr_balance_after);
+        assertEq(/* 25 */0, my_dai_balance_after - my_dai_balance_before);
+        assertEq(/* 10 */0, user1_mkr_balance_after - user1_mkr_balance_before);
+        assertEq(/* 25 */0, user1_dai_balance_before - user1_dai_balance_after);
+        assertEq(/* 190 */0, sell_val);
+        assertEq(/* 475 */0, buy_val);
+        assertTrue(address(sell_token) == NULL_ADDRESS);
+        assertTrue(address(buy_token) == NULL_ADDRESS);
 
         // TODO: migrate Events checks
 /* 
@@ -177,7 +186,7 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         emit LogItemUpdate(id);
  */
     }
-    function testFailRstrctdSuspdblSmplMrktPartiallyFilledOrderDai() public {
+    function testRstrctdSuspdblSmplMrktPartiallyFilledOrderDai() public {
         mkr.transfer(address(user1), 10); // Move 10 MKR to user1
         user1.doApprove(address(otc), 10, mkr); // user1 approve spending 10 MKR to OTC
         dai.approve(address(otc), 500); // Approve 500 DAI to OTC
@@ -192,10 +201,16 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         console.log("user1_dai_balance_before", user1_dai_balance_before);
 
         // Offer : Sell 500 DAI, buy 200 MKR (buy DAI with MKR) 4 MKR = 10 DAI
+
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, dai, mkr) );
         uint256 id = otc.offer(500, dai, 200, mkr);
         console.log("id", id);
         // Buy for 10 DAI of MKR (spend 4 MKR)
-        assertTrue(user1.doBuy(id, 10));
+        // assertTrue(user1.doBuy(id, 10));
+        vm.expectRevert();
+        user1.doBuy(id, 10);
+
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
         console.log("my_mkr_balance_after", my_mkr_balance_after);
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
@@ -207,17 +222,15 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         (uint256 sell_val, ERC20 sell_token, uint256 buy_val, ERC20 buy_token) = otc.getOffer(id);
         console.log("sell_val", sell_val, "buy_val", buy_val);
 
-        assertEq(500, my_dai_balance_before - my_dai_balance_after);
-        assertEq(4, my_mkr_balance_after - my_mkr_balance_before);
-        assertEq(10, user1_dai_balance_after - user1_dai_balance_before);
-        assertEq(4, user1_mkr_balance_before - user1_mkr_balance_after);
-        assertEq(490, sell_val);
-        assertEq(196, buy_val); // FAILS HERE
+        assertEq(/* 500 */0, my_dai_balance_before - my_dai_balance_after);
+        assertEq(/* 4 */0, my_mkr_balance_after - my_mkr_balance_before);
+        assertEq(/* 10 */0, user1_dai_balance_after - user1_dai_balance_before);
+        assertEq(/* 4 */0, user1_mkr_balance_before - user1_mkr_balance_after);
+        assertEq(/* 490 */0, sell_val);
+        assertEq(/* 196 */0, buy_val); // FAILS HERE
 
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
-       assertTrue(address(sell_token) != NULL_ADDRESS);
-       assertTrue(address(buy_token) != NULL_ADDRESS);
+       assertTrue(address(sell_token) == NULL_ADDRESS);
+       assertTrue(address(buy_token) == NULL_ADDRESS);
 
         // TODO: migrate Events checks
 
@@ -238,7 +251,7 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         emit LogItemUpdate(id);
  */
     }
-    function testFailRstrctdSuspdblSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
+    function testRstrctdSuspdblSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
         mkr.approve(address(otc), 200);
@@ -248,8 +261,12 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
 
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(200, mkr, 500, dai);
-        assertTrue(!user1.doBuy(id, 201));
+        // assertTrue(!user1.doBuy(id, 201));
+        vm.expectRevert();
+        user1.doBuy(id, 201);
 
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
@@ -257,16 +274,14 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
         (uint256 sell_val, ERC20 sell_token, uint256 buy_val, ERC20 buy_token) = otc.getOffer(id);
 
-        assertEq(0, my_dai_balance_before - my_dai_balance_after);
-        assertEq(200, my_mkr_balance_before - my_mkr_balance_after);
-        assertEq(0, user1_dai_balance_before - user1_dai_balance_after);
-        assertEq(0, user1_mkr_balance_before - user1_mkr_balance_after);
-        assertEq(200, sell_val);
-        assertEq(500, buy_val);
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
-        assertTrue(address(sell_token) != NULL_ADDRESS);
-        assertTrue(address(buy_token) != NULL_ADDRESS);
+        assertEq(/* 0 */0, my_dai_balance_before - my_dai_balance_after);
+        assertEq(/* 200 */0, my_mkr_balance_before - my_mkr_balance_after);
+        assertEq(/* 0 */0, user1_dai_balance_before - user1_dai_balance_after);
+        assertEq(/* 0 */0, user1_mkr_balance_before - user1_mkr_balance_after);
+        assertEq(/* 200 */0, sell_val);
+        assertEq(/* 500 */0, buy_val);
+        assertTrue(address(sell_token) == NULL_ADDRESS);
+        assertTrue(address(buy_token) == NULL_ADDRESS);
 
         // TODO: migrate Events checks
 
@@ -278,19 +293,28 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         emit LogItemUpdate(id);
  */
     }
-    function testFailRstrctdSuspdblSmplMrktInsufficientlyFilledOrder() public {
+    function testRstrctdSuspdblSmplMrktInsufficientlyFilledOrder() public {
         mkr.approve(address(otc), 30);
+
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 10, dai);
 
         dai.transfer(address(user1), 1);
         user1.doApprove(address(otc), 1, dai);
+
+        vm.expectRevert();
         bool success = user1.doBuy(id, 1);
         assertTrue(!success);
     }
-    function testFailRstrctdSuspdblSmplMrktCancel() public {
+    function testRstrctdSuspdblSmplMrktCancel() public {
         mkr.approve(address(otc), 30);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
-        assertTrue(otc.cancel(id));
+        vm.expectRevert();
+        // assertTrue(otc.cancel(id));
+        otc.cancel(id);
 
         // TODO: migrate Events checks
 
