@@ -62,15 +62,16 @@ contract RestrictedSuspendableSimpleMarketErrorCodes {
 
 }
 
+// Invalid Trading pair
+// @param buyToken token to buy.
+// @param sellToken token to sell.
+error InvalidTradingPair(ERC20 buyToken, ERC20 sellToken);
+
 contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, RestrictedSuspendableSimpleMarketErrorCodes {
 
-    ERC20 mainTradableToken; // ApidaeToken
+    ERC20 public mainTradableToken; // ApidaeToken
     mapping (ERC20=>bool) tradableTokens; // mainTradableToken must not be in this list
 
-    // Invalid Trading pair
-    // @param buyToken token to buy.
-    // @param sellToken token to sell.
-    error InvalidTradingPair(ERC20 buyToken, ERC20 sellToken);
     
     /// @notice inherits from SuspendableSimpleMarket
     /// @notice mainTradableToken may be null at construction time, but must be set before any offer
