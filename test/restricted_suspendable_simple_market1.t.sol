@@ -331,6 +331,37 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
  */
     }
+
+
+
+
+
+
+
+
+
+// TODO : change tests from testFail to test for checking errors more accurately with expectRevert ->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     function testFailRstrctdSuspdblSmplMrktCancelNotOwner() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
