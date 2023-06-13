@@ -72,17 +72,26 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     // @param sellToken token to sell.
     error InvalidTradingPair(ERC20 buyToken, ERC20 sellToken);
     
+    /// @notice inherits from SuspendableSimpleMarket
+    /// @notice mainTradableToken may be null at construction time, but must be set before any offer
+    /// @dev 
     constructor(ERC20 _mainTradableToken, bool _suspended) SuspendableSimpleMarket(_suspended) {
         mainTradableToken = _mainTradableToken;
     }
 
     // Tokens checks
-
     modifier tokenAllowed(ERC20 erc20) {
         require(tradableTokens[erc20], "Token not authorized");
         _;
     }
 
+
+    /// @notice overrides checkOfferTokens to enforce only one token to be "mainTradableToken" and the other to be an allowed token
+    /// @dev checkOfferTokens is called by offer function
+    /// @dev no need to check for address(0x0) since tradable tokens are whitelisted
+    /// @dev if mainTradableToken has not been set (address(0x0)), no tradable token may have been set modifier will fail properly (e.g.checkOfferTokens( 0x0, 0x0))
+    /// @param _pay_gem token to check
+    /// @param _buy_gem token to check
     modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) override {
         // Since tradable tokens are whitelisted, no need to check for address(0x0)
         // Check for token : one must be mainTradableToken, other must be tradable
@@ -110,6 +119,11 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
         }
     }
 
+    /// @notice allows to trade a token
+    /// @notice 1 mainTradableToken must be set (not null) before allowing any other token
+    /// @notice 2 mainTradableToken and at least one tradableTokens must be set before any offer
+    /// @dev 
+    /// @param _erc20 token to check
     function allowToken(ERC20 _erc20) public onlyOwner {
         require(address(mainTradableToken) != NULL_ADDRESS,"mainTradableToken must be set first");
         require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
