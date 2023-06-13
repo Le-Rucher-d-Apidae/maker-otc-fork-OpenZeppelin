@@ -91,7 +91,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     /// @notice overrides checkOfferTokens to enforce only one token to be "mainTradableToken" and the other to be an allowed token
     /// @dev checkOfferTokens is called by offer function
     /// @dev no need to check for address(0x0) since tradable tokens are whitelisted
-    /// @dev if mainTradableToken has not been set (address(0x0)), no tradable token may have been set modifier will fail properly (e.g.checkOfferTokens( 0x0, 0x0))
+    /// @dev if mainTradableToken has not been set (address(0x0)), no tradable token may have been set modifier will fail properly (e.g.checkOfferTokens( 0x0, 0x0)) with InvalidTradingPair error
     /// @param _pay_gem token to check
     /// @param _buy_gem token to check
     modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) override {
