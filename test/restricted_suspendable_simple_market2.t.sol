@@ -694,7 +694,7 @@ contract Restricted2SuspendableSimpleMarket_OfferTransferTestOpened is TransferT
 
 
 
-// TODO: ->
+// TODO: add test on unautorized tokens pairs ->
 
 
 
