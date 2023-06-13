@@ -2,7 +2,7 @@
 
 /// restricted_suspendable_simple_market1.t.sol
 /// apply the exact same test found in simple_market.t.sol for the restricted_suspendable_simple_market.sol
-/// almost all test will fail due to the tokens restrictions
+/// due to tokens restrictions almost all test are moved from test to testFail
 
 //
 // This program is free software: you can redistribute it and/or modify
