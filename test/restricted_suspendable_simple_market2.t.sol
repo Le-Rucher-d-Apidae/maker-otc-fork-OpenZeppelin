@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// simple_market.t.sol
+/// restricted_suspendable_simple_market2.t.sol
+/// apply test found in simple_market.t.sol for the restricted_suspendable_simple_market.sol
+/// and checks for the restrictions of allowed tokens
 
 // Copyright (C) 2016 - 2021 Dai Foundation
 
