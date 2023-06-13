@@ -57,15 +57,14 @@ contract VmCheat {
     address public NULL_ADDRESS = address(0x0);
     ERC20 public NULL_ERC20 = ERC20(NULL_ADDRESS);
 
-    bytes20 constant CHEAT_CODE =
-        // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
-        bytes20(uint160(uint256(keccak256('vm cheat code')))); // 0xf835497c59c5c4906c0169b282e283dc3259e396
+    // bytes20 constant CHEAT_CODE = bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
+    address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
 
     function setUp() public virtual {
         console2.log("VmCheat: setUp()");
         // console2.logBytes20(CHEAT_CODE);
         vm = Vm(address(CHEAT_CODE));
-        // vm.warp(1);
+        vm.warp(1);
     }
 }
 
@@ -106,11 +105,11 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
     }
     function testRstrctdSuspdblSmplMrktBasicTrade() public {
         dai.transfer(address(user1), 100);
-        aave.transfer(address(user1), 100);
-        crv.transfer(address(user1), 100);
+        // aave.transfer(address(user1), 100);
+        // crv.transfer(address(user1), 100);
         user1.doApprove(address(otc), 100, dai);
         user1.doApprove(address(otc), 100, aave);
-        user1.doApprove(address(otc), 100, crv);
+        // user1.doApprove(address(otc), 100, crv);
         mkr.approve(address(otc), 30);
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
@@ -148,6 +147,105 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
  */
     }
+    function testRstrctdSuspdblSmplMrktBasicTrade2() public {
+        dai.transfer(address(user1), 100);
+        aave.transfer(address(user1), 100);
+        user1.doApprove(address(otc), 100, dai);
+        user1.doApprove(address(otc), 100, aave);
+        aave.approve(address(otc), 30);
+
+        uint256 my_aave_balance_before = aave.balanceOf(address(this));
+        uint256 my_dai_balance_before = dai.balanceOf(address(this));
+        uint256 user1_aave_balance_before = aave.balanceOf(address(user1));
+        uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
+
+        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
+        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
+        uint256 id = otc.offer(30, aave, 100, dai);
+
+        vm.expectRevert();
+        // assertTrue(user1.doBuy(id, 30));
+        user1.doBuy(id, 30);
+
+        uint256 my_aave_balance_after = aave.balanceOf(address(this));
+        uint256 my_dai_balance_after = dai.balanceOf(address(this));
+        uint256 user1_aave_balance_after = aave.balanceOf(address(user1));
+        uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
+        assertEq(0, my_aave_balance_before - my_aave_balance_after);
+        assertEq(0, my_dai_balance_after - my_dai_balance_before);
+        assertEq(0, user1_aave_balance_after - user1_aave_balance_before);
+        assertEq(0, user1_dai_balance_before - user1_dai_balance_after);
+
+        // TODO: migrate Events checks
+
+/* 
+        // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // emit LogItemUpdate(id);
+        // emit LogTrade(30, address(mkr), 100, address(dai));
+        // emit LogItemUpdate(id);
+
+        vm.expectEmit(true,false,false,false, address(otc));
+        emit LogItemUpdate(id);
+
+        vm.expectEmit(true,true,true,true, address(otc));
+        emit LogTrade(30, address(mkr), 100, address(dai));
+
+        vm.expectEmit(true,false,false,false, address(otc));
+        emit LogItemUpdate(id);
+
+ */
+    }
+    function testRstrctdSuspdblSmplMrktBasicTrade3() public {
+        // Test with 2 allowed token (mkr/mkr2) but missing the main one (dai)
+        mkr2.transfer(address(user1), 100);
+        user1.doApprove(address(otc), 100, mkr2);
+        user1.doApprove(address(otc), 100, aave);
+        mkr.approve(address(otc), 30);
+
+        uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
+        uint256 my_mkr2_balance_before = mkr2.balanceOf(address(this));
+        uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
+        uint256 user1_mkr2_balance_before = mkr2.balanceOf(address(user1));
+
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, mkr2) );
+        uint256 id = otc.offer(30, mkr, 100, mkr2);
+
+        vm.expectRevert();
+        user1.doBuy(id, 30);
+
+        uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
+        uint256 my_mkr2_balance_after = mkr2.balanceOf(address(this));
+        uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
+        uint256 user1_mkr2_balance_after = mkr2.balanceOf(address(user1));
+
+        assertEq(0, my_mkr_balance_before - my_mkr_balance_after);
+        assertEq(0, my_mkr2_balance_after - my_mkr2_balance_before);
+        assertEq(0, user1_mkr_balance_after - user1_mkr_balance_before);
+        assertEq(0, user1_mkr2_balance_before - user1_mkr2_balance_after);
+
+        // TODO: migrate Events checks
+
+/* 
+        // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // emit LogItemUpdate(id);
+        // emit LogTrade(30, address(mkr), 100, address(dai));
+        // emit LogItemUpdate(id);
+
+        vm.expectEmit(true,false,false,false, address(otc));
+        emit LogItemUpdate(id);
+
+        vm.expectEmit(true,true,true,true, address(otc));
+        emit LogTrade(30, address(mkr), 100, address(dai));
+
+        vm.expectEmit(true,false,false,false, address(otc));
+        emit LogItemUpdate(id);
+
+ */
+    }
+
+    // ---
+
     function testRstrctdSuspdblSmplMrktPartiallyFilledOrderMkr() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
