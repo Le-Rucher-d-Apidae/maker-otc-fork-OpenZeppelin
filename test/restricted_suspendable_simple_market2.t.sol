@@ -827,7 +827,55 @@ contract Restricted2SuspendableSimpleMarket_CancelTransferTestOpened is Transfer
     }
 }
 
+
+
 // ----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// TODO : change tests from testFail to test for checking errors more accurately with expectRevert ->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 
 // Same tests as above, but with the market suspended
