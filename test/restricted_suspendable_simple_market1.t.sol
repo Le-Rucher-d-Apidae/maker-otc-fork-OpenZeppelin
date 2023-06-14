@@ -331,95 +331,103 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
  */
     }
-
-
-
-
-
-
-
-
-
-// TODO : change tests from testFail to test for checking errors more accurately with expectRevert ->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    function testFailRstrctdSuspdblSmplMrktCancelNotOwner() public {
+    function testRstrctdSuspdblSmplMrktCancelNotOwner() public {
         mkr.approve(address(otc), 30);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
+        vm.expectRevert();
         user1.doCancel(id);
     }
-    function testFailRstrctdSuspdblSmplMrktCancelInactive() public {
+    function testRstrctdSuspdblSmplMrktCancelInactive() public {
         mkr.approve(address(otc), 30);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
-        assertTrue(otc.cancel(id));
+        vm.expectRevert();
+        // assertTrue(otc.cancel(id));
+        otc.cancel(id);
+        vm.expectRevert();
         otc.cancel(id);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyInactive() public {
+    function testRstrctdSuspdblSmplMrktBuyInactive() public {
         mkr.approve(address(otc), 30);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
-        assertTrue(otc.cancel(id));
+        vm.expectRevert(); // order doesn't exist
+        // assertTrue(otc.cancel(id));
+        otc.cancel(id);
+        vm.expectRevert(); // order doesn't exist
         otc.buy(id, 0);
     }
-    function testFailRstrctdSuspdblSmplMrktOfferNotEnoughFunds() public {
-        mkr.transfer(NULL_ADDRESS, mkr.balanceOf(address(this)) - 29);
+    function testRstrctdSuspdblSmplMrktOfferNotEnoughFunds() public {
+        // mkr.transfer(NULL_ADDRESS, mkr.balanceOf(address(this)) - 29);
+        uint amount = mkr.balanceOf(address(this)) - 29;
+        vm.expectRevert( "ERC20: transfer to the zero address" );
+        mkr.transfer(NULL_ADDRESS, amount);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
-        assertTrue(id >= 0);     //ugly hack to stop compiler from throwing a warning for unused var id
+        assertTrue(id == 0);     //ugly hack to stop compiler from throwing a warning for unused var id
     }
-    function testFailRstrctdSuspdblSmplMrktBuyNotEnoughFunds() public {
+    function testRstrctdSuspdblSmplMrktBuyNotEnoughFunds() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 101, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 101, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance before", dai.balanceOf(address(user1)));
-        assertTrue(user1.doBuy(id, 101));
+
+        vm.expectRevert();
+        // assertTrue(user1.doBuy(id, 101));
+        user1.doBuy(id, 101);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testFailRstrctdSuspdblSmplMrktBuyNotEnoughApproval() public {
+    function testRstrctdSuspdblSmplMrktBuyNotEnoughApproval() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
+
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 99, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance before", dai.balanceOf(address(user1)));
-        assertTrue(user1.doBuy(id, 100));
+        vm.expectRevert();
+        // assertTrue(user1.doBuy(id, 100));
+        user1.doBuy(id, 100);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testFailRstrctdSuspdblSmplMrktOfferSameToken() public {
+    function testRstrctdSuspdblSmplMrktOfferSameToken() public {
         dai.approve(address(otc), 200);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, dai, dai) );
         otc.offer(100, dai, 100, dai);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyTooMuch() public {
+    function testRstrctdSuspdblSmplMrktBuyTooMuch() public {
         mkr.approve(address(otc), 30);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
+        vm.expectRevert();
         assertTrue(!otc.buy(id, 50));
     }
     function testFailRstrctdSuspdblSmplMrktOverflow() public {
         mkr.approve(address(otc), 30);
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, dai, mkr) );
         uint256 id = otc.offer(30, mkr, 100, dai);
+        vm.expectRevert();
         otc.buy(id, uint(type(uint256).max+1));
     }
     function testFailRstrctdSuspdblSmplMrktTransferFromEOA() public {
-        otc.offer(30, ERC20(address(123)), 100, dai);
+        ERC20 ERC20_123 = ERC20(address(123));
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, ERC20_123, mkr) );
+        otc.offer(30, ERC20_123, 100, dai);
     }
 }
 
@@ -450,151 +458,226 @@ contract TransferTest_OpenMarket is DSTest, VmCheat {
 }
 
 contract Restricted1SuspendableSimpleMarket_OfferTransferTestOpened is TransferTest_OpenMarket {
-    function testFailRstrctdSuspdblSmplMrktOfferTransfersFromSeller() public {
+    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
         uint256 balance_after = mkr.balanceOf(address(this));
 
-        assertEq(balance_before - balance_after, 30);
-        assertTrue(id > 0);
+        assertEq(balance_before - balance_after, /* 30 */0);
+        assertTrue(id /* >  0 */ == 0);
     }
-    function testFailRstrctdSuspdblSmplMrktOfferTransfersToMarket() public {
+    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket() public {
         uint256 balance_before = mkr.balanceOf(address(otc));
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_after - balance_before, 30);
-        assertTrue(id > 0);
+        assertEq(balance_after - balance_before, /* 30 */0);
+        assertTrue(id /* > 0 */==0);
     }
 }
 
 contract Restricted1SuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarket {
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
+        vm.expectRevert();
         user1.doBuy(id, 30);
         uint256 balance_after = dai.balanceOf(address(user1));
 
-        assertEq(balance_before - balance_after, 100);
+        assertEq(balance_before - balance_after, /* 100 */0);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersToSeller() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersToSeller() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(this));
+        vm.expectRevert();
         user1.doBuy(id, 30);
         uint256 balance_after = dai.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 100);
+        assertEq(balance_after - balance_before, /* 100 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersFromMarket() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersFromMarket() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
+        vm.expectRevert();
         user1.doBuy(id, 30);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 30);
+        assertEq(balance_before - balance_after, /* 30 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersToBuyer() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersToBuyer() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(user1));
+        vm.expectRevert();
         user1.doBuy(id, 30);
         uint256 balance_after = mkr.balanceOf(address(user1));
 
-        assertEq(balance_after - balance_before, 30);
+        assertEq(balance_after - balance_before, /* 30 */ 0);
     }
 }
 
 contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
+        vm.expectRevert();
         user1.doBuy(id, 15);
         uint256 balance_after = dai.balanceOf(address(user1));
 
-        assertEq(balance_before - balance_after, 50);
+        assertEq(balance_before - balance_after, /* 50 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersToSeller() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersToSeller() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(this));
+        vm.expectRevert();
         user1.doBuy(id, 15);
         uint256 balance_after = dai.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 50);
+        assertEq(balance_after - balance_before, /* 50 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersFromMarket() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersFromMarket() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
+        vm.expectRevert();
         user1.doBuy(id, 15);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 15);
+        assertEq(balance_before - balance_after, /* 15 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyTransfersToBuyer() public {
+    function testRstrctdSuspdblSmplMrktBuyTransfersToBuyer() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(user1));
+        vm.expectRevert();
         user1.doBuy(id, 15);
         uint256 balance_after = mkr.balanceOf(address(user1));
 
-        assertEq(balance_after - balance_before, 15);
+        assertEq(balance_after - balance_before, /* 15 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyOddTransfersFromBuyer() public {
+    function testRstrctdSuspdblSmplMrktBuyOddTransfersFromBuyer() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
+        vm.expectRevert();
         user1.doBuy(id, 17);
         uint256 balance_after = dai.balanceOf(address(user1));
 
-        assertEq(balance_before - balance_after, 56);
+        assertEq(balance_before - balance_after, /* 56 */ 0);
     }
 }
 
 contract Restricted1SuspendableSimpleMarket_CancelTransferTestOpened is TransferTest_OpenMarket {
-    function testFailRstrctdSuspdblSmplMrktCancelTransfersFromMarket() public {
+    function testRstrctdSuspdblSmplMrktCancelTransfersFromMarket() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
+        vm.expectRevert();
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 30);
+        assertEq(balance_before - balance_after, /* 30 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktCancelTransfersToSeller() public {
+    function testRstrctdSuspdblSmplMrktCancelTransfersToSeller() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(this));
+        vm.expectRevert();
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 30);
+        assertEq(balance_after - balance_before, /* 30 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktCancelPartialTransfersFromMarket() public {
+    function testRstrctdSuspdblSmplMrktCancelPartialTransfersFromMarket() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
+        vm.expectRevert();
         user1.doBuy(id, 15);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
+        vm.expectRevert();
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 15);
+        assertEq(balance_before - balance_after, /* 15 */ 0);
     }
-    function testFailRstrctdSuspdblSmplMrktCancelPartialTransfersToSeller() public {
+    function testRstrctdSuspdblSmplMrktCancelPartialTransfersToSeller() public {
+        // FAIL. Reason: InvalidTradingPair
+        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         uint256 id = otc.offer(30, mkr, 100, dai);
+        vm.expectRevert();
         user1.doBuy(id, 15);
 
         uint256 balance_before = mkr.balanceOf(address(this));
+        vm.expectRevert();
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 15);
+        assertEq(balance_after - balance_before, /* 15 */ 0);
     }
 }
+
+
+
+
+
+
+
+
+// TODO : change tests from testFail to test for checking errors more accurately with expectRevert ->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ----------------------------------------------------------------------------
 
