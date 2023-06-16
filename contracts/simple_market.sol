@@ -25,16 +25,9 @@ pragma solidity ^0.8.18; // latest HH supported version
 // import "hardhat/console.sol";
 import "forge-std/console2.sol";
 
-/*
-import "ds-math/math.sol";
-import "erc20/erc20.sol";
-*/
-//import "./erc20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 //import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-//import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-//import "@openzeppelin/contracts/utils/Address.sol";
 
 contract EventfulMarket {
     event LogItemUpdate(uint id);
@@ -121,34 +114,15 @@ contract SimpleMarketErrorCodes {
 
 }
 
-//contract SimpleMarket is EventfulMarket, DSMath {
 contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
-    //using Address for address;
-    address public NULL_ADDRESS = address(0x0);
+    address public constant NULL_ADDRESS = address(0x0);
 
-    uint public last_offer_id; // 0 when deployed
+    uint public last_offer_id; // defaults to 0 when deployed
 
     mapping (uint => OfferInfo) public offers;
 
-    bool locked; // Flag to re-entrancy attacks ; false by default
-
-    // ERC20 mainTradableToken; // ApidaeToken
-    // mapping (ERC20=>bool) tradableTokens; // mainTradableToken must not be in this list
-
-    // error Locked();
-    // error Unauthorized();
-
-    // Invalid Trading pair
-    // @param buyToken token to buy.
-    // @param sellToken token to sell.
-    // error InvalidTradingPair(ERC20 buyToken, ERC20 sellToken);
-    // error TestError();
-
-    // constructor(ERC20 _mainTradableToken) {
-    //     mainTradableToken = _mainTradableToken;
-    // }
-    
+    bool locked; // Flag to re-entrancy attacks ; defaults to false when deployed
 
     struct OfferInfo {
         uint     pay_amt;
@@ -160,13 +134,11 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     }
 
     modifier can_buy(uint id) virtual {
-        // require(isActive(id));
         require(isOrderActive(id));
         _;
     }
 
     modifier can_cancel(uint id) virtual {
-        // require(isActive(id));
         require(isOrderActive(id));
         require(getOwner(id) == msg.sender);
         // require(getOwner(id) == _msgSender());
@@ -178,7 +150,6 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     }
 
     modifier synchronized {
-        // require(!locked, "Reentrancy attempt");
         require(!locked, _S000);
         locked = true;
         _;
@@ -187,11 +158,6 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
     // Tokens checks
 
-    // modifier tokenAllowed(ERC20 erc20) {
-    //     require(tradableTokens[erc20], "Token not authorized");
-    //     _;
-    // }
-
     modifier checkOfferAmounts(uint _pay_amt, uint _buy_amt) {
         require(uint128(_pay_amt) == _pay_amt);
         require(uint128(_buy_amt) == _buy_amt);
@@ -199,48 +165,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         require(_buy_amt > 0);
         _;
     }
-/*
-    modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) {
-        // Since tradable tokens are whitelisted, no need to check for address(0x0)
-        //require(address(pay_gem) != address(0x0));
-        //require(address(buy_gem) != address(0x0));
-        // Tokens must be different
-        // require(pay_gem != buy_gem);
 
-        // Check for token : one must be mainTradableToken, other must be tradable
-        // allow only:
-        //  - mainTradableToken / tradableTokens[_buy_gem])
-        //  - tradableTokens[_pay_gem]) / mainTradableToken
-
-        //
-        // // Sell mainTradableToken
-        // _pay_gem==mainTradableToken
-        // ?
-        // // Buy token must be tradable
-        // // require(tradableTokens[_buy_gem], "buy token not allowed")
-        // require(tradableTokens[_buy_gem], _T001)
-        // :
-        // // Buy mainTradableToken
-        // _buy_gem==mainTradableToken
-        //     ?
-        //     // Sold token must be tradable
-        //     // require( tradableTokens[_pay_gem], "sell token not allowed" ):
-        //     require( tradableTokens[_pay_gem], _T002 ):
-        //     // mainTradableToken is neither sold or bought : revert
-        //     // revert("wrong trading pair") ;
-        //     revert(_T003) ;
-        //     // revert InvalidTradingPair(_pay_gem, _buy_gem);
-        //
-        if (_pay_gem==mainTradableToken) {
-            require(tradableTokens[_buy_gem], _T001);
-        } else if (_buy_gem==mainTradableToken) {
-            require(tradableTokens[_pay_gem], _T002);
-        } else {
-            revert InvalidTradingPair(_pay_gem, _buy_gem);
-        }
-        _;
-    }
-*/
     modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) virtual {
         console2.log( "modifier checkOfferTokens:SimpleMarket" );
 
@@ -266,33 +191,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
       return (offerInfo.pay_amt, offerInfo.pay_gem,
               offerInfo.buy_amt, offerInfo.buy_gem);
     }
-/*
-    function setmainTradableToken(ERC20 _erc20) public onlyOwner {
-        // Allow to set only once
-        if (address(mainTradableToken) == NULL_ADDRESS) {
-            mainTradableToken = _erc20;
-        }
-    }
 
-    function allowToken(ERC20 _erc20) public onlyOwner {
-        require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
-        require(!tradableTokens[_erc20],"Already allowed");
-        require(address(_erc20) != address(0x0));
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
-        // check is ERC20
-        tradableTokens[_erc20] = true;
-    }
-
-    function revokeToken(ERC20 _erc20) public onlyOwner tokenAllowed(_erc20) {
-        // Allow to remove all tradable tokens
-        // existing orders will remain active (no checks are made on buys)
-        delete tradableTokens[_erc20];
-    }
-*/
     // ---- Public entrypoints ---- //
 
     function bump(bytes32 id_)
@@ -321,9 +220,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         virtual
         returns (bool)
     {
-        //OfferInfo memory offer = offers[id];
         OfferInfo memory offerInfo = offers[id];
-        //uint spend = mul(quantity, offer.buy_amt) / offer.pay_amt;
         uint spend = quantity * offerInfo.buy_amt / offerInfo.pay_amt;
 
 
@@ -332,46 +229,29 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
         // For backwards semantic compatibility.
         if (quantity == 0 || spend == 0 ||
-            //quantity > offer.pay_amt || spend > offer.buy_amt)
             quantity > offerInfo.pay_amt || spend > offerInfo.buy_amt)
         {
             return false;
         }
 
-        //offers[id].pay_amt = sub(offer.pay_amt, quantity);
         offers[id].pay_amt = offerInfo.pay_amt - quantity;
-        //offers[id].buy_amt = sub(offer.buy_amt, spend);
         offers[id].buy_amt = offerInfo.buy_amt - spend;
-
         // address msgSender = _msgSender();
-
-        // safeTransferFrom(offer.buy_gem, msg.sender, offer.owner, spend);
-        safeTransferFrom(offerInfo.buy_gem, msg.sender, offerInfo.owner, spend);
-        // safeTransferFrom(offerInfo.buy_gem, msgSender, offerInfo.owner, spend);
-
-        // safeTransfer(offer.pay_gem, msg.sender, quantity);
-        safeTransfer(offerInfo.pay_gem, msg.sender, quantity);
-        // safeTransfer(offerInfo.pay_gem, msgSender, quantity);
+        safeTransferFrom(offerInfo.buy_gem, msg.sender /*msgSender*/, offerInfo.owner, spend);
+        safeTransfer(offerInfo.pay_gem, msg.sender /*msgSender*/, quantity);
 
         emit LogItemUpdate(id);
         emit LogTake(
             bytes32(id),
-            //keccak256(abi.encodePacked(offer.pay_gem, offer.buy_gem)),
             keccak256(abi.encodePacked(offerInfo.pay_gem, offerInfo.buy_gem)),
-            //offer.owner,
             offerInfo.owner,
-            //offer.pay_gem,
             offerInfo.pay_gem,
-            //offer.buy_gem,
             offerInfo.pay_gem,
             msg.sender,
-            // msgSender,
             uint128(quantity),
             uint128(spend),
-            //uint64(now)
             uint64(block.timestamp)
         );
-        //emit LogTrade(quantity, address(offer.pay_gem), spend, address(offer.buy_gem));
         emit LogTrade(quantity, address(offerInfo.pay_gem), spend, address(offerInfo.buy_gem));
 
         if (offers[id].pay_amt == 0) {
@@ -390,29 +270,20 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         returns (bool success)
     {
         // read-only offer. Modify an offer by directly accessing offers[id]
-        //OfferInfo memory offer = offers[id];
         OfferInfo memory offerInfo = offers[id];
         delete offers[id];
 
-        //safeTransfer(offer.pay_gem, offer.owner, offer.pay_amt);
         safeTransfer(offerInfo.pay_gem, offerInfo.owner, offerInfo.pay_amt);
 
         emit LogItemUpdate(id);
         emit LogKill(
             bytes32(id),
-            //keccak256(abi.encodePacked(offer.pay_gem, offer.buy_gem)),
             keccak256(abi.encodePacked(offerInfo.pay_gem, offerInfo.buy_gem)),
-            //offer.owner,
             offerInfo.owner,
-            //offer.pay_gem,
             offerInfo.pay_gem,
-            //offer.buy_gem,
             offerInfo.buy_gem,
-            //uint128(offer.pay_amt),
             uint128(offerInfo.pay_amt),
-            //uint128(offer.buy_amt),
             uint128(offerInfo.pay_amt),
-            //uint64(now)
             uint64(block.timestamp)
         );
 
@@ -443,80 +314,29 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     function offer(uint _pay_amt, ERC20 _pay_gem, uint _buy_amt, ERC20 _buy_gem)
         public
         can_offer
-        synchronized
         checkOfferAmounts(_pay_amt, _buy_amt)
         checkOfferTokens(_pay_gem, _buy_gem)
+        synchronized
         virtual
         returns (uint id)
     {
-        // Token amounts checked by modifier: checkOfferAmounts(pay_amt, buy_amt)
-        //require(pay_gem != ERC20(0x0));
-        //require(address(pay_gem) != address(0x0));
-        //require(buy_gem != ERC20(0x0));
-        //require(address(buy_gem) != address(0x0));
-
-        // Tokens checked by modifier: checkOfferTokens(_pay_gem, _buy_gem)
-
-        // Tokens must be different
-       // require(pay_gem != buy_gem);
-
-        /*
-        // One must be main token
-        require(pay_gem==mainTradableToken || buy_gem==mainTradableToken);
-        // The other one must be allowed
-        require( tradableTokens[pay_gem] || tradableTokens[buy_gem] , "trading token not allowed" );
-        */
-
-       /*
-       if (pay_gem==mainTradableToken) { require( tradableTokens[buy_gem] , "token not allowed" ); }
-       else if (buy_gem==mainTradableToken) { require( tradableTokens[buy_gem] , "token not allowed" ); }
-       else { revert("wrong trading pair"); }
-        */
-       /*
-       pay_gem==mainTradableToken
-        ?
-        require(tradableTokens[buy_gem])
-        :
-        buy_gem==mainTradableToken
-            ?
-            require( tradableTokens[pay_gem] , "token not allowed" ):
-            revert("wrong trading pair") ;
-        */
-
-       address msgSender = _msgSender();
-
-       /*
-        OfferInfo memory info;
-        info.pay_amt = _pay_amt;
-        info.pay_gem = _pay_gem;
-        info.buy_amt = _buy_amt;
-        info.buy_gem = _buy_gem;
-        info.owner = msg.sender;
-        //info.timestamp = uint64(now);
-        info.timestamp = uint64(block.timestamp);
-        */
-        
+        // address msgSender = _msgSender();
         id = _next_id();
-        // offers[id] = info;
         offers[id] = OfferInfo(
-            _pay_amt, _pay_gem, _buy_amt, _buy_gem, msgSender, uint64(block.timestamp)
+            _pay_amt, _pay_gem, _buy_amt, _buy_gem, msg.sender/* msgSender */, uint64(block.timestamp)
         );
 
-        safeTransferFrom(_pay_gem, msg.sender, address(this), _pay_amt);
-        // safeTransferFrom(_pay_gem, msgSender, address(this), _pay_amt);
-        
+        safeTransferFrom(_pay_gem, msg.sender/* msgSender */, address(this), _pay_amt);
 
         emit LogItemUpdate(id);
         emit LogMake(
             bytes32(id),
             keccak256(abi.encodePacked(_pay_gem, _buy_gem)),
-            msg.sender,
-            // msgSender,
+            msg.sender/* msgSender */,
             _pay_gem,
             _buy_gem,
             uint128(_pay_amt),
             uint128(_buy_amt),
-            //uint64(now)
             uint64(block.timestamp)
         );
     }
@@ -542,27 +362,8 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     function safeTransferFrom(ERC20 token, address from, address to, uint256 value) internal {
         _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
     }
-    /*
-    function _callOptionalReturn(ERC20 token, bytes memory data) private {
-        uint256 size;
-        assembly { size := extcodesize(token) }
-        require(size > 0, "Not a contract");
 
-        (bool success, bytes memory returndata) = address(token).call(data);
-        require(success, "Token call failed");
-        if (returndata.length > 0) { // Return data is optional
-            require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
-        }
-    }
-    */
     function _callOptionalReturn(ERC20 token, bytes memory data) private {
-        /*
-        uint256 size;
-        assembly { size := extcodesize(token) }
-        require(size > 0, "Not a contract");
-        */
-        // require(address(token).isContract());
-
         // call will revert in case of error
         (bool success, bytes memory returndata) = address(token).call(data);
         // check call success, revert if not
