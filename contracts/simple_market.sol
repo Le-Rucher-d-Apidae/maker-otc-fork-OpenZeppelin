@@ -22,10 +22,8 @@
 // pragma solidity ^0.8.20;
 pragma solidity ^0.8.18; // latest HH supported version
 
-// import "hardhat/console.sol";
 import "forge-std/console2.sol";
 
-// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -80,7 +78,7 @@ contract EventfulMarket {
         uint64            timestamp
     );
 
-}
+} // contract EventfulMarket
 
 contract SimpleMarketErrorCodes {
     // S Series = Security/Authorization
@@ -113,7 +111,7 @@ contract SimpleMarketErrorCodes {
     string internal constant _T112 = "T112_FILL_AMOUNT_HIGH";
 */
 
-}
+} // contract SimpleMarketErrorCodes
 
 contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
@@ -142,8 +140,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
     modifier can_cancel(uint id) virtual {
         require(isOrderActive(id));
-        require(getOwner(id) == msg.sender);
-        // require(getOwner(id) == _msgSender());
+        require(getOwner(id) == msg.sender/* _msgSender() */);
         _;
     }
 
@@ -178,8 +175,6 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         _;
     }
 
-
-    // function isActive(uint id) public view returns (bool active) {
     function isOrderActive(uint id) public view returns (bool active) {
         return offers[id].timestamp > 0;
     }
@@ -357,4 +352,4 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         last_offer_id++; return last_offer_id;
     }
 
-}
+} // contract SimpleMarket
