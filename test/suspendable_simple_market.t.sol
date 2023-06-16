@@ -30,6 +30,7 @@ import "forge-std/Vm.sol";
 import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";// import "ds-token/base.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../contracts/suspendable_simple_market.sol";
 
@@ -40,7 +41,7 @@ contract MarketTester {
     constructor(SuspendableSimpleMarket market_) {
         market = market_;
     }
-    function doApprove(address spender, uint value, ERC20 token) public {
+    function doApprove(address spender, uint value, IERC20 token) public {
         token.approve(spender, value);
     }
     function doBuy(uint id, uint buy_how_much) public returns (bool _success) {
@@ -55,7 +56,7 @@ contract VmCheat {
     Vm vm;
 
     address public NULL_ADDRESS = address(0x0);
-    ERC20 public NULL_ERC20 = ERC20(NULL_ADDRESS);
+    IERC20 public NULL_ERC20 = IERC20(NULL_ADDRESS);
 
     // bytes20 constant CHEAT_CODE = bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
     address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
@@ -79,8 +80,8 @@ contract DSTokenBase is ERC20{
 
 contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
 
     function setUp() public override {
@@ -149,7 +150,7 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
         uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
-        (uint256 sell_val, ERC20 sell_token, uint256 buy_val, ERC20 buy_token) = otc.getOffer(id);
+        (uint256 sell_val, IERC20 sell_token, uint256 buy_val, IERC20 buy_token) = otc.getOffer(id);
 
         assertEq(200, my_mkr_balance_before - my_mkr_balance_after);
         assertEq(25, my_dai_balance_after - my_dai_balance_before);
@@ -206,7 +207,7 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
         console.log("user1_mkr_balance_after", user1_mkr_balance_after);
         uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
         console.log("user1_dai_balance_after", user1_dai_balance_after);
-        (uint256 sell_val, ERC20 sell_token, uint256 buy_val, ERC20 buy_token) = otc.getOffer(id);
+        (uint256 sell_val, IERC20 sell_token, uint256 buy_val, IERC20 buy_token) = otc.getOffer(id);
         console.log("sell_val", sell_val, "buy_val", buy_val);
 
         assertEq(500, my_dai_balance_before - my_dai_balance_after);
@@ -257,7 +258,7 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
         uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
-        (uint256 sell_val, ERC20 sell_token, uint256 buy_val, ERC20 buy_token) = otc.getOffer(id);
+        (uint256 sell_val, IERC20 sell_token, uint256 buy_val, IERC20 buy_token) = otc.getOffer(id);
 
         assertEq(0, my_dai_balance_before - my_dai_balance_after);
         assertEq(200, my_mkr_balance_before - my_mkr_balance_after);
@@ -366,7 +367,7 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
         otc.buy(id, uint(type(uint256).max+1));
     }
     function testFailSuspdblSmplMrktTransferFromEOA() public {
-        otc.offer(30, ERC20(address(123)), 100, dai);
+        otc.offer(30, IERC20(address(123)), 100, dai);
     }
 }
 
@@ -376,8 +377,8 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
 
 contract TransferTest_OpenMarket is DSTest, VmCheat {
     MarketTester user1;
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
 
     function setUp() public override{
@@ -549,8 +550,8 @@ contract SuspendableSimpleMarket_CancelTransferTestOpened is TransferTest_OpenMa
 
 contract TransferTest_SuspendedMarket is DSTest, VmCheat {
     MarketTester user1;
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
 
     function setUp() public override{
@@ -738,8 +739,8 @@ contract SuspendableSimpleMarket_CancelTransferTestSuspended is TransferTest_Sus
 
 contract TransferTest_ClosedMarket is DSTest, VmCheat {
     MarketTester user1;
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
 
     function setUp() public override{
@@ -960,8 +961,8 @@ contract SuspendableSimpleMarket_CancelTransferTestClosed is TransferTest_Closed
 // --- Gas Tests ---
 
 contract SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
     uint id;
 
@@ -1016,8 +1017,8 @@ contract SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
 // Same tests as above, but with the market suspended
 
 contract SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
     uint id;
 
@@ -1071,8 +1072,8 @@ contract SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
 // Same tests as above, but with the market closed
 
 contract SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
     uint id;
 
@@ -1126,8 +1127,8 @@ contract SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
 // Same tests as above, but with the market closed & unsuspended
 
 contract SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
-    ERC20 dai;
-    ERC20 mkr;
+    IERC20 dai;
+    IERC20 mkr;
     SuspendableSimpleMarket otc;
     uint id;
 

@@ -25,8 +25,8 @@ pragma solidity ^0.8.18; // latest HH supported version
 // import "hardhat/console.sol";
 import "forge-std/console2.sol";
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract EventfulMarket {
@@ -38,8 +38,8 @@ contract EventfulMarket {
         bytes32  indexed  id,
         bytes32  indexed  pair,
         address  indexed  maker,
-        ERC20             pay_gem,
-        ERC20             buy_gem,
+        IERC20             pay_gem,
+        IERC20             buy_gem,
         uint128           pay_amt,
         uint128           buy_amt,
         uint64            timestamp
@@ -49,8 +49,8 @@ contract EventfulMarket {
         bytes32  indexed  id,
         bytes32  indexed  pair,
         address  indexed  maker,
-        ERC20             pay_gem,
-        ERC20             buy_gem,
+        IERC20             pay_gem,
+        IERC20             buy_gem,
         uint128           pay_amt,
         uint128           buy_amt,
         uint64            timestamp
@@ -60,8 +60,8 @@ contract EventfulMarket {
         bytes32           id,
         bytes32  indexed  pair,
         address  indexed  maker,
-        ERC20             pay_gem,
-        ERC20             buy_gem,
+        IERC20             pay_gem,
+        IERC20             buy_gem,
         address  indexed  taker,
         uint128           take_amt,
         uint128           give_amt,
@@ -72,8 +72,8 @@ contract EventfulMarket {
         bytes32  indexed  id,
         bytes32  indexed  pair,
         address  indexed  maker,
-        ERC20             pay_gem,
-        ERC20             buy_gem,
+        IERC20             pay_gem,
+        IERC20             buy_gem,
         uint128           pay_amt,
         uint128           buy_amt,
         uint64            timestamp
@@ -126,9 +126,9 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
     struct OfferInfo {
         uint     pay_amt;
-        ERC20    pay_gem;
+        IERC20    pay_gem;
         uint     buy_amt;
-        ERC20    buy_gem;
+        IERC20    buy_gem;
         address  owner;
         uint64   timestamp;
     }
@@ -166,7 +166,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         _;
     }
 
-    modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) virtual {
+    modifier checkOfferTokens(IERC20 _pay_gem, IERC20 _buy_gem) virtual {
         console2.log( "modifier checkOfferTokens:SimpleMarket" );
 
         require(address(_pay_gem) != NULL_ADDRESS);
@@ -186,7 +186,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         return offers[id].owner;
     }
 
-    function getOffer(uint id) public view returns (uint, ERC20, uint, ERC20) {
+    function getOffer(uint id) public view returns (uint, IERC20, uint, IERC20) {
       OfferInfo memory offerInfo = offers[id];
       return (offerInfo.pay_amt, offerInfo.pay_gem,
               offerInfo.buy_amt, offerInfo.buy_gem);
@@ -298,8 +298,8 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     }
 
     function make(
-        ERC20    pay_gem,
-        ERC20    buy_gem,
+        IERC20    pay_gem,
+        IERC20    buy_gem,
         uint128  pay_amt,
         uint128  buy_amt
     )
@@ -311,7 +311,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     }
 
     // Make a new offer. Takes funds from the caller into market escrow.
-    function offer(uint _pay_amt, ERC20 _pay_gem, uint _buy_amt, ERC20 _buy_gem)
+    function offer(uint _pay_amt, IERC20 _pay_gem, uint _buy_amt, IERC20 _buy_gem)
         public
         can_offer
         checkOfferAmounts(_pay_amt, _buy_amt)
@@ -355,15 +355,15 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         last_offer_id++; return last_offer_id;
     }
 
-    function safeTransfer(ERC20 token, address to, uint256 value) internal {
+    function safeTransfer(IERC20 token, address to, uint256 value) internal {
         _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
     }
 
-    function safeTransferFrom(ERC20 token, address from, address to, uint256 value) internal {
+    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
         _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
     }
 
-    function _callOptionalReturn(ERC20 token, bytes memory data) private {
+    function _callOptionalReturn(IERC20 token, bytes memory data) private {
         // call will revert in case of error
         (bool success, bytes memory returndata) = address(token).call(data);
         // check call success, revert if not

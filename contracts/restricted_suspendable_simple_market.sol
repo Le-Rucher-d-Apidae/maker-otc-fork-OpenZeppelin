@@ -66,23 +66,23 @@ contract RestrictedSuspendableSimpleMarketErrorCodes {
 // @notice mean mùain token is missing from the pair
 // @param buyToken token to buy.
 // @param sellToken token to sell.
-error InvalidTradingPair(ERC20 buyToken, ERC20 sellToken);
+error InvalidTradingPair(IERC20 buyToken, IERC20 sellToken);
 
 contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, RestrictedSuspendableSimpleMarketErrorCodes {
 
-    ERC20 public mainTradableToken; // ApidaeToken
-    mapping (ERC20=>bool) tradableTokens; // mainTradableToken must not be in this list
+    IERC20 public mainTradableToken; // ApidaeToken
+    mapping (IERC20=>bool) tradableTokens; // mainTradableToken must not be in this list
 
     
     /// @notice inherits from SuspendableSimpleMarket
     /// @notice mainTradableToken may be null at construction time, but must be set before any offer
     /// @dev 
-    constructor(ERC20 _mainTradableToken, bool _suspended) SuspendableSimpleMarket(_suspended) {
+    constructor(IERC20 _mainTradableToken, bool _suspended) SuspendableSimpleMarket(_suspended) {
         mainTradableToken = _mainTradableToken;
     }
 
     // Tokens checks
-    modifier tokenAllowed(ERC20 erc20) {
+    modifier tokenAllowed(IERC20 erc20) {
         require(tradableTokens[erc20], "Token not authorized");
         _;
     }
@@ -94,7 +94,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     /// @dev if mainTradableToken has not been set (address(0x0)), no tradable token may have been set modifier will fail properly (e.g.checkOfferTokens( 0x0, 0x0)) with InvalidTradingPair error
     /// @param _pay_gem token to check
     /// @param _buy_gem token to check
-    modifier checkOfferTokens(ERC20 _pay_gem, ERC20 _buy_gem) override {
+    modifier checkOfferTokens(IERC20 _pay_gem, IERC20 _buy_gem) override {
         // Since tradable tokens are whitelisted, no need to check for address(0x0)
         // Check for token : one must be mainTradableToken, other must be tradable
         console2.log( "modifier checkOfferTokens:RestrictedSuspendableSimpleMarket" );
@@ -114,7 +114,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
         _;
     }
 
-    function setmainTradableToken(ERC20 _erc20) public onlyOwner {
+    function setmainTradableToken(IERC20 _erc20) public onlyOwner {
         // Allow to set only once
         if (address(mainTradableToken) == NULL_ADDRESS) {
             mainTradableToken = _erc20;
@@ -126,7 +126,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     /// @notice 2 mainTradableToken and at least one tradableTokens must be set before any offer
     /// @dev 
     /// @param _erc20 token to check
-    function allowToken(ERC20 _erc20) public onlyOwner {
+    function allowToken(IERC20 _erc20) public onlyOwner {
         require(address(mainTradableToken) != NULL_ADDRESS,"mainTradableToken must be set first");
         require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
         require(!tradableTokens[_erc20],"Already allowed");
@@ -140,7 +140,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
         tradableTokens[_erc20] = true;
     }
 
-    function revokeToken(ERC20 _erc20) public onlyOwner tokenAllowed(_erc20) {
+    function revokeToken(IERC20 _erc20) public onlyOwner tokenAllowed(_erc20) {
         // Allow to remove all tradable tokens
         // existing orders will remain active (no checks are made on buys)
         delete tradableTokens[_erc20];
