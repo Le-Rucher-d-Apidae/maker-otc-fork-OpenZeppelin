@@ -23,11 +23,11 @@
 pragma solidity ^0.8.18; // latest HH supported version
 
 
-import "forge-std/Test.sol"; // import "ds-test/test.sol";
+import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/console2.sol";
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";// import "ds-token/base.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../contracts/restricted_suspendable_simple_market.sol";
@@ -55,13 +55,10 @@ contract VmCheat {
 
     address public NULL_ADDRESS = address(0x0);
     IERC20 public NULL_ERC20 = IERC20(NULL_ADDRESS);
-
-    // bytes20 constant CHEAT_CODE = bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
-    address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D;
+    address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D; // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
 
     function setUp() public virtual {
         console2.log("VmCheat: setUp()");
-        // console2.logBytes20(CHEAT_CODE);
         vm = Vm(address(CHEAT_CODE));
         vm.warp(1);
     }
