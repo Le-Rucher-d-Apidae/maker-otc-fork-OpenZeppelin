@@ -29,10 +29,12 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/console2.sol";
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../contracts/suspendable_simple_market.sol";
+
+import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
 contract MarketTester {
 
@@ -52,28 +54,7 @@ contract MarketTester {
     }
 }
 
-contract VmCheat {
-    Vm vm;
-
-    address public NULL_ADDRESS = address(0x0);
-    IERC20 public NULL_ERC20 = IERC20(NULL_ADDRESS);
-    address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D; // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
-
-    function setUp() public virtual {
-        console2.log("VmCheat: setUp()");
-        vm = Vm(address(CHEAT_CODE));
-        vm.warp(1);
-    }
-}
-
-
-
-contract DSTokenBase is ERC20{
-    constructor(uint _initialSupply) ERC20("Test", "TST") {
-        _mint(msg.sender, _initialSupply );
-    }
-}
-
+// Exact same test as SimpleMarketTest, but with Suspend & Stop checks added
 
 contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
