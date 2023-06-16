@@ -28,6 +28,7 @@ import "forge-std/console2.sol";
 // import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract EventfulMarket {
     event LogItemUpdate(uint id);
@@ -116,6 +117,7 @@ contract SimpleMarketErrorCodes {
 
 contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
+    using SafeERC20 for IERC20;
     address public constant NULL_ADDRESS = address(0x0);
 
     uint public last_offer_id; // defaults to 0 when deployed
@@ -237,8 +239,8 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         offers[id].pay_amt = offerInfo.pay_amt - quantity;
         offers[id].buy_amt = offerInfo.buy_amt - spend;
         // address msgSender = _msgSender();
-        safeTransferFrom(offerInfo.buy_gem, msg.sender /*msgSender*/, offerInfo.owner, spend);
-        safeTransfer(offerInfo.pay_gem, msg.sender /*msgSender*/, quantity);
+        offerInfo.buy_gem.safeTransferFrom(msg.sender /*msgSender*/, offerInfo.owner, spend);
+        offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity);
 
         emit LogItemUpdate(id);
         emit LogTake(
@@ -273,7 +275,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         OfferInfo memory offerInfo = offers[id];
         delete offers[id];
 
-        safeTransfer(offerInfo.pay_gem, offerInfo.owner, offerInfo.pay_amt);
+        offerInfo.pay_gem.safeTransfer(offerInfo.owner, offerInfo.pay_amt);
 
         emit LogItemUpdate(id);
         emit LogKill(
@@ -326,7 +328,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
             _pay_amt, _pay_gem, _buy_amt, _buy_gem, msg.sender/* msgSender */, uint64(block.timestamp)
         );
 
-        safeTransferFrom(_pay_gem, msg.sender/* msgSender */, address(this), _pay_amt);
+        _pay_gem.safeTransferFrom(msg.sender/* msgSender */, address(this), _pay_amt);
 
         emit LogItemUpdate(id);
         emit LogMake(
@@ -353,30 +355,6 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         returns (uint)
     {
         last_offer_id++; return last_offer_id;
-    }
-
-    function safeTransfer(IERC20 token, address to, uint256 value) internal {
-        _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
-    }
-
-    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
-        _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
-    }
-
-    function _callOptionalReturn(IERC20 token, bytes memory data) private {
-        // call will revert in case of error
-        (bool success, bytes memory returndata) = address(token).call(data);
-        // check call success, revert if not
-        require(success, "Token call failed");
-
-        // if returndata > 0 it was a contract
-        if (returndata.length > 0) { // Return data is optional
-            require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
-        }
-        else {
-            // returndata empty : check it was a contract
-            require(address(token).code.length > 0, "Not a contract");
-        }
     }
 
 }
