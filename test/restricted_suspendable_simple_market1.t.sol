@@ -1075,19 +1075,21 @@ contract Restricted1SuspendableSimpleMarket_CancelTransferTestClosed is Transfer
 
     // Same tests, but try to unsuspend
     function test2ClsdSuspdblSmplMrktCancelTransfersFromMarket() public {
+        vm.expectRevert("SS299_MARKET_ALREADY_CLOSED"); // Closed market
         // Unsuspend attempt
         otc.unsuspendMarket();
-        vm.expectRevert(); // Closed market
+        vm.expectRevert("SS201_MARKET_NOT_ACTIVE"); // Closed market
         uint256 id = otc.offer(30, mkr, 100, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
-        vm.expectRevert(); // Closed market
+        vm.expectRevert("T101_OFFER_NOT_PRESENT");
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
         assertEq(balance_before - balance_after, /* 30 */ 0);
     }
     function test2ClsdSuspdblSmplMrktCancelTransfersToSeller() public {
+        vm.expectRevert("SS299_MARKET_ALREADY_CLOSED"); // Closed market
         // Unsuspend attempt
         otc.unsuspendMarket();
         vm.expectRevert(); // Closed market
@@ -1101,30 +1103,32 @@ contract Restricted1SuspendableSimpleMarket_CancelTransferTestClosed is Transfer
         assertEq(balance_after - balance_before, /* 30 */ 0);
     }
     function test2ClsdSuspdblSmplMrktCancelPartialTransfersFromMarket() public {
+        vm.expectRevert("SS299_MARKET_ALREADY_CLOSED"); // Closed market
         // Unsuspend attempt
         otc.unsuspendMarket();
-        vm.expectRevert(); // Closed market
+        vm.expectRevert("SS201_MARKET_NOT_ACTIVE"); // Closed market
         uint256 id = otc.offer(30, mkr, 100, dai);
-        vm.expectRevert(); // Closed market
+        vm.expectRevert("T101_OFFER_NOT_PRESENT");
         user1.doBuy(id, 15);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
-        vm.expectRevert(); // Closed market
+        vm.expectRevert(); // order doens't exist
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
         assertEq(balance_before - balance_after, /* 15 */ 0);
     }
     function test2ClsdSuspdblSmplMrktCancelPartialTransfersToSeller() public {
+        vm.expectRevert("SS299_MARKET_ALREADY_CLOSED"); // Closed market
         // Unsuspend attempt
         otc.unsuspendMarket();
-        vm.expectRevert(); // Closed market
+        vm.expectRevert("SS201_MARKET_NOT_ACTIVE"); // Closed market
         uint256 id = otc.offer(30, mkr, 100, dai);
-        vm.expectRevert(); // Closed market
+        vm.expectRevert("T101_OFFER_NOT_PRESENT");
         user1.doBuy(id, 15);
 
         uint256 balance_before = mkr.balanceOf(address(this));
-        vm.expectRevert(); // Closed market
+        vm.expectRevert(); // order doens't exist
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(this));
 
@@ -1345,6 +1349,7 @@ contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmC
         vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
         id = otc.offer(30, mkr, 100, dai);
         otc.closeMarket(); // CLOSE
+        vm.expectRevert("SS299_MARKET_ALREADY_CLOSED"); // Closed market
         otc.unsuspendMarket(); // SUSPEND
     }
     function testClsd2SuspdblSmplMrktNewMarket()
@@ -1357,28 +1362,32 @@ contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmC
         public
         logs_gas
     {
-        vm.expectRevert(); // Closed market
+        // vm.expectRevert(); // Closed market
+        vm.expectRevert("SS201_MARKET_NOT_ACTIVE"); // Closed market
         otc.offer(30, mkr, 100, dai);
     }
     function test2ClsdSuspdblSmplMrktBuy()
         public
         logs_gas
     {
-        vm.expectRevert(); // Closed market
+        // vm.expectRevert(); // Closed market
+        vm.expectRevert("T101_OFFER_NOT_PRESENT");
         otc.buy(id, 30);
     }
     function test2ClsdSuspdblSmplMrktBuyPartial()
         public
         logs_gas
     {
-        vm.expectRevert(); // Closed market
+        // vm.expectRevert(); // Closed market
+        vm.expectRevert("T101_OFFER_NOT_PRESENT");
         otc.buy(id, 15);
     }
     function testClsd2SuspdblSmplMrktCancel()
         public
         logs_gas
     {
-        vm.expectRevert(); // doesn't exist
+        // vm.expectRevert(); // Closed market
+        vm.expectRevert("T101_OFFER_NOT_PRESENT");
         otc.cancel(id);
     }
 }

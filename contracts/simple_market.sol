@@ -81,29 +81,34 @@ contract EventfulMarket {
 } // contract EventfulMarket
 
 contract SimpleMarketErrorCodes {
-    // S Series = Security/Authorization
+    // S Series = Security
     string internal constant _S000 = "S000_REENTRANCY_ATTEMPT";
+    // A Series = Authorization
+    string internal constant _A100 = "A100_CANCEL_NOT_AUTHORIZED";
 
     // T Series = Trades/Offers
+    string internal constant _T101 = "T101_OFFER_NOT_PRESENT";
+    string internal constant _T107 = "T107_TOKENS_CANT_BE_THE_SAME";
+
+    // F Series = Funds
+    string internal constant _F102 = "F102_ADDRESS_CANT_BE_0X";
+    string internal constant _F111 = "F111_BUY_QUANTITY_TOO_HIGH";
+    string internal constant _F112 = "F112_SPENT_QUANTITY_TOO_HIGH";
 
 /*
     string internal constant _S101 = "S101_NOT_AUTHORIZED";
-    // F Series = Funds
 
     string internal constant _F101 = "F101_BALANCE_NOT_ENOUGH";
-    string internal constant _F102 = "F102_ADDRESS_CANT_BE_0";
     string internal constant _F103 = "F103_TOKEN_NOT_ALLOWED";
     string internal constant _F104 = "F104_TRANSFER_FAILED";
 
     // T Series = Trades/Offers
 
-    string internal constant _T101 = "T101_OFFER_NOT_PRESENT";
     string internal constant _T102 = "T102_OFFER_ID_NOT_VALID";
     string internal constant _T103 = "T103_OFFER_TYPE_NOT_VALID";
     string internal constant _T104 = "T104_OFFER_AMOUNT_LOW";
     string internal constant _T105 = "T105_OFFER_AMOUNT_HIGH";
     string internal constant _T106 = "T106_OFFER_AMOUNT_NOT_VALID";
-    string internal constant _T107 = "T107_TOKENS_CANT_BE_THE_SAME";
     string internal constant _T108 = "T108_NOT_ENOUGH_OFFERS_PRESENT";
     string internal constant _T109 = "T109_BUY_FAILED";
     string internal constant _T110 = "T110_UNSORT_FAILED";
@@ -134,13 +139,13 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     }
 
     modifier can_buy(uint id) virtual {
-        require(isOrderActive(id));
+        require(isOrderActive(id),_T101); 
         _;
     }
 
     modifier can_cancel(uint id) virtual {
-        require(isOrderActive(id));
-        require(getOwner(id) == msg.sender/* _msgSender() */);
+        require(isOrderActive(id),_T101); 
+        require(getOwner(id) == msg.sender/* _msgSender() */, _A100);
         _;
     }
 
@@ -168,10 +173,10 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     modifier checkOfferTokens(IERC20 _pay_gem, IERC20 _buy_gem) virtual {
         console2.log( "modifier checkOfferTokens:SimpleMarket" );
 
-        require(address(_pay_gem) != NULL_ADDRESS);
-        require(address(_buy_gem) != NULL_ADDRESS);
+        require(address(_pay_gem) != NULL_ADDRESS, _F102);
+        require(address(_buy_gem) != NULL_ADDRESS, _F102);
         // Tokens must be different
-        require(_pay_gem != _buy_gem);
+        require(_pay_gem != _buy_gem, _T107);
         _;
     }
 
@@ -217,12 +222,12 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         virtual
         returns (bool)
     {
+        require(uint128(quantity) == quantity, _F111);
+
         OfferInfo memory offerInfo = offers[id];
         uint spend = quantity * offerInfo.buy_amt / offerInfo.pay_amt;
 
-
-        require(uint128(spend) == spend);
-        require(uint128(quantity) == quantity);
+        require(uint128(spend) == spend, _F112);
 
         // For backwards semantic compatibility.
         if (quantity == 0 || spend == 0 ||

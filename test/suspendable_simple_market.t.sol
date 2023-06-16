@@ -1143,6 +1143,7 @@ contract SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
 
         id = otc.offer(30, mkr, 100, dai);
         otc.closeMarket(); // CLOSE
+        vm.expectRevert("SS299_MARKET_ALREADY_CLOSED"); // Closed market
         otc.unsuspendMarket(); // SUSPEND
     }
     function testClsd2SuspdblSmplMrktNewMarket()

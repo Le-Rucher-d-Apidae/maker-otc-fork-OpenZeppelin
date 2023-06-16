@@ -40,7 +40,16 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath {
+contract RestrictedSuspendableMatchingMarketErrorCodes {
+    // S Series = Security/Authorization
+    string internal constant _RSS001 = "RS001_REENTRANCY";
+
+    // T Series = Trades/Offers
+    string internal constant _RST001 = "RST001_NOT_OWNER_OR_DUST";
+    string internal constant _RST104 = "RST104_OFFER_AMOUNT_LOW";
+}
+
+contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath, RestrictedSuspendableMatchingMarketErrorCodes {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
@@ -58,9 +67,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     uint256 public dustLimit;
     address public priceOracle;
 
-
-    
-
     // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
     constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
@@ -74,12 +80,16 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
         // require(isActive(id), "Offer was deleted or taken, or never existed.");
-        require(isOrderActive(id), "Offer was deleted or taken, or never existed.");
-
+        require(isOrderActive(id), _T101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
-            "Offer can not be cancelled because user is not owner nor a dust one."
+            _RST001
         );
+        _;
+    }
+
+    modifier guard() {
+        require(!locked, _RSS001);
         _;
     }
 
@@ -132,21 +142,21 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     }
 
     // Make a new offer. Takes funds from the caller into market escrow.
-/*
+
     function offer(
         uint pay_amt,    //maker (ask) sell how much
-        ERC20 pay_gem,   //maker (ask) sell which token
+        IERC20 pay_gem,   //maker (ask) sell which token
         uint buy_amt,    //maker (ask) buy how much
-        ERC20 buy_gem,   //maker (ask) buy which token
+        IERC20 buy_gem,   //maker (ask) buy which token
         uint pos         //position to insert offer, 0 should be used if unknown
     )
         public
-        can_offer
+        // can_offer
         returns (uint)
     {
         return offer(pay_amt, pay_gem, buy_amt, buy_gem, pos, true);
     }
-*/
+
     function offer(
         uint pay_amt,    //maker (ask) sell how much
         IERC20 pay_gem,   //maker (ask) sell which token
@@ -157,11 +167,11 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     )
         public
         can_offer
-        synchronized
+        guard
         returns (uint)
     {
         // require(!locked, "Reentrancy attempt");
-        require(_dust[address(pay_gem)] <= pay_amt);
+        require(_dust[address(pay_gem)] <= pay_amt, _RST104);
 
         return _matcho(pay_amt, pay_gem, buy_amt, buy_gem, pos, rounding);
     }
@@ -170,7 +180,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     function buy(uint id, uint amount)
         public
         can_buy(id)
-        synchronized
+        guard
         override
         returns (bool)
     {
@@ -182,7 +192,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     function cancel(uint id)
         public
         can_cancel(id)
-        synchronized
+        guard
         override
         returns (bool success)
     {
@@ -194,7 +204,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         }
         return super.cancel(id);    //delete the offer.
     }
-
+/*
     //insert offer into the sorted list
     //keepers need to use this function
     function insert(
@@ -214,12 +224,12 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         emit LogInsert(msg.sender, id);
         return true;
     }
-
+*/
     //deletes _rank [id]
     //  Function should be called by keepers.
     function del_rank(uint id)
         public
-        synchronized
+        guard
         returns (bool)
     {
         // require(!locked, "Reentrancy attempt");
@@ -311,7 +321,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
 
     function sellAllAmount(IERC20 pay_gem, uint pay_amt, IERC20 buy_gem, uint min_fill_amount)
         public
-        synchronized
+        guard
         returns (uint fill_amt)
     {
         // require(!locked, "Reentrancy attempt");
@@ -344,7 +354,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
 
     function buyAllAmount(IERC20 buy_gem, uint buy_amt, IERC20 pay_gem, uint max_fill_amount)
         public
-        synchronized
+        guard
         returns (uint fill_amt)
     {
         // require(!locked, "Reentrancy attempt");

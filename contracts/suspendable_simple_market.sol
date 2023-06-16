@@ -24,8 +24,16 @@ pragma solidity ^0.8.18; // latest HH supported version
 
 import "./simple_market.sol";
 
+contract SuspendableSimpleMarketErrorCodes {
+    // S Series = Security/Authorization
+    string internal constant _SS201 = "SS201_MARKET_NOT_ACTIVE";
+    string internal constant _SS202 = "SS202_MARKET_ALREADY_UNSUSPENDED";
+    string internal constant _SS203 = "SS203_MARKET_ALREADY_SUSPENDED";
+    string internal constant _SS299 = "SS299_MARKET_ALREADY_CLOSED";
+} // contract SimpleMarketErrorCodes
 
-contract SuspendableSimpleMarket is SimpleMarket {
+
+contract SuspendableSimpleMarket is SimpleMarket,SuspendableSimpleMarketErrorCodes {
     bool public closed;
     bool public suspended;
 
@@ -33,48 +41,47 @@ contract SuspendableSimpleMarket is SimpleMarket {
         suspended = _suspended;
     }
 
-    // after close_time has been reached, no new offers are allowed
+    // Allow new offers only when market is active (not closed/suspended)
     modifier can_offer override {
-        // require(!isClosed());
-        // require(!isSuspended());
-        require(isMarketActive());
+        require(isMarketActive(), _SS201);
         _;
     }
 
-    // after close, no new buys are allowed
+    // Allow buys only when market is active (not closed/suspended)
     modifier can_buy(uint id) override {
-        // require(isActive(id));
-        require(isOrderActive(id));
-        require(isMarketActive());
+        require(isOrderActive(id),_T101); 
+        require(isMarketActive(), _SS201);
         _;
     }
 
     // after close, anyone can cancel an offer
     modifier can_cancel(uint id) virtual override {
-        // require(isActive(id));
-        require(isOrderActive(id));
+        require(isOrderActive(id),_T101); 
         require((msg.sender == getOwner(id)) || isMarketClosed());
         _;
     }
-
 
     function isMarketClosed() public view returns (bool) {
         return closed;
     }
 
     function unsuspendMarket() public onlyOwner {
+        require(!closed, _SS299);
+        require(suspended, _SS202);
         suspended = false;
     }
 
     function suspendMarket() public onlyOwner {
+        require(!suspended, _SS203);
         suspended = true;
     }
 
     function isMarketActive() public view returns (bool) {
-        return !suspended&&!closed;
+        return !suspended && !closed;
     }
 
     function closeMarket() public onlyOwner {
+        require(!closed, _SS299);
         closed = true;
     }
 }
