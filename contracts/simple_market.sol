@@ -318,7 +318,10 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         returns (uint id)
     {
         // address msgSender = _msgSender();
+        console2.log( "last_offer_id=", last_offer_id );
         id = _next_id();
+        console2.log( "id=_next_id()=", id );
+
         offers[id] = OfferInfo(
             _pay_amt, _pay_gem, _buy_amt, _buy_gem, msg.sender/* msgSender */, uint64(block.timestamp)
         );
@@ -349,7 +352,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
         internal
         returns (uint)
     {
-        last_offer_id++; return last_offer_id;
+        return ++last_offer_id;
     }
 
 } // contract SimpleMarket
