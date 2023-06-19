@@ -171,7 +171,7 @@ contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
     }
 
     modifier checkOfferTokens(IERC20 _pay_gem, IERC20 _buy_gem) virtual {
-        console2.log( "modifier checkOfferTokens:SimpleMarket" );
+        // console2.log( "modifier checkOfferTokens:SimpleMarket" );
 
         require(address(_pay_gem) != NULL_ADDRESS, _F102);
         require(address(_buy_gem) != NULL_ADDRESS, _F102);
