@@ -25,6 +25,8 @@
 
 pragma solidity ^0.8.18; // latest HH supported version
 
+import "forge-std/console2.sol";
+
 import "./restricted_suspendable_simple_market.sol";
 import "./lib/dapphub/ds-math/math.sol";
 
@@ -255,7 +257,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     )
         public
     {
-        require(msg.sender == tx.origin, "No indirect calls please");
+        require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
         // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
         require(IERC20(pay_gem) != dustToken, "Can't set dust for the dustToken");
 
