@@ -25,8 +25,6 @@
 
 pragma solidity ^0.8.18; // latest HH supported version
 
-// import "forge-std/console2.sol";
-
 import "./restricted_suspendable_simple_market.sol";
 import "./lib/dapphub/ds-math/math.sol";
 
@@ -397,12 +395,12 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         uint256 offerId = getBestOffer(buy_gem, pay_gem);           //Get best offer for the token pair
         while (pay_amt > offers[offerId].buy_amt) {
             // fill_amt = add(fill_amt, offers[offerId].pay_amt);  //Add amount to buy accumulator
-            fill_amt = fill_amt + offers[offerId].pay_amt;  //Add amount to buy accumulator
+            fill_amt += offers[offerId].pay_amt;  //Add amount to buy accumulator
             // pay_amt = sub(pay_amt, offers[offerId].buy_amt);    //Decrease amount to pay
-            pay_amt = pay_amt + offers[offerId].buy_amt;    //Decrease amount to pay
+            pay_amt -= offers[offerId].buy_amt;    //Decrease amount to pay
             if (pay_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
-                require(offerId != 0);                          //Fails if there are not enough offers to complete
+                require(offerId != 0, "not enough offers to fulfill");                          //Fails if there are not enough offers to complete
             }
         }
         // fill_amt = add(fill_amt, rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9); //Add proportional amount of last offer to buy accumulator
