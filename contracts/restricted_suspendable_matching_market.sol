@@ -129,7 +129,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     //       to put offer in the sorted list.
     //
 
-    // Force any offer into the sorted list.
+    // TODO : Force any offer into the sorted list ?
     function offer(
         uint pay_amt,    //maker (ask) sell how much
         IERC20 pay_gem,   //maker (ask) sell which token
@@ -137,12 +137,13 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         IERC20 buy_gem    //taker (ask) buy which token
     )
         public
+        guard
         override
         returns (uint)
     {
         // require(!locked, "Reentrancy attempt");
-        // return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
-        return offer(pay_amt, pay_gem, buy_amt, buy_gem, 0, true);
+        return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
+        // return offer(pay_amt, pay_gem, buy_amt, buy_gem, 0, true);
     }
 
     // Make a new offer. Takes funds from the caller into market escrow.
@@ -221,9 +222,9 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         returns (bool)
     {
         require(!locked, "Reentrancy attempt");
-        require(!isOfferSorted(id));    //make sure offers[id] is not yet sorted
+        require(!isOfferSorted(id), "offer is already sorted");    //make sure offers[id] is not yet sorted
         // require(isActive(id));          //make sure offers[id] is active
-        require(isOrderActive(id));          //make sure offers[id] is active
+        require(isOrderActive(id), "offer must be active");          //make sure offers[id] is active
 
         _hide(id);                      //remove offer from unsorted offers list
         _sort(id, pos);                 //put offer into the sorted offers list
@@ -598,12 +599,12 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // Takes funds from the caller into market escrow.
     // ****Available to authorized contracts only!**********
     // Keepers should call insert(id,pos) to put offer in the sorted list.
-/* 
+///* 
     function _offeru(
         uint pay_amt,      //maker (ask) sell how much
-        ERC20 pay_gem,     //maker (ask) sell which token
+        IERC20 pay_gem,     //maker (ask) sell which token
         uint buy_amt,      //maker (ask) buy how much
-        ERC20 buy_gem      //maker (ask) buy which token
+        IERC20 buy_gem      //maker (ask) buy which token
     )
         internal
         returns (uint id)
@@ -615,7 +616,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         emit LogUnsortedOffer(id);
     }
 
- */
+ //*/
     //put offer into the sorted list
     function _sort(
         uint id,    //maker (ask) id

@@ -470,8 +470,6 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         mkr.approve(address(otc), 30);
         offer_id[1] = otc.offer(30, mkr, 100, dai);
 
-        // Assertion failed.
-
         assertEq(otc.getFirstUnsortedOffer(), offer_id[1]);
         assertEq(otc.getNextUnsortedOffer(offer_id[1]), 0);
     }
@@ -491,8 +489,6 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         offer_id[2] = otc.offer(30, mkr, 100, dai);
         offer_id[3] = otc.offer(30, mkr, 100, dai);
 
-        // Assertion failed.
-
         assertEq(otc.getFirstUnsortedOffer(), offer_id[3]);
         assertEq(otc.getNextUnsortedOffer(offer_id[1]), 0);
         assertEq(otc.getNextUnsortedOffer(offer_id[2]), offer_id[1]);
@@ -504,9 +500,8 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         offer_id[2] = otc.offer(30, mkr, 100, dai);
         offer_id[3] = otc.offer(30, mkr, 100, dai);
 
-        // Revert somewhere
-
         otc.insert(offer_id[3], 0);
+
         assertEq(otc.getBestOffer( mkr, dai ), offer_id[3]);
         assertEq(otc.getFirstUnsortedOffer(), offer_id[2]);
         assertEq(otc.getNextUnsortedOffer(offer_id[1]), 0);
@@ -515,8 +510,6 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
     }
     function testGetFirstNextUnsortedOfferAfterInsertTwo() public {
         mkr.approve(address(otc), 90);
-
-        // Revert somewhere
 
         offer_id[1] = otc.offer(30, mkr, 100, dai);
         offer_id[2] = otc.offer(30, mkr, 100, dai);
@@ -530,8 +523,6 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
     }
     function testGetFirstNextUnsortedOfferAfterInsertTheree() public {
         mkr.approve(address(otc), 90);
-
-        // Revert somewhere
 
         offer_id[1] = otc.offer(30, mkr, 100, dai);
         offer_id[2] = otc.offer(30, mkr, 100, dai);
@@ -558,7 +549,6 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
     }
 
     function testSetGetMinSellAmout() public {
-        // No indirect calls please
         doSetMinSellAmount(mkr, 100);
         assertEq(otc.getMinSell(mkr), 100);
     }
