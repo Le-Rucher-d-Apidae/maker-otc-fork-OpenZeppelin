@@ -70,7 +70,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     modifier checkOfferTokens(IERC20 _pay_gem, IERC20 _buy_gem) override {
         // Since tradable tokens are whitelisted, no need to check for address(0x0)
         // Check for token : one must be mainTradableToken, other must be tradable
-        console2.log( "modifier checkOfferTokens:RestrictedSuspendableSimpleMarket" );
+        // console2.log( "modifier checkOfferTokens:RestrictedSuspendableSimpleMarket" );
 
         // Sell mainTradableToken
         if (_pay_gem==mainTradableToken) {
