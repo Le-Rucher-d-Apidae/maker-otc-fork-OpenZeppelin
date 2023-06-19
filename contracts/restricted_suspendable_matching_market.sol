@@ -25,7 +25,7 @@
 
 pragma solidity ^0.8.18; // latest HH supported version
 
-import "forge-std/console2.sol";
+// import "forge-std/console2.sol";
 
 import "./restricted_suspendable_simple_market.sol";
 import "./lib/dapphub/ds-math/math.sol";
