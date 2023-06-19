@@ -337,7 +337,8 @@ contract SimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
     function testFailSmplMrktOverflow() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
-        otc.buy(id, uint(type(uint256).max+1));
+        // Overflow
+        otc.buy(id, uint(type(uint256).max+1)); // otc.buy(id, uint(-1));
     }
     function testFailSmplMrktTransferFromEOA() public {
         otc.offer(30, IERC20(address(123)), 100, dai);
