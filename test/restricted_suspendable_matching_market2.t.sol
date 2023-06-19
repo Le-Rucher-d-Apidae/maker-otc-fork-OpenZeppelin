@@ -463,7 +463,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         internal
     {
         DummySimplePriceOracle(otc.priceOracle()).setPrice(address(pay_gem), min_amount);
-        // vm.prank(address(otc));
+        vm.prank(address(otc), address(otc));
         otc.setMinSell(pay_gem);
     }
     function testGetFirstNextUnsortedOfferOneOffer() public {
