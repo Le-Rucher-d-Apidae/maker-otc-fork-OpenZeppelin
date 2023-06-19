@@ -152,6 +152,9 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingGasTest is DSTest, Vm
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
         otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dai), 0, address(priceOracle));
 
+        otc.allowToken(mkr);
+        otc.allowToken(dgd);
+
         user1 = new MarketTester(otc);
         dai.transfer(address(user1), (DAI_SUPPLY / 3) * 2);
         user1.doApprove(address(otc), DAI_SUPPLY / 3, dai );
@@ -162,10 +165,10 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingGasTest is DSTest, Vm
         //to match a certain number(match_count) of offers
     }
     // non overflowing multiplication
-    function safeMul(uint a, uint b) internal pure returns (uint c) {
-        c = a * b;
-        require(a == 0 || c / a == b, "");
-    }
+    // function safeMul(uint a, uint b) internal pure returns (uint c) {
+    //     c = a * b;
+    //     require(a == 0 || c / a == b, "");
+    // }
     function insertOffer(uint pay_amt, IERC20 pay_gem,
                          uint buy_amt, IERC20 buy_gem)
         public
@@ -198,7 +201,8 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingGasTest is DSTest, Vm
         offer_count = match_order_count + 1;
 
         createOffers(offer_count);
-        dai_buy =  safeMul(offer_count, offer_count + 1) / 2;
+        // dai_buy =  safeMul(offer_count, offer_count + 1) / 2;
+        dai_buy =  (offer_count* (offer_count + 1)) / 2;
         mkr_sell = dai_buy;
 
         insertOffer(mkr_sell, mkr, dai_buy, dai);
