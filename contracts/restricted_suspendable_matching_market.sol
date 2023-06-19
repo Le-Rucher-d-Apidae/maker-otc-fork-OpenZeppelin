@@ -63,13 +63,15 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     uint _head;                                 //first unsorted offer id
 
     // dust management
-    address public dustToken;
+    // address public dustToken;
+    IERC20 public dustToken;
     uint256 public dustLimit;
     address public priceOracle;
 
     // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
-    constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
         dustToken = _dustToken;
         dustLimit = _dustLimit;
         priceOracle = _priceOracle;
@@ -204,7 +206,9 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         }
         return super.cancel(id);    //delete the offer.
     }
-/*
+
+// --------------------------------------------
+// /*
     //insert offer into the sorted list
     //keepers need to use this function
     function insert(
@@ -224,7 +228,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         emit LogInsert(msg.sender, id);
         return true;
     }
-*/
     //deletes _rank [id]
     //  Function should be called by keepers.
     function del_rank(uint id)
@@ -239,6 +242,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         emit LogDelete(msg.sender, id);
         return true;
     }
+// */
+// --------------------------------------------
 
     //set the minimum sell amount for a token. Uses Uniswap as a price oracle.
     //    Function is used to avoid "dust offers" that have
@@ -251,9 +256,11 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         public
     {
         require(msg.sender == tx.origin, "No indirect calls please");
-        require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
+        // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
+        require(IERC20(pay_gem) != dustToken, "Can't set dust for the dustToken");
 
-        uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
+        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
+        uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
 
         _setMinSell(pay_gem, dust);
     }
