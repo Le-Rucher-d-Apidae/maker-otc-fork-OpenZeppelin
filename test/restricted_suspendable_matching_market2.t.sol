@@ -475,7 +475,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         assertEq(otc.getFirstUnsortedOffer(), offer_id[1]);
         assertEq(otc.getNextUnsortedOffer(offer_id[1]), 0);
     }
-/*
+
     function testGetFirstUnsortedOfferOneOfferBought() public {
         mkr.approve(address(otc), 30);
         dai.transfer(address(user1), 100);
@@ -484,7 +484,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         user1.doBuy(offer_id[1], 30);
         assertEq(otc.getFirstUnsortedOffer(), 0);
     }
-*/
+
     function testGetFirstNextUnsortedOfferThreeOffers() public {
         mkr.approve(address(otc), 90);
         offer_id[1] = otc.offer(30, mkr, 100, dai);
@@ -544,7 +544,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         assertEq(otc.getNextUnsortedOffer(offer_id[2]), 0);
         assertEq(otc.getNextUnsortedOffer(offer_id[3]), 0);
     }
-/*
+
     function testFailInsertOfferThatIsAlreadyInTheSortedList() public {
         mkr.approve(address(otc), 30);
         offer_id[1] = otc.offer(30, mkr, 100, dai, 0);
@@ -556,13 +556,13 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         offer_id[1] = otc.offer(30, mkr, 100, dai, 0);
         otc.insert(offer_id[1],7);  //there is no active offer at pos 7
     }
-*/
+
     function testSetGetMinSellAmout() public {
         // No indirect calls please
         doSetMinSellAmount(mkr, 100);
         assertEq(otc.getMinSell(mkr), 100);
     }
-/*
+
     function testFailOfferSellsLessThanRequired() public {
         mkr.approve(address(otc), 30);
         doSetMinSellAmount(mkr, 31);
@@ -572,7 +572,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
     function testFailCanNotSetSellAmountForMainTokenSettingDust() public {
         doSetMinSellAmount(dustToken,100);
     }
-*/
+
     function testOfferSellsMoreThanOrEqualThanRequired() public {
         mkr.approve(address(otc), 30);
         doSetMinSellAmount(mkr,30);
@@ -601,7 +601,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         assertTrue(!otc.isOrderActive(id0));
         assertTrue(!otc.isOrderActive(id1));
     }
-/*
+
     function testBuyDustOfferCanceled() public {
         dustToken.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dustToken);
@@ -1419,7 +1419,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         assertEq(otc.getBetterOffer(offer_id[4]), offer_id[2]);
         assertEq(otc.getWorseOffer(offer_id[4]), 0);
     }
-*/
+
     function testCancelDustOffers() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
@@ -1434,7 +1434,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
 
         assertTrue(!otc.isOrderActive(id0));
     }
-/*
+
     function failTestCancelNotDustOffers() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
@@ -1734,7 +1734,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         assertTrue(address(sell_token1) != address(0));
         assertTrue(address(buy_token1) != address(0));
     }
-*/
+
     function testSellAllDai() public {
         mkr.approve(address(otc), uint(type(uint256).max)); // mkr.approve(address(otc), uint(-1));
         dai.approve(address(otc), uint(type(uint256).max)); // dai.approve(address(otc), uint(-1));
@@ -1791,7 +1791,7 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         assertEq(otc.getBuyAmount(dai, mkr, 18 ether), expectedResult);
         assertEq(otc.sellAllAmount(mkr, 18 ether, dai, expectedResult), expectedResult);
     }
-/*
+
     function testFailSellAllMkr() public {
         mkr.approve(address(otc), uint(type(uint256).max) ); // mkr.approve(address(otc), uint(-1));
         dai.approve(address(otc), uint(type(uint256).max) ); // dai.approve(address(otc), uint(-1));
@@ -1865,5 +1865,5 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         (sellAmt,, buyAmt,,,) = otc.offers(currentId);
         assertTrue(sellAmt == 250 ether && buyAmt == 1 ether);
     }
-*/
+
 }
