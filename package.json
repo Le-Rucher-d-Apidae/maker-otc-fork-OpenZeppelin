@@ -54,6 +54,8 @@
     "testFoundrySusp": "forge test -vvv --match-contract ^SuspendableSimpleMarket_*",
     "testFoundryRest1": "forge test -vvv --match-contract ^Restricted1SuspendableSimpleMarket_*",
     "testFoundryRest2": "forge test -vvv --match-contract ^Restricted2SuspendableSimpleMarket_*",
+    "testFoundryRestMM1": "forge test -vvv --match-contract ^RestrictedSuspendableMatchingMarket1_*",
+    "testFoundryRestMM2": "forge test -vvv --match-contract ^RestrictedSuspendableMatchingMarket2_*",
     "testAll": "npm run testHH && npm run testFoundry",
     "testPG": "npx hardhat test --network localhost --grep PayableGreeter",
     "testTrace": "npx hardhat test --trace",
