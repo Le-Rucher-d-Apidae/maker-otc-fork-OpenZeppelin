@@ -1736,12 +1736,6 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
 
         uint expectedResult = 10 ether * 2800 / 2800 + 10 ether * 1200 / 3200;
 
-
-        // TODO : otc.getBuyAmount reverts
-        // TODO : otc.getBuyAmount reverts
-        // TODO : otc.getBuyAmount reverts
-        // TODO : otc.getBuyAmount reverts
-
         assertEq(otc.getBuyAmount(mkr, dai, 4000 ether), expectedResult);
         assertEq(otc.sellAllAmount(dai, 4000 ether, mkr, expectedResult), expectedResult);
 
@@ -1772,11 +1766,6 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         otc.offer(2800 ether, dai, 10 ether, mkr, 0);
 
         uint expectedResult = 3200 ether * 10 / 10 + 2800 ether * 8 / 10;
-
-        // TODO : otc.getBuyAmount reverts
-        // TODO : otc.getBuyAmount reverts
-        // TODO : otc.getBuyAmount reverts
-        // TODO : otc.getBuyAmount reverts
 
         assertEq(otc.getBuyAmount(dai, mkr, 18 ether), expectedResult);
         assertEq(otc.sellAllAmount(mkr, 18 ether, dai, expectedResult), expectedResult);
