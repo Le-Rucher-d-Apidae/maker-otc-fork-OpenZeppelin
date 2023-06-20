@@ -21,8 +21,6 @@
 // pragma solidity ^0.5.12;
 // pragma solidity >= 0.8.18 < 0.9.0;
 // pragma solidity ^0.8.20;
-
-
 pragma solidity ^0.8.18; // latest HH supported version
 
 import "./restricted_suspendable_simple_market.sol";
