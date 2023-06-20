@@ -26,7 +26,7 @@
 pragma solidity ^0.8.18; // latest HH supported version
 
 import "./restricted_suspendable_simple_market.sol";
-import "./lib/dapphub/ds-math/math.sol";
+import "../lib/dapphub/ds-math/src/math.sol";
 
 interface PriceOracleLike {
   function getPriceFor(address, address, uint256) external view returns (uint256);
