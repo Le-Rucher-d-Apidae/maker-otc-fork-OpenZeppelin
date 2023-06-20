@@ -35,6 +35,7 @@ contract DSMath {
     function min(uint x, uint y) internal pure returns (uint z) {
         return x <= y ? x : y;
     }
+/*
     function max(uint x, uint y) internal pure returns (uint z) {
         return x >= y ? x : y;
     }
@@ -44,15 +45,17 @@ contract DSMath {
     function imax(int x, int y) internal pure returns (int z) {
         return x >= y ? x : y;
     }
-
+*/
     uint constant WAD = 10 ** 18;
     uint constant RAY = 10 ** 27;
 
     //rounds to zero if x*y < WAD / 2
+/*
     function wmul(uint x, uint y) internal pure returns (uint z) {
         // z = add(mul(x, y), WAD / 2) / WAD;
         z = (x*y + WAD/2) / WAD;
     }
+*/
     //rounds to zero if x*y < WAD / 2
     function rmul(uint x, uint y) internal pure returns (uint z) {
         // z = add(mul(x, y), RAY / 2) / RAY;
@@ -84,6 +87,7 @@ contract DSMath {
     //  Also, EVM division is flooring and
     //    floor[(n-1) / 2] = floor[n / 2].
     //
+/*
     function rpow(uint x, uint n) internal pure returns (uint z) {
         z = n % 2 != 0 ? x : RAY;
 
@@ -95,4 +99,5 @@ contract DSMath {
             }
         }
     }
+*/
 }
