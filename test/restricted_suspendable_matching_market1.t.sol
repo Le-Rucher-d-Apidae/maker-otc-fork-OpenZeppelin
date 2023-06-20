@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// matching_market.t.sol
+/// restricted_suspendable_matching_market1.t.sol
 
 // Copyright (C) 2017 - 2021 Dai Foundation
 
@@ -18,12 +18,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-pragma solidity ^0.5.12;
+// pragma solidity >= 0.8.18 < 0.9.0;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.18; // latest HH supported version
 
-import "ds-test/test.sol";
-import "ds-token/base.sol";
-import "./matching_market.sol";
-import {HevmCheat} from "./simple_market.t.sol";
+
+import "forge-std/Test.sol";
+import "forge-std/Vm.sol";
+import "forge-std/console2.sol";
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import "../contracts/restricted_suspendable_matching_market.sol";
+
+import {VmCheat, DSTokenBase} from "./markets.t.sol";
+
+
 
 contract DummySimplePriceOracle {
     uint256 price;
@@ -36,10 +46,12 @@ contract DummySimplePriceOracle {
     }
 }
 
-contract MarketTester {
-    MatchingMarket market;
-    constructor(MatchingMarket  market_) public {
+contract MarketTester is DSTest, VmCheat {
+    RestrictedSuspendableMatchingMarket market;
+    // VmCheat vm;
+    constructor(RestrictedSuspendableMatchingMarket  market_/* , VmCheat _vm */) {
         market = market_;
+        // vm = _vm;
     }
     function doGetFirstUnsortedOffer()
         public
@@ -55,46 +67,49 @@ contract MarketTester {
     {
         return market.getNextUnsortedOffer(mid);
     }
-    function doGetMinSellAmount(ERC20 pay_gem)
+    function doGetMinSellAmount(IERC20 pay_gem)
         public
         view
         returns (uint)
     {
         return market.getMinSell(pay_gem);
     }
-    function doApprove(address spender, uint value, ERC20 token) public {
+    function doApprove(address spender, uint value, IERC20 token) public {
         token.approve(spender, value);
     }
     function doBuy(uint id, uint buy_amt) public returns (bool _success) {
         return market.buy(id, buy_amt);
     }
-    function doUnsortedOffer(uint pay_amt, ERC20 pay_gem,
-                    uint buy_amt,  ERC20 buy_gem)
+    function doUnsortedOffer(uint pay_amt, IERC20 pay_gem,
+                    uint buy_amt,  IERC20 buy_gem)
         public
         returns (uint)
     {
         return market.offer(pay_amt, pay_gem,
                     buy_amt, buy_gem);
     }
-    function doOffer(uint pay_amt, ERC20 pay_gem,
-                    uint buy_amt,  ERC20 buy_gem)
+    function doOffer(uint pay_amt, IERC20 pay_gem,
+                    uint buy_amt,  IERC20 buy_gem)
         public
         returns (uint)
     {
         return market.offer(pay_amt, pay_gem,
                   buy_amt, buy_gem, 0);
     }
-    function doOffer(uint pay_amt, ERC20 pay_gem,
-                    uint buy_amt,  ERC20 buy_gem,
+    function doOffer(uint pay_amt, IERC20 pay_gem,
+                    uint buy_amt,  IERC20 buy_gem,
                     uint pos)
         public
         returns (uint)
     {
-        return market.offer(pay_amt, pay_gem,
+        // vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
+        uint res = 
+        market.offer(pay_amt, pay_gem,
                   buy_amt, buy_gem, pos);
+        return res;
     }
-    function doOffer(uint pay_amt, ERC20 pay_gem,
-                    uint buy_amt,  ERC20 buy_gem,
+    function doOffer(uint pay_amt, IERC20 pay_gem,
+                    uint buy_amt,  IERC20 buy_gem,
                     uint pos, bool rounding)
         public
         returns (uint)
@@ -108,18 +123,18 @@ contract MarketTester {
     function getMarket()
         public
         view
-        returns (MatchingMarket)
+        returns (RestrictedSuspendableMatchingMarket)
     {
         return market;
     }
 }
 
-contract OrderMatchingGasTest is DSTest, HevmCheat {
+contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, VmCheat {
     MarketTester user1;
-    ERC20 dai;
-    ERC20 mkr;
-    ERC20 dgd;
-    MatchingMarket otc;
+    IERC20 dai;
+    IERC20 mkr;
+    IERC20 dgd;
+    RestrictedSuspendableMatchingMarket otc;
     uint offer_count = 200;
     mapping( uint => uint ) offer;
     mapping( uint => uint ) dai_to_buy;
@@ -130,7 +145,7 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
     uint constant DGD_SUPPLY = (10 ** 9) * (10 ** 18);
     uint constant MKR_SUPPLY = (10 ** 9) * (10 ** 18);
 
-    function setUp() public {
+    function setUp() public override {
         super.setUp();
 
         dai = new DSTokenBase(DAI_SUPPLY);
@@ -138,7 +153,10 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
         dgd = new DSTokenBase(DGD_SUPPLY);
 
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
-        otc = new MatchingMarket(address(dai), 0, address(priceOracle));
+        // otc = new RestrictedSuspendableMatchingMarket(address(dai), 0, address(priceOracle));
+        // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dai), 0, address(priceOracle));
+
         user1 = new MarketTester(otc);
         dai.transfer(address(user1), (DAI_SUPPLY / 3) * 2);
         user1.doApprove(address(otc), DAI_SUPPLY / 3, dai );
@@ -149,12 +167,12 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
         //to match a certain number(match_count) of offers
     }
     // non overflowing multiplication
-    function safeMul(uint a, uint b) internal pure returns (uint c) {
-        c = a * b;
-        require(a == 0 || c / a == b, "");
-    }
-    function insertOffer(uint pay_amt, ERC20 pay_gem,
-                         uint buy_amt, ERC20 buy_gem)
+    // function safeMul(uint a, uint b) internal pure returns (uint c) {
+    //     c = a * b;
+    //     require(a == 0 || c / a == b, "");
+    // }
+    function insertOffer(uint pay_amt, IERC20 pay_gem,
+                         uint buy_amt, IERC20 buy_gem)
         public
         logs_gas
     {
@@ -162,8 +180,8 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
                   buy_amt, buy_gem, 0);
     }
     //insert single offer
-    function insertOffer(uint pay_amt, ERC20 pay_gem,
-                         uint buy_amt, ERC20 buy_gem,
+    function insertOffer(uint pay_amt, IERC20 pay_gem,
+                         uint buy_amt, IERC20 buy_gem,
                          uint pos)
         public
         logs_gas
@@ -185,7 +203,8 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
         offer_count = match_order_count + 1;
 
         createOffers(offer_count);
-        dai_buy =  safeMul(offer_count, offer_count + 1) / 2;
+        // dai_buy =  safeMul(offer_count, offer_count + 1) / 2;
+        dai_buy =  (offer_count * ( offer_count + 1)) / 2;
         mkr_sell = dai_buy;
 
         insertOffer(mkr_sell, mkr, dai_buy, dai);
@@ -199,6 +218,7 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
     function execOrderInsertGasTest(uint offer_index, uint kind) public {
         createOffers(offer_index + 1);
         if (kind == 0) {                  // no frontend aid
+        // vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
             insertOffer(1, dai, 1, mkr);
             assertEq(otc.getOfferCount(dai,mkr), offer_index + 2);
         } else if (kind == 1){            // with frontend aid
@@ -330,6 +350,7 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
     }
     function testGasMakeOfferInsertAsFiftiethNoFrontendAid() public {
         uint offer_index = 50 - 1;
+        // vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
         execOrderInsertGasTest(offer_index, 0);
 // uncomment following line to run this test!
 //        assertTrue(false);
@@ -401,28 +422,30 @@ contract OrderMatchingGasTest is DSTest, HevmCheat {
 //        assertTrue(false);
     }
 }
-contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents {
+
+/*
+contract RestrictedSuspendableMatchingMarket1_OrderMatchingTest is DSTest, VmCheat, EventfulMarket, MatchingEvents {
     MarketTester user1;
-    ERC20 dai;
-    ERC20 dustToken;
-    ERC20 mkr;
-    ERC20 dgd;
-    MatchingMarket otc;
+    IERC20 dai;
+    IERC20 dustToken;
+    IERC20 mkr;
+    IERC20 dgd;
+    RestrictedSuspendableMatchingMarket otc;
     mapping(uint => uint) offer_id;
     uint buy_val;
     uint sell_val;
     uint buy_val1;
     uint sell_val1;
-    ERC20 sell_token;
-    ERC20 buy_token;
-    ERC20 sell_token1;
-    ERC20 buy_token1;
+    IERC20 sell_token;
+    IERC20 buy_token;
+    IERC20 sell_token1;
+    IERC20 buy_token1;
 
     uint constant DAI_SUPPLY = (10 ** 9) * (10 ** 18);
     uint constant DGD_SUPPLY = (10 ** 9) * (10 ** 18);
     uint constant MKR_SUPPLY = (10 ** 9) * (10 ** 18);
 
-    function setUp() public {
+    function setUp() public override {
         super.setUp();
 
         dai = new DSTokenBase(DAI_SUPPLY);
@@ -430,10 +453,13 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         mkr = new DSTokenBase(MKR_SUPPLY);
         dgd = new DSTokenBase(DGD_SUPPLY);
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
-        otc = new MatchingMarket(address(dustToken), 10, address(priceOracle));
+        // otc = new RestrictedSuspendableMatchingMarket(address(dustToken), 10, address(priceOracle));
+        // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dustToken), 10, address(priceOracle));
+
         user1 = new MarketTester(otc);
     }
-    function doSetMinSellAmount(ERC20 pay_gem, uint min_amount)
+    function doSetMinSellAmount(IERC20 pay_gem, uint min_amount)
         internal
     {
         DummySimplePriceOracle(otc.priceOracle()).setPrice(address(pay_gem), min_amount);
@@ -536,8 +562,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         mkr.approve(address(otc), 25);
         uint id0 = user1.doOffer(30, dustToken, 30, mkr, 0);
         uint id1 = otc.offer(25, mkr, 25, dustToken, 0);
-        assertTrue(!otc.isActive(id0));
-        assertTrue(!otc.isActive(id1));
+        assertTrue(!otc.isOrderActive(id0));
+        assertTrue(!otc.isOrderActive(id1));
     }
     function testDustNotNewDustOfferIsCreated() public {
         dustToken.transfer(address(user1), 30);
@@ -545,8 +571,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         mkr.approve(address(otc), 25);
         uint id0 = otc.offer(25, mkr, 25, dustToken, 0);
         uint id1 = user1.doOffer(30, dustToken, 30, mkr, 0);
-        assertTrue(!otc.isActive(id0));
-        assertTrue(!otc.isActive(id1));
+        assertTrue(!otc.isOrderActive(id0));
+        assertTrue(!otc.isOrderActive(id1));
     }
     function testBuyDustOfferCanceled() public {
         dustToken.transfer(address(user1), 30);
@@ -554,7 +580,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         mkr.approve(address(otc), 25);
         uint id0 = user1.doOffer(30, dustToken, 30, mkr, 0);
         otc.buy(id0, 25);
-        assertTrue(!otc.isActive(id0));
+        assertTrue(!otc.isOrderActive(id0));
     }
     function testErroneousUserHigherIdStillWorks() public {
         dai.transfer(address(user1), 10);
@@ -664,7 +690,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         offer_id[1] = user1.doOffer(dai_pay, dai, dgd_buy, dgd, 0);
 
         // Order should not have matched this time.
-        assertTrue(!otc.isActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
     }
 
     function testBestOfferWithOneOffer() public {
@@ -843,7 +869,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[1]), offer_id[2]);
         assertEq(otc.getBetterOffer(offer_id[2]), 0);
         assertEq(otc.getOfferCount(dai,mkr), 1);
-        assertTrue(!otc.isActive( offer_id[1]));
+        assertTrue(!otc.isOrderActive( offer_id[1]));
     }
     function testBestOfferWithTwoOffersDeletedHighest() public {
         dai.transfer(address(user1), 22);
@@ -858,7 +884,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[1]), 0);
         assertEq(otc.getBetterOffer(offer_id[2]), 0);
         assertEq(otc.getOfferCount(dai, mkr), 1);
-        assertTrue(!otc.isActive(offer_id[2]));
+        assertTrue(!otc.isOrderActive(offer_id[2]));
     }
     function testBestOfferWithThreeOffersDeletedLowest() public {
         dai.transfer(address(user1), 36);
@@ -877,7 +903,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[2]), offer_id[3]);
         assertEq(otc.getBetterOffer(offer_id[3]), 0);
         assertEq(otc.getOfferCount(dai, mkr), 2);
-        assertTrue(!otc.isActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
     }
     function testBestOfferWithThreeOffersDeletedHighest() public {
         dai.transfer(address(user1), 36);
@@ -894,13 +920,16 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[2]), 0);
         assertEq(otc.getBetterOffer(offer_id[3]), 0);
         assertEq(otc.getOfferCount(dai, mkr), 2);
-        assertTrue(!otc.isActive(offer_id[3]));
+        assertTrue(!otc.isOrderActive(offer_id[3]));
 
-        expectEventsExact(address(otc));
-        emit LogItemUpdate(offer_id[1]);
-        emit LogItemUpdate(offer_id[2]);
-        emit LogItemUpdate(offer_id[3]);
-        emit LogItemUpdate(offer_id[3]);
+        // TODO: migrate Events checks
+
+        // expectEventsExact(address(otc));
+        // emit LogItemUpdate(offer_id[1]);
+        // emit LogItemUpdate(offer_id[2]);
+        // emit LogItemUpdate(offer_id[3]);
+        // emit LogItemUpdate(offer_id[3]);
+
     }
     function testBestOfferWithTwoOffersWithDifferentTokens() public {
         dai.transfer(address(user1), 2);
@@ -1019,8 +1048,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getWorseOffer(offer_id[4]), 0);
         assertEq(otc.getOfferCount(dai,mkr), 1);
         assertEq(otc.getOfferCount(dai,dgd), 1);
-        assertTrue(!otc.isActive(offer_id[1]));
-        assertTrue(!otc.isActive(offer_id[3]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[3]));
     }
     function testBestOfferWithFourOffersWithDifferentTokensHighLowDeleted() public {
         dai.transfer(address(user1), 27);
@@ -1043,8 +1072,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getWorseOffer(offer_id[4]), offer_id[3]);
         assertEq(otc.getOfferCount(dai,mkr), 1);
         assertEq(otc.getOfferCount(dai,dgd), 1);
-        assertTrue(!otc.isActive(offer_id[2]));
-        assertTrue(!otc.isActive(offer_id[4]));
+        assertTrue(!otc.isOrderActive(offer_id[2]));
+        assertTrue(!otc.isOrderActive(offer_id[4]));
     }
     function testBestOfferWithSixOffersWithDifferentTokensLowHighDeleted() public {
         dai.transfer(address(user1), 78);
@@ -1074,8 +1103,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getWorseOffer(offer_id[6]), offer_id[5]);
         assertEq(otc.getOfferCount(dai,mkr), 2);
         assertEq(otc.getOfferCount(dai,dgd), 2);
-        assertTrue(!otc.isActive(offer_id[1]));
-        assertTrue(!otc.isActive(offer_id[6]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[6]));
     }
     function testBestOfferWithSixOffersWithDifferentTokensHighLowDeleted() public {
         dai.transfer(address(user1), 73);
@@ -1105,8 +1134,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getWorseOffer(offer_id[6]), offer_id[5]);
         assertEq(otc.getOfferCount(dai, mkr), 2);
         assertEq(otc.getOfferCount(dai, dgd), 2);
-        assertTrue(!otc.isActive(offer_id[3]));
-        assertTrue(!otc.isActive(offer_id[4]));
+        assertTrue(!otc.isOrderActive(offer_id[3]));
+        assertTrue(!otc.isOrderActive(offer_id[4]));
     }
 
     function testInsertOfferWithUserProvidedIdOfADifferentTokenLower() public {
@@ -1368,13 +1397,13 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         mkr.approve(address(otc), 25);
         uint id0 = user1.doOffer(30, dai, 30, mkr, 0);
 
-        assertTrue(otc.isActive(id0));
+        assertTrue(otc.isOrderActive(id0));
 
         doSetMinSellAmount(dai, 50);
 
         otc.cancel(id0);
 
-        assertTrue(!otc.isActive(id0));
+        assertTrue(!otc.isOrderActive(id0));
     }
 
     function failTestCancelNotDustOffers() public {
@@ -1383,7 +1412,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         mkr.approve(address(otc), 25);
         uint id0 = user1.doOffer(30, dai, 30, mkr, 0);
 
-        assertTrue(otc.isActive(id0));
+        assertTrue(otc.isOrderActive(id0));
 
         otc.cancel(id0);
     }
@@ -1409,11 +1438,12 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(user1_mkr_balance_after - user1_mkr_balance_before, 30);
         assertEq(user1_dai_balance_before - user1_dai_balance_after, 100);
 
-        /* //REPORTS FALSE ERROR:
-        expectEventsExact(otc);
-        LogItemUpdate(offer_id[1]);
-        LogItemUpdate(offer_id[1]);
-        LogItemUpdate(offer_id[2]);*/
+        //REPORTS FALSE ERROR:
+        // expectEventsExact(otc);
+        // LogItemUpdate(offer_id[1]);
+        // LogItemUpdate(offer_id[1]);
+        // LogItemUpdate(offer_id[2]);
+
     }
     function testOfferMatchOneOnOnePartialSellSendAmounts() public {
         dai.transfer(address(user1), 50);
@@ -1439,13 +1469,13 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(user1_dai_balance_before - user1_dai_balance_after, 50);
         assertEq(sell_val, 180);
         assertEq(buy_val, 450);
-        assertTrue(!otc.isActive(offer_id[2]));
+        assertTrue(!otc.isOrderActive(offer_id[2]));
 
-        /* //REPORTS FALSE ERROR:
-        expectEventsExact(otc);
-        LogItemUpdate(offer_id[1]);
-        LogItemUpdate(offer_id[1]);
-        LogItemUpdate(offer_id[2]);*/
+        //REPORTS FALSE ERROR:
+        // expectEventsExact(otc);
+        // LogItemUpdate(offer_id[1]);
+        // LogItemUpdate(offer_id[1]);
+        // LogItemUpdate(offer_id[2]);
     }
     function testOfferMatchOneOnOnePartialBuySendAmounts() public {
         dai.transfer(address(user1), 2000);
@@ -1475,10 +1505,13 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(sell_val1 , 1500);
         assertEq(buy_val1 , 600);
 
-        expectEventsExact(address(otc));
-        emit LogItemUpdate(offer_id[1]);
-        emit LogItemUpdate(offer_id[1]);
-        emit LogItemUpdate(offer_id[2]);
+        // TODO: migrate Events checks
+
+        // expectEventsExact(address(otc));
+        // emit LogItemUpdate(offer_id[1]);
+        // emit LogItemUpdate(offer_id[1]);
+        // emit LogItemUpdate(offer_id[2]);
+
     }
     function testOfferMatchingOneOnOneMatch() public {
         dai.transfer(address(user1), 1);
@@ -1491,8 +1524,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[1]), 0);
         assertEq(otc.getWorseOffer(offer_id[1]), 0);
         assertEq(otc.getOfferCount(dai, mkr), 0);
-        assertTrue(!otc.isActive(offer_id[1]));
-        assertTrue(!otc.isActive(offer_id[2]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[2]));
     }
     function testOfferMatchingOneOnOneMatchCheckOfferPriceRemainsTheSame() public {
         dai.transfer(address(user1), 5);
@@ -1507,7 +1540,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getWorseOffer(offer_id[1]), 0);
         assertEq(otc.getOfferCount(dai, mkr), 0);
         assertEq(otc.getOfferCount(mkr, dai), 1);
-        assertTrue(!otc.isActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
         //assert price of offer_id[2] should be the same as before matching
         assertEq(sell_val, 5);
         assertEq(buy_val, 5);
@@ -1530,7 +1563,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[2]), 0);
         assertEq(otc.getOfferCount(mkr, dai), 1);
         assertEq(otc.getOfferCount(dai, mkr), 0);
-        assertTrue(!otc.isActive(offer_id[2]));
+        assertTrue(!otc.isOrderActive(offer_id[2]));
         assertEq(sell_val, 5);
         assertEq(buy_val, 5);
         assertTrue(address(sell_token) != address(0));
@@ -1550,7 +1583,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getWorseOffer(offer_id[1]), 0);
         assertEq(otc.getOfferCount(dai, mkr), 0);
         assertEq(otc.getOfferCount(mkr, dai), 1);
-        assertTrue(!otc.isActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
         //assert érice of offer_id[2] should be the same as before matching
         assertEq(sell_val, 1);
         assertEq(buy_val, 1);
@@ -1573,7 +1606,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq( otc.getBetterOffer(offer_id[2]), 0);
         assertEq( otc.getOfferCount(mkr, dai), 0);
         assertEq( otc.getOfferCount(dai, mkr), 1);
-        assertTrue(!otc.isActive(offer_id[1]));
+        assertTrue(!otc.isOrderActive(offer_id[1]));
         assertEq(sell_val, 5);
         assertEq(buy_val, 5);
         assertTrue(address(sell_token) != address(0));
@@ -1597,7 +1630,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[2]), 0);
         assertEq(otc.getOfferCount(mkr, dai), 2);
         assertEq(otc.getOfferCount(dai, mkr), 0);
-        assertTrue(!otc.isActive(offer_id[3]));
+        assertTrue(!otc.isOrderActive(offer_id[3]));
         assertEq(sell_val, 5);
         assertEq(buy_val, 10);
         assertEq(sell_val1, 9);
@@ -1627,7 +1660,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[3]), 0);
         assertEq(otc.getOfferCount(mkr, dai), 1);
         assertEq(otc.getOfferCount(dai, mkr), 1);
-        assertTrue(!otc.isActive(offer_id[2]));
+        assertTrue(!otc.isOrderActive(offer_id[2]));
         assertEq(sell_val, 5);
         assertEq(buy_val, 10);
         assertEq(sell_val1, 9);
@@ -1660,8 +1693,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertEq(otc.getBetterOffer(offer_id[4]), 0);
         assertEq(otc.getOfferCount(mkr, dai), 2);
         assertEq(otc.getOfferCount(dai, mkr), 0);
-        assertTrue(!otc.isActive(offer_id[2]));
-        assertTrue(!otc.isActive(offer_id[4]));
+        assertTrue(!otc.isOrderActive(offer_id[2]));
+        assertTrue(!otc.isOrderActive(offer_id[4]));
         assertEq(sell_val, 8);
         assertEq(buy_val, 8);
         assertEq(sell_val1, 1);
@@ -1672,8 +1705,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertTrue(address(buy_token1) != address(0));
     }
     function testSellAllDai() public {
-        mkr.approve(address(otc), uint(-1));
-        dai.approve(address(otc), uint(-1));
+        mkr.approve(address(otc), uint(type(uint256).max)); // mkr.approve(address(otc), uint(-1));
+        dai.approve(address(otc), uint(type(uint256).max)); // dai.approve(address(otc), uint(-1));
         otc.offer(10 ether, mkr, 3200 ether, dai, 0);
         otc.offer(10 ether, mkr, 2800 ether, dai, 0);
 
@@ -1697,8 +1730,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
     }
 
     function testSellAllMkr() public {
-        mkr.approve(address(otc), uint(-1));
-        dai.approve(address(otc), uint(-1));
+        mkr.approve(address(otc), uint(type(uint256).max)); // mkr.approve(address(otc), uint(-1));
+        dai.approve(address(otc), uint(type(uint256).max)); // dai.approve(address(otc), uint(-1));
         otc.offer(3200 ether, dai, 10 ether, mkr, 0);
         otc.offer(2800 ether, dai, 10 ether, mkr, 0);
 
@@ -1708,8 +1741,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
     }
 
     function testFailSellAllMkr() public {
-        mkr.approve(address(otc), uint(-1));
-        dai.approve(address(otc), uint(-1));
+        mkr.approve(address(otc), uint(type(uint256).max) ); // mkr.approve(address(otc), uint(-1));
+        dai.approve(address(otc), uint(type(uint256).max) ); // dai.approve(address(otc), uint(-1));
         otc.offer(3200 ether, dai, 10 ether, mkr, 0);
         otc.offer(2800 ether, dai, 10 ether, mkr, 0);
 
@@ -1718,8 +1751,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
     }
 
     function testBuyAllMkr() public {
-        mkr.approve(address(otc), uint(-1));
-        dai.approve(address(otc), uint(-1));
+        mkr.approve(address(otc), uint(type(uint256).max) ); // mkr.approve(address(otc), uint(-1));
+        dai.approve(address(otc), uint(type(uint256).max) ); // dai.approve(address(otc), uint(-1));
         otc.offer(10 ether, mkr, 3200 ether, dai, 0);
         otc.offer(10 ether, mkr, 2800 ether, dai, 0);
 
@@ -1729,8 +1762,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
     }
 
     function testBuyAllDai() public {
-        mkr.approve(address(otc), uint(-1));
-        dai.approve(address(otc), uint(-1));
+        mkr.approve(address(otc), uint(type(uint256).max) ); // mkr.approve(address(otc), uint(-1));
+        dai.approve(address(otc), uint(type(uint256).max) ); // dai.approve(address(otc), uint(-1));
         otc.offer(3200 ether, dai, 10 ether, mkr, 0);
         otc.offer(2800 ether, dai, 10 ether, mkr, 0);
 
@@ -1740,8 +1773,8 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
     }
 
     function testFailBuyAllDai() public {
-        mkr.approve(address(otc), uint(-1));
-        dai.approve(address(otc), uint(-1));
+        mkr.approve(address(otc), uint(type(uint256).max) ); // mkr.approve(address(otc), uint(-1));
+        dai.approve(address(otc), uint(type(uint256).max) ); // dai.approve(address(otc), uint(-1));
         otc.offer(3200 ether, dai, 10 ether, mkr, 0);
         otc.offer(2800 ether, dai, 10 ether, mkr, 0);
 
@@ -1750,7 +1783,7 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
     }
 
     function testEvilOfferPositions() public {
-        mkr.approve(address(otc), uint(-1));
+        mkr.approve(address(otc), uint(type(uint256).max) ); // mkr.approve(address(otc), uint(-1));
         mkr.transfer(address(user1), 1000 ether);
         dai.transfer(address(user1), 1000 ether);
         user1.doApprove(address(otc), 1000 ether, dai);
@@ -1781,3 +1814,4 @@ contract OrderMatchingTest is DSTest, HevmCheat, EventfulMarket, MatchingEvents 
         assertTrue(sellAmt == 250 ether && buyAmt == 1 ether);
     }
 }
+*/

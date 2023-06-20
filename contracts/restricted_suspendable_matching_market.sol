@@ -25,7 +25,7 @@
 
 pragma solidity ^0.8.18; // latest HH supported version
 
-import "./suspendable_market.sol";
+import "./restricted_suspendable_simple_market.sol";
 import "./lib/dapphub/ds-math/math.sol";
 
 interface PriceOracleLike {
@@ -40,7 +40,16 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
+contract RestrictedSuspendableMatchingMarketErrorCodes {
+    // S Series = Security/Authorization
+    string internal constant _RSS001 = "RS001_REENTRANCY";
+
+    // T Series = Trades/Offers
+    string internal constant _RST001 = "RST001_NOT_OWNER_OR_DUST";
+    string internal constant _RST104 = "RST104_OFFER_AMOUNT_LOW";
+}
+
+contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath, RestrictedSuspendableMatchingMarketErrorCodes {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
@@ -54,39 +63,43 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     uint _head;                                 //first unsorted offer id
 
     // dust management
-    address public dustToken;
+    // address public dustToken;
+    IERC20 public dustToken;
     uint256 public dustLimit;
     address public priceOracle;
 
-
-    
-
     // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
-    constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
+    // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
+    // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
         dustToken = _dustToken;
         dustLimit = _dustLimit;
         priceOracle = _priceOracle;
-        _setMinSell(ERC20(dustToken), dustLimit);
+        _setMinSell(IERC20(dustToken), dustLimit);
     }
 
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
         // require(isActive(id), "Offer was deleted or taken, or never existed.");
-        require(isOrderActive(id), "Offer was deleted or taken, or never existed.");
-
+        require(isOrderActive(id), _T101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
-            "Offer can not be cancelled because user is not owner nor a dust one."
+            _RST001
         );
+        _;
+    }
+
+    modifier guard() {
+        require(!locked, _RSS001);
         _;
     }
 
     // ---- Public entrypoints ---- //
 
     function make (
-        ERC20    pay_gem,
-        ERC20    buy_gem,
+        IERC20    pay_gem,
+        IERC20    buy_gem,
         uint128  pay_amt,
         uint128  buy_amt
     )
@@ -114,53 +127,54 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     //       to put offer in the sorted list.
     //
 
-    // Force any offer into the sorted list.
+    // TODO : Force any offer into the sorted list ?
     function offer(
         uint pay_amt,    //maker (ask) sell how much
-        ERC20 pay_gem,   //maker (ask) sell which token
+        IERC20 pay_gem,   //maker (ask) sell which token
         uint buy_amt,    //taker (ask) buy how much
-        ERC20 buy_gem    //taker (ask) buy which token
+        IERC20 buy_gem    //taker (ask) buy which token
     )
         public
+        guard
         override
         returns (uint)
     {
         // require(!locked, "Reentrancy attempt");
-        // return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
-        return offer(pay_amt, pay_gem, buy_amt, buy_gem, 0, true);
+        return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
+        // return offer(pay_amt, pay_gem, buy_amt, buy_gem, 0, true);
     }
 
     // Make a new offer. Takes funds from the caller into market escrow.
-/*
+
     function offer(
         uint pay_amt,    //maker (ask) sell how much
-        ERC20 pay_gem,   //maker (ask) sell which token
+        IERC20 pay_gem,   //maker (ask) sell which token
         uint buy_amt,    //maker (ask) buy how much
-        ERC20 buy_gem,   //maker (ask) buy which token
+        IERC20 buy_gem,   //maker (ask) buy which token
         uint pos         //position to insert offer, 0 should be used if unknown
     )
         public
-        can_offer
+        // can_offer
         returns (uint)
     {
         return offer(pay_amt, pay_gem, buy_amt, buy_gem, pos, true);
     }
-*/
+
     function offer(
         uint pay_amt,    //maker (ask) sell how much
-        ERC20 pay_gem,   //maker (ask) sell which token
+        IERC20 pay_gem,   //maker (ask) sell which token
         uint buy_amt,    //maker (ask) buy how much
-        ERC20 buy_gem,   //maker (ask) buy which token
+        IERC20 buy_gem,   //maker (ask) buy which token
         uint pos,        //position to insert offer, 0 should be used if unknown
         bool rounding    //match "close enough" orders?
     )
         public
         can_offer
-        synchronized
+        guard
         returns (uint)
     {
         // require(!locked, "Reentrancy attempt");
-        require(_dust[address(pay_gem)] <= pay_amt);
+        require(_dust[address(pay_gem)] <= pay_amt, _RST104);
 
         return _matcho(pay_amt, pay_gem, buy_amt, buy_gem, pos, rounding);
     }
@@ -169,7 +183,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     function buy(uint id, uint amount)
         public
         can_buy(id)
-        synchronized
+        guard
         override
         returns (bool)
     {
@@ -181,7 +195,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     function cancel(uint id)
         public
         can_cancel(id)
-        synchronized
+        guard
         override
         returns (bool success)
     {
@@ -194,6 +208,8 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
         return super.cancel(id);    //delete the offer.
     }
 
+// --------------------------------------------
+// /*
     //insert offer into the sorted list
     //keepers need to use this function
     function insert(
@@ -204,21 +220,20 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
         returns (bool)
     {
         require(!locked, "Reentrancy attempt");
-        require(!isOfferSorted(id));    //make sure offers[id] is not yet sorted
+        require(!isOfferSorted(id), "offer is already sorted");    //make sure offers[id] is not yet sorted
         // require(isActive(id));          //make sure offers[id] is active
-        require(isOrderActive(id));          //make sure offers[id] is active
+        require(isOrderActive(id), "offer must be active");          //make sure offers[id] is active
 
         _hide(id);                      //remove offer from unsorted offers list
         _sort(id, pos);                 //put offer into the sorted offers list
         emit LogInsert(msg.sender, id);
         return true;
     }
-
     //deletes _rank [id]
     //  Function should be called by keepers.
     function del_rank(uint id)
         public
-        synchronized
+        guard
         returns (bool)
     {
         // require(!locked, "Reentrancy attempt");
@@ -228,6 +243,8 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
         emit LogDelete(msg.sender, id);
         return true;
     }
+// */
+// --------------------------------------------
 
     //set the minimum sell amount for a token. Uses Uniswap as a price oracle.
     //    Function is used to avoid "dust offers" that have
@@ -235,21 +252,23 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     //    cost more gas to accept the offer, than the value
     //    of tokens received.
     function setMinSell(
-        ERC20 pay_gem     //token to assign minimum sell amount to
+        IERC20 pay_gem     //token to assign minimum sell amount to
     )
         public
     {
-        require(msg.sender == tx.origin, "No indirect calls please");
-        require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
+        require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
+        // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
+        require(IERC20(pay_gem) != dustToken, "Can't set dust for the dustToken");
 
-        uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
+        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
+        uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
 
         _setMinSell(pay_gem, dust);
     }
 
     //returns the minimum sell amount for an offer
     function getMinSell(
-        ERC20 pay_gem      //token for which minimum sell amount is queried
+        IERC20 pay_gem      //token for which minimum sell amount is queried
     )
         public
         view
@@ -261,7 +280,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     //return the best offer for a token pair
     //      the best offer is the lowest one if it's an ask,
     //      and highest one if it's a bid offer
-    function getBestOffer(ERC20 sell_gem, ERC20 buy_gem) public view returns(uint) {
+    function getBestOffer(IERC20 sell_gem, IERC20 buy_gem) public view returns(uint) {
         return _best[address(sell_gem)][address(buy_gem)];
     }
 
@@ -283,7 +302,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     }
 
     //return the amount of better offers for a token pair
-    function getOfferCount(ERC20 sell_gem, ERC20 buy_gem) public view returns(uint) {
+    function getOfferCount(IERC20 sell_gem, IERC20 buy_gem) public view returns(uint) {
         return _span[address(sell_gem)][address(buy_gem)];
     }
 
@@ -308,9 +327,9 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
                || _best[address(offers[id].pay_gem)][address(offers[id].buy_gem)] == id;
     }
 
-    function sellAllAmount(ERC20 pay_gem, uint pay_amt, ERC20 buy_gem, uint min_fill_amount)
+    function sellAllAmount(IERC20 pay_gem, uint pay_amt, IERC20 buy_gem, uint min_fill_amount)
         public
-        synchronized
+        guard
         returns (uint fill_amt)
     {
         // require(!locked, "Reentrancy attempt");
@@ -341,9 +360,9 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
         require(fill_amt >= min_fill_amount);
     }
 
-    function buyAllAmount(ERC20 buy_gem, uint buy_amt, ERC20 pay_gem, uint max_fill_amount)
+    function buyAllAmount(IERC20 buy_gem, uint buy_amt, IERC20 pay_gem, uint max_fill_amount)
         public
-        synchronized
+        guard
         returns (uint fill_amt)
     {
         // require(!locked, "Reentrancy attempt");
@@ -372,23 +391,23 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
         require(fill_amt <= max_fill_amount);
     }
 
-    function getBuyAmount(ERC20 buy_gem, ERC20 pay_gem, uint pay_amt) public view returns (uint fill_amt) {
+    function getBuyAmount(IERC20 buy_gem, IERC20 pay_gem, uint pay_amt) public view returns (uint fill_amt) {
         uint256 offerId = getBestOffer(buy_gem, pay_gem);           //Get best offer for the token pair
         while (pay_amt > offers[offerId].buy_amt) {
             // fill_amt = add(fill_amt, offers[offerId].pay_amt);  //Add amount to buy accumulator
-            fill_amt = fill_amt + offers[offerId].pay_amt;  //Add amount to buy accumulator
+            fill_amt += offers[offerId].pay_amt;  //Add amount to buy accumulator
             // pay_amt = sub(pay_amt, offers[offerId].buy_amt);    //Decrease amount to pay
-            pay_amt = pay_amt + offers[offerId].buy_amt;    //Decrease amount to pay
+            pay_amt -= offers[offerId].buy_amt;    //Decrease amount to pay
             if (pay_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
-                require(offerId != 0);                          //Fails if there are not enough offers to complete
+                require(offerId != 0, "not enough offers to fulfill");                          //Fails if there are not enough offers to complete
             }
         }
         // fill_amt = add(fill_amt, rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9); //Add proportional amount of last offer to buy accumulator
         fill_amt = fill_amt + rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9; //Add proportional amount of last offer to buy accumulator
     }
 
-    function getPayAmount(ERC20 pay_gem, ERC20 buy_gem, uint buy_amt) public view returns (uint fill_amt) {
+    function getPayAmount(IERC20 pay_gem, IERC20 buy_gem, uint buy_amt) public view returns (uint fill_amt) {
         uint256 offerId = getBestOffer(buy_gem, pay_gem);           //Get best offer for the token pair
         while (buy_amt > offers[offerId].pay_amt) {
             // fill_amt = add(fill_amt, offers[offerId].buy_amt);  //Add amount to pay accumulator
@@ -407,7 +426,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     // ---- Internal Functions ---- //
 
     function _setMinSell(
-        ERC20 pay_gem,     //token to assign minimum sell amount to
+        IERC20 pay_gem,     //token to assign minimum sell amount to
         uint256 dust
     )
         internal
@@ -520,9 +539,9 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     //match offers with taker offer, and execute token transactions
     function _matcho(
         uint t_pay_amt,    //taker sell how much
-        ERC20 t_pay_gem,   //taker sell which token
+        IERC20 t_pay_gem,   //taker sell which token
         uint t_buy_amt,    //taker buy how much
-        ERC20 t_buy_gem,   //taker buy which token
+        IERC20 t_buy_gem,   //taker buy which token
         uint pos,          //position id
         bool rounding      //match "close enough" orders?
     )
@@ -578,12 +597,12 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
     // Takes funds from the caller into market escrow.
     // ****Available to authorized contracts only!**********
     // Keepers should call insert(id,pos) to put offer in the sorted list.
-/* 
+///* 
     function _offeru(
         uint pay_amt,      //maker (ask) sell how much
-        ERC20 pay_gem,     //maker (ask) sell which token
+        IERC20 pay_gem,     //maker (ask) sell which token
         uint buy_amt,      //maker (ask) buy how much
-        ERC20 buy_gem      //maker (ask) buy which token
+        IERC20 buy_gem      //maker (ask) buy which token
     )
         internal
         returns (uint id)
@@ -595,7 +614,7 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
         emit LogUnsortedOffer(id);
     }
 
- */
+ //*/
     //put offer into the sorted list
     function _sort(
         uint id,    //maker (ask) id
@@ -606,8 +625,8 @@ contract MatchingMarket is MatchingEvents, SuspendableMarket, DSMath {
         // require(isActive(id));
         require(isOrderActive(id));
 
-        ERC20 buy_gem = offers[id].buy_gem;
-        ERC20 pay_gem = offers[id].pay_gem;
+        IERC20 buy_gem = offers[id].buy_gem;
+        IERC20 pay_gem = offers[id].pay_gem;
         uint prev_id;                                      //maker (ask) id
 
         pos = pos == 0 || offers[pos].pay_gem != pay_gem || offers[pos].buy_gem != buy_gem || !isOfferSorted(pos)
