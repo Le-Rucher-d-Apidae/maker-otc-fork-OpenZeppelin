@@ -12,7 +12,7 @@ RER(RestrictedSuspendableSimpleMarketErrorCodes)
 RSUSPSMPL{RestrictedSuspendableSimpleMarket}
 MEV(MatchingEvents)
 DSM(DSMath)
-MM{MatchingMarket}
+RSMM{RestrictedSuspendableMatchingMarket}
 ERRMM(RestrictedSuspendableMatchingMarketErrorCodes)
 EV --> SMPL
 ER --> SMPL
@@ -21,9 +21,9 @@ ERRSUSP --> SUSPSMPL
 SMPL --> SUSPSMPL
 RER --> RSUSPSMPL
 SUSPSMPL --> RSUSPSMPL
-ERRMM --> MM
-RSUSPSMPL --> MM
-MEV --> MM
-DSM --> MM
+ERRMM --> RSMM
+RSUSPSMPL --> RSMM
+MEV --> RSMM
+DSM --> RSMM
 
 ```
