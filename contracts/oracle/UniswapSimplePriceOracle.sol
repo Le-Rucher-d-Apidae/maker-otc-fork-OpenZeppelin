@@ -1,3 +1,23 @@
+// pragma solidity ^0.5.12;
+// pragma solidity >= 0.8.18 < 0.9.0;
+// pragma solidity ^0.8.20;
+pragma solidity ^0.8.18; // latest HH supported version
+
+import "./UniswapLibrary.sol";
+
+contract UniswapSimplePriceOracle {
+    address uniswapFactory;
+
+    constructor(address _uniswapFactory) {
+        uniswapFactory = _uniswapFactory;
+    }
+
+    function getPriceFor(address tokenA, address tokenB, uint256 tokenAAmt) public view returns (uint256 dust) {
+        (uint reserve0, uint reserve1) = UniswapV2Library.getReserves(uniswapFactory, tokenA, tokenB);
+        dust = UniswapV2Library.getAmountOut(tokenAAmt, reserve0, reserve1);
+    }
+}
+
 // SPDX-License-Identifier: GPL-3.0
 
 /**                    GNU GENERAL PUBLIC LICENSE
@@ -676,23 +696,3 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
  */
-
-// pragma solidity ^0.5.12;
-// pragma solidity >= 0.8.18 < 0.9.0;
-// pragma solidity ^0.8.20;
-pragma solidity ^0.8.18; // latest HH supported version
-
-import "./UniswapLibrary.sol";
-
-contract UniswapSimplePriceOracle {
-    address uniswapFactory;
-
-    constructor(address _uniswapFactory) {
-        uniswapFactory = _uniswapFactory;
-    }
-
-    function getPriceFor(address tokenA, address tokenB, uint256 tokenAAmt) public view returns (uint256 dust) {
-        (uint reserve0, uint reserve1) = UniswapV2Library.getReserves(uniswapFactory, tokenA, tokenB);
-        dust = UniswapV2Library.getAmountOut(tokenAAmt, reserve0, reserve1);
-    }
-}
