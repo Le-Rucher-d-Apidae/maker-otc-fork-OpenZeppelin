@@ -63,11 +63,17 @@
     "testTrace": "npx hardhat test --trace",
     "testFulltrace": "npx hardhat test --fulltrace",
     "HhDeployLoc": "npx hardhat --network localhost deploy",
+
+    "depUniOraLocV": "npx hardhat run scripts/0-deployUniswapv3Oracle.js --network localhost --verbose",
+
     "depGLoc": "npx hardhat run scripts/deployGreeter.js --network localhost",
     "depPGLoc": "npx hardhat run scripts/deployPayableGreeter.js --network localhost",
     "depLocV": "npx hardhat run scripts/deployGreeter.js --network localhost --verbose",
-    "depMumb": "npx hardhat run scripts/deployGreeter.js --network mumbai",
+
+    "depUniOraMumb": "npx hardhat run scripts/0-deployUniswapv3Oracle.js --network mumbai",
+
     "verifyMumb": "npx hardhat verify 0xfFBb55e95807E8eFBfe86e2624c226C118BF3f80 --constructor-args scripts/deployGreeter-arguments.js --network mumbai ",
+
     "installNCU": "npm i -g npm-check-updates",
     "updatePackages": "ncu --upgrade",
     "updateNpm": "npm update -g",
