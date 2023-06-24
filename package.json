@@ -12,6 +12,8 @@
     "@typechain/hardhat": "^6.1.2",
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
+    "@uniswap/v3-core": "^1.0.1",
+    "@uniswap/v3-periphery": "^1.4.3",
     "chai": "^4.3.7",
     "concurrently": "^8.0.1",
     "del-cli": "^5.0.0",
