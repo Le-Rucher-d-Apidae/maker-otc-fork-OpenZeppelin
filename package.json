@@ -19,7 +19,7 @@
     "del-cli": "^5.0.0",
     "dotenv": "^16.3.1",
     "ethers": "5.7.2",
-    "hardhat": "^2.16.0",
+    "hardhat": "2.13.1",
     "hardhat-contract-sizer": "^2.10.0",
     "hardhat-deploy": "^0.11.34",
     "hardhat-gas-reporter": "^1.0.9",
@@ -63,17 +63,12 @@
     "testTrace": "npx hardhat test --trace",
     "testFulltrace": "npx hardhat test --fulltrace",
     "HhDeployLoc": "npx hardhat --network localhost deploy",
-
     "depUniOraLocV": "npx hardhat run scripts/0-deployUniswapv3Oracle.js --network localhost --verbose",
-
     "depGLoc": "npx hardhat run scripts/deployGreeter.js --network localhost",
     "depPGLoc": "npx hardhat run scripts/deployPayableGreeter.js --network localhost",
     "depLocV": "npx hardhat run scripts/deployGreeter.js --network localhost --verbose",
-
     "depUniOraMumb": "npx hardhat run scripts/0-deployUniswapv3Oracle.js --network mumbai",
-
     "verifyMumb": "npx hardhat verify 0xfFBb55e95807E8eFBfe86e2624c226C118BF3f80 --constructor-args scripts/deployGreeter-arguments.js --network mumbai ",
-
     "installNCU": "npm i -g npm-check-updates",
     "updatePackages": "ncu --upgrade",
     "updateNpm": "npm update -g",
