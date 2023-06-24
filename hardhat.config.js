@@ -58,14 +58,17 @@ const OPTIMIZER_SETTINGS = {
       }
   }
 
-  const OPTIMIZER_SETTINGS_0_7_6 = OPTIMIZER_SETTINGS;
-  const OPTIMIZER_SETTINGS_0_8_x = OPTIMIZER_SETTINGS;
-
 console.log('-------------------------------------')
 
 // Solidity
-const SOLIDITY_VERSION = ( process.env.SOLIDITY_VERSION !== undefined ? process.env.SOLIDITY_VERSION : DEFAULT_SOLIDITY_VERSION )
-console.log(`SOLIDITY_VERSION = "${SOLIDITY_VERSION}"`)
+// const SOLIDITY_VERSION = ( process.env.SOLIDITY_VERSION !== undefined ? process.env.SOLIDITY_VERSION : DEFAULT_SOLIDITY_VERSION )
+// console.log(`SOLIDITY_VERSION = "${SOLIDITY_VERSION}"`)
+const SOLIDITY_VERSIONS = ( process.env.SOLIDITY_VERSIONS !== undefined ? process.env.SOLIDITY_VERSIONS : DEFAULT_SOLIDITY_VERSIONS )
+console.log(`SOLIDITY_VERSIONS = "${SOLIDITY_VERSIONS}"`)
+
+// const COMPILER_VERSIONS = ["0.7.6", "0.8.18"]
+const COMPILER_VERSIONS = SOLIDITY_VERSIONS.replace(/\s/g, "").split(",").sort()
+console.log(`COMPILER_VERSIONS = ${COMPILER_VERSIONS.map((version) => `"${version}"`).join(", ")}`)
 
 // Contracts Build Dir
 const CONTRACTS_BUILD_DIR = ( process.env.CONTRACTS_BUILD_DIR !== undefined ? ( process.env.CONTRACTS_BUILD_DIR.trim() !== "" ? Path.join(__dirname, process.env.CONTRACTS_BUILD_DIR ) : DEFAULT_CONTRACTS_BUILD_DIR ) : DEFAULT_CONTRACTS_BUILD_DIR )
@@ -296,21 +299,29 @@ module.exports = {
     // https://github.com/OpenZeppelin/solidity-docgen/blob/master/src/config.ts
   }, 
 
-solidity: {
-  // Market
-  compilers: [
-    {
-      version: SOLIDITY_VERSION,
-      settings: OPTIMIZER_SETTINGS_0_8_x
-    },
-    // Oracle
-    {
-      version: "0.7.6",
-      settings: OPTIMIZER_SETTINGS_0_7_6
-    },
-  ],
-},
+  solidity: {
 
+    compilers:
+      COMPILER_VERSIONS.map( (version) => {
+        return {
+          version,
+          settings: OPTIMIZER_SETTINGS
+        }
+      }),
+    // compilers: [
+    // // Market
+    // {
+    //     version: SOLIDITY_VERSION,
+    //     settings: OPTIMIZER_SETTINGS_0_8_x
+    //   },
+    //   // Oracle
+    //   {
+    //     version: "0.7.6",
+    //     settings: OPTIMIZER_SETTINGS_0_7_6
+    //   },
+    // ],
+
+  },
 
   networks: {
     hardhat: {
