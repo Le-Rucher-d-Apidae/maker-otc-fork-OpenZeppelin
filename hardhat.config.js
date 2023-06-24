@@ -51,11 +51,20 @@ const ETH_10000 = "10000000000000000000000" // 10,000 ETH
 const ETH_10 = "10000000000000000000" // 10 ETH
 const DEFAULT_HARDHAT_BALANCE = ETH_10000
 
+const OPTIMIZER_SETTINGS = {
+    optimizer: {
+      enabled: true,
+      runs: 200
+      }
+  }
+
+  const OPTIMIZER_SETTINGS_0_7_6 = OPTIMIZER_SETTINGS;
+  const OPTIMIZER_SETTINGS_0_8_x = OPTIMIZER_SETTINGS;
+
 console.log('-------------------------------------')
 
 // Solidity
 const SOLIDITY_VERSION = ( process.env.SOLIDITY_VERSION !== undefined ? process.env.SOLIDITY_VERSION : DEFAULT_SOLIDITY_VERSION )
- console.debug(" ****process.env.SOLIDITY_VERSION= ", process.env.SOLIDITY_VERSION)
 console.log(`SOLIDITY_VERSION = "${SOLIDITY_VERSION}"`)
 
 // Contracts Build Dir
@@ -287,16 +296,21 @@ module.exports = {
     // https://github.com/OpenZeppelin/solidity-docgen/blob/master/src/config.ts
   }, 
 
-
-  solidity: {
-    version: SOLIDITY_VERSION,
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200
-        }
-      }
+solidity: {
+  // Market
+  compilers: [
+    {
+      version: SOLIDITY_VERSION,
+      settings: OPTIMIZER_SETTINGS_0_8_x
     },
+    // Oracle
+    {
+      version: "0.7.6",
+      settings: OPTIMIZER_SETTINGS_0_7_6
+    },
+  ],
+},
+
 
   networks: {
     hardhat: {
