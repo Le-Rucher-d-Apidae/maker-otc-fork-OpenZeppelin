@@ -49,6 +49,7 @@
     "consLoc": "npx hardhat console --network localhost",
     "accounts": "npx hardhat accounts",
     "startLocalNode": "npx hardhat node",
+    "node": "npx hardhat node",
     "nodeV": "npx hardhat node --verbose",
     "testHH": "npx hardhat test",
     "testFoundryAll": "forge test -vv",
