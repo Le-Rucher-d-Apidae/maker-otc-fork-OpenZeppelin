@@ -49,7 +49,7 @@ const DEFAULT_CONTRACTS_BUILD_DIR = "./artifacts"
 const DEFAULT_HARDHAT_MNEMONIC = "test test test test test test test test test test test junk"
 const ETH_10000 = "10000000000000000000000" // 10,000 ETH
 const ETH_10 = "10000000000000000000" // 10 ETH
-const DEFAULT_HARDHAT_BALANCE = ETH_10000
+// const DEFAULT_HARDHAT_BALANCE = ETH_10000
 
 const OPTIMIZER_SETTINGS = {
     optimizer: {
@@ -173,6 +173,23 @@ console.debug(`TESTNET_GOERLI_RPC = "${TESTNET_GOERLI_RPC}"`)
 console.debug(`TESTNET_SEPOLIA_RPC = "${TESTNET_SEPOLIA_RPC}"`)
 console.debug(`TESTNET_POLYGON_MUMBAI_RPC = "${TESTNET_POLYGON_MUMBAI_RPC}"`)
 console.debug(`MAINNET_POLYGON__RPC = "${MAINNET_POLYGON__RPC}"`)
+
+// Hardhat Network forking
+const HARDHAT_FORK_NETWORK = process.env.HARDHAT_FORK_NETWORK
+console.debug(`HARDHAT_FORK_NETWORK = "${HARDHAT_FORK_NETWORK}"`)
+const HARDHAT_FORK_NETWORK_URL = process.env[HARDHAT_FORK_NETWORK]
+console.info(`HARDHAT_FORK_NETWORK_URL = "${HARDHAT_FORK_NETWORK_URL}"`)
+const HARDHAT_FORK_NETWORK_BLOCK_NUMBER = process.env.HARDHAT_FORK_NETWORK_BLOCK_NUMBER
+console.info(`HARDHAT_FORK_NETWORK_BLOCK_NUMBER = "${HARDHAT_FORK_NETWORK_BLOCK_NUMBER}"`)
+
+const FORKING_CONFIG = HARDHAT_FORK_NETWORK_URL ? 
+  {forking: {
+    url: HARDHAT_FORK_NETWORK_URL,
+    blockNumber: HARDHAT_FORK_NETWORK_BLOCK_NUMBER
+  }} :
+  undefined
+;
+
 
 console.log('-------------------------------------')
 
@@ -328,7 +345,6 @@ module.exports = {
       // Mnemonic Code Converter https://iancoleman.io/bip39/
       // accounts:{mnemonic: "your mnemonic"}
       // accounts:{mnemonic: DEFAULT_HARDHAT_MNEMONIC }
-
       accounts:
         process.env.LOCAL_PRIVATE_KEY !== undefined ?
           [process.env.LOCAL_PRIVATE_KEY]
@@ -343,7 +359,9 @@ module.exports = {
               accountsBalance: "10000000000000000000", // 10 ETH
             }
             :
-            {mnemonic: DEFAULT_HARDHAT_MNEMONIC },
+            {mnemonic: DEFAULT_HARDHAT_MNEMONIC }
+      ,
+      FORKING_CONFIG,
 
     },
     // Goerli Testnet
