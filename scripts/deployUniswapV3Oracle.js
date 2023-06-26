@@ -9,10 +9,11 @@ const hre = require("hardhat");
 
 // const args = require("./arguments/deployUniswapV3Oracle-arguments")
 
-UniswapV3Factory_addr ="0x1F98431c8aD98523631AE4a59f267346ea31F984"; // UniswapV3Factory Address on Mainnet, Goerli, Arbitrum, Optimism, Polygon Address
-wEth = "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa" // wEth Address on Polygon Mumbai Testnet
-wMatic = "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889" // wMatic Address on Polygon Mumbai Testnet
-fee = 3000 // 0.3% Fee
+const contractName = "UniswapV3Twap"
+const UniswapV3Factory_addr ="0x1F98431c8aD98523631AE4a59f267346ea31F984"; // UniswapV3Factory Address on Mainnet, Goerli, Arbitrum, Optimism, Polygon Address
+const wEth = "0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa" // wEth Address on Polygon Mumbai Testnet
+const wMatic = "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889" // wMatic Address on Polygon Mumbai Testnet
+const fee = 3000 // 0.3% Fee
 
 const args = [
   // address _factory,
@@ -27,7 +28,7 @@ const args = [
 
 
 
-const DEFAULT_ARG_MESSAGE = "Hello, Hardhat! (default)"
+// const DEFAULT_ARG_MESSAGE = "Hello, Hardhat! (default)"
 const listArgs = function (obj)
 {
   console.log( `---------` );
@@ -51,11 +52,11 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   console.dir( deployer)
   console.log(
-    "Deploying the contracts with the account:",
+    `Deploying the contract ${contractName} with the account:`,
     await deployer.getAddress()
   );
   // We get the contract to deploy
-  const UniswapV3Twap_CF = await hre.ethers.getContractFactory("UniswapV3Twap");
+  const UniswapV3Twap_CF = await hre.ethers.getContractFactory(contractName);
 
   
   // console.log( `deployUniswapV3Oracle.js: args["message"] = ${args["message"]}` );
@@ -79,7 +80,7 @@ async function main() {
 
   await UniswapV3Twap.deployed();
 
-  console.log("deployUniswapV3Oracle deployed to:", UniswapV3Twap.address);
+  console.log(`${contractName} deployed to:`, UniswapV3Twap.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
