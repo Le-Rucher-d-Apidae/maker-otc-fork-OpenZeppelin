@@ -50,6 +50,8 @@ const DEFAULT_HARDHAT_MNEMONIC = "test test test test test test test test test t
 const ETH_10000 = "10000000000000000000000" // 10,000 ETH
 const ETH_10 = "10000000000000000000" // 10 ETH
 // const DEFAULT_HARDHAT_BALANCE = ETH_10000
+const DEFAULT_BALANCE = ETH_10
+const ACCOUNT_START_ETH_BALANCE = ETH_10
 
 const OPTIMIZER_SETTINGS = {
     optimizer: {
@@ -102,32 +104,48 @@ if (GENERATE_DOCS) {
 
 
 const LOCAL_PRIVATE_KEY = process.env.LOCAL_PRIVATE_KEY
+const msgLocPK=`LOCAL_PRIVATE_KEY is ${LOCAL_PRIVATE_KEY===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`
 if (LOCAL_PRIVATE_KEY) {
-  console.log(`LOCAL_PRIVATE_KEY is ${LOCAL_PRIVATE_KEY===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.log(msgLocPK)
 } else {
-  console.error(`LOCAL_PRIVATE_KEY is ${LOCAL_PRIVATE_KEY===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.error(msgLocPK)
 }
 
 const LOCAL_WALLET_MNEMONIC = process.env.LOCAL_WALLET_MNEMONIC
+const msgLocWlltMnmc=`LOCAL_WALLET_MNEMONIC is ${LOCAL_WALLET_MNEMONIC===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`
 if (LOCAL_WALLET_MNEMONIC) {
-  console.log(`LOCAL_WALLET_MNEMONIC is ${LOCAL_WALLET_MNEMONIC===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.log(msgLocWlltMnmc)
 } else {
-  console.error(`LOCAL_WALLET_MNEMONIC is ${LOCAL_WALLET_MNEMONIC===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.error(msgLocWlltMnmc)
 }
 
 const PROJECT_WALLET_MNEMONIC = process.env.PROJECT_WALLET_MNEMONIC
+const msgPrjWlltMnmc=`PROJECT_WALLET_MNEMONIC is ${PROJECT_WALLET_MNEMONIC===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`
 if (PROJECT_WALLET_MNEMONIC) {
-  console.log(`PROJECT_WALLET_MNEMONIC is ${PROJECT_WALLET_MNEMONIC===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.log(msgPrjWlltMnmc)
 } else {
-  console.error(`PROJECT_WALLET_MNEMONIC is ${PROJECT_WALLET_MNEMONIC===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.error(msgPrjWlltMnmc)
 }
 
 const PROJECT_PRIVATE_KEY = process.env.PROJECT_PRIVATE_KEY
+const msgPjPK=`PROJECT_PRIVATE_KEY is ${PROJECT_PRIVATE_KEY===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`
 if (PROJECT_PRIVATE_KEY) {
-  console.log(`PROJECT_PRIVATE_KEY is ${PROJECT_PRIVATE_KEY===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.log(msgPjPK)
 } else {
-  console.error(`PROJECT_PRIVATE_KEY is ${PROJECT_PRIVATE_KEY===undefined?"UNDEFINED ❌":" DEFINED ✔️" }`)
+  console.error(msgPjPK)
 }
+
+const WALLET_MNEMONIC=(LOCAL_WALLET_MNEMONIC?LOCAL_WALLET_MNEMONIC:PROJECT_WALLET_MNEMONIC)
+const PRIVATE_KEY=(LOCAL_PRIVATE_KEY?LOCAL_PRIVATE_KEY:PROJECT_PRIVATE_KEY)
+
+const msgMNEMONIC=`MNEMONIC: ${(WALLET_MNEMONIC!==undefined&&WALLET_MNEMONIC===LOCAL_WALLET_MNEMONIC)?"LOCAL_WALLET_MNEMONIC ✔️": ((WALLET_MNEMONIC!==undefined&&WALLET_MNEMONIC===PROJECT_WALLET_MNEMONIC)?"PROJECT_WALLET_MNEMONIC ✔️":"NONE ❌") }`
+console.log(msgMNEMONIC)
+
+const msgPK=`PRIVATE KEY: ${(PRIVATE_KEY!==undefined&&PRIVATE_KEY===LOCAL_PRIVATE_KEY)?"LOCAL_PRIVATE_KEY ✔️": ((PRIVATE_KEY!==undefined&&PRIVATE_KEY===PROJECT_PRIVATE_KEY)?"PROJECT_PRIVATE_KEY ✔️":"NONE ❌") }`
+console.log(msgPK)
+
+const msgUsing=`Using ${WALLET_MNEMONIC!==undefined?"MNEMONIC":(PRIVATE_KEY!==undefined?"PRIVATE KEY":"DEFAULT MENMONIC")} for deployment`
+console.info(msgUsing)
 
 const PROVIDER_NAME__ALCHEMY = "ALCHEMY"
 const PROVIDER_NAME__INFURA = "INFURA"
@@ -190,6 +208,58 @@ const FORKING_CONFIG = HARDHAT_FORK_NETWORK_URL ?
   undefined
 ;
 
+const getAccountsConfig = (network) => {
+  
+  if (PRIVATE_KEY !== undefined) {
+    if (network == "hardhat") {
+      return [ {privateKey: PRIVATE_KEY, balance: ACCOUNT_START_ETH_BALANCE}, 
+        // {privateKey: PRIVATE_KEY2, balance: string}, ...
+        ]
+    }
+    return [ PRIVATE_KEY,
+      // PRIVATE_KEY2, ...
+      ]
+  }
+  if (WALLET_MNEMONIC !== undefined) {
+    return {
+      mnemonic: WALLET_MNEMONIC,
+      passphrase: "",
+
+      path: "m/44'/60'/0'/0",
+      initialIndex: 0,
+      count: 20,
+      accountsBalance: ACCOUNT_START_ETH_BALANCE, // n ETH
+    }
+  }
+  if (network == "hardhat") {
+    return {mnemonic: DEFAULT_HARDHAT_MNEMONIC }
+  }
+  return []
+ 
+}
+
+const ACCOUNTS_CONFIG = getAccountsConfig()
+console.debug(`ACCOUNTS_CONFIG_HH = ${JSON.stringify(ACCOUNTS_CONFIG)}`)
+const ACCOUNTS_CONFIG_HH = getAccountsConfig("hardhat")
+console.debug(`ACCOUNTS_CONFIG_HH = ${JSON.stringify(ACCOUNTS_CONFIG_HH)}`)
+/*
+accounts:
+LOCAL_PRIVATE_KEY !== undefined ?
+{privateKey: LOCAL_PRIVATE_KEY, balance: ACCOUNT_START_ETH_BALANCE}
+:
+process.env.LOCAL_WALLET_MNEMONIC !== undefined ?
+  {
+    mnemonic: process.env.LOCAL_WALLET_MNEMONIC,
+    passphrase: "",
+    path: "m/44'/60'/0'/0",
+    initialIndex: 0,
+    count: 20,
+    accountsBalance: "10000000000000000000", // 10 ETH
+  }
+  :
+  [],
+
+*/
 
 console.log('-------------------------------------')
 
@@ -342,111 +412,33 @@ module.exports = {
 
   networks: {
     hardhat: {
-      // Mnemonic Code Converter https://iancoleman.io/bip39/
-      // accounts:{mnemonic: "your mnemonic"}
-      // accounts:{mnemonic: DEFAULT_HARDHAT_MNEMONIC }
-      accounts:
-        process.env.LOCAL_PRIVATE_KEY !== undefined ?
-          [process.env.LOCAL_PRIVATE_KEY]
-          :
-          process.env.LOCAL_WALLET_MNEMONIC !== undefined ?
-            {
-              mnemonic: process.env.LOCAL_WALLET_MNEMONIC,
-              passphrase: "",
-              path: "m/44'/60'/0'/0",
-              initialIndex: 0,
-              count: 20,
-              accountsBalance: "10000000000000000000", // 10 ETH
-            }
-            :
-            {mnemonic: DEFAULT_HARDHAT_MNEMONIC }
-      ,
+      accounts: ACCOUNTS_CONFIG_HH,
       FORKING_CONFIG,
-
     },
     // Goerli Testnet
     goerli: {
       url: TESTNET_GOERLI_RPC || "",
-      accounts:
-        process.env.LOCAL_PRIVATE_KEY !== undefined ?
-          [process.env.LOCAL_PRIVATE_KEY]
-          :
-          process.env.LOCAL_WALLET_MNEMONIC !== undefined ?
-            {
-              mnemonic: process.env.LOCAL_WALLET_MNEMONIC,
-              passphrase: "",
-              path: "m/44'/60'/0'/0",
-              initialIndex: 0,
-              count: 20,
-              accountsBalance: "10000000000000000000", // 10 ETH
-            }
-            :
-            [],
+      accounts: ACCOUNTS_CONFIG,
       // gasPrice: 8000000000, // default is 'auto' which breaks chains without the london hardfork
     },
     // Sepolia Testnet
     sepolia: {
       url: TESTNET_SEPOLIA_RPC || "",
-      accounts:
-        process.env.LOCAL_PRIVATE_KEY !== undefined ?
-          [process.env.LOCAL_PRIVATE_KEY]
-          :
-          process.env.LOCAL_WALLET_MNEMONIC !== undefined ?
-            {
-              mnemonic: process.env.LOCAL_WALLET_MNEMONIC,
-              passphrase: "",
-              path: "m/44'/60'/0'/0",
-              initialIndex: 0,
-              count: 20,
-              accountsBalance: "10000000000000000000", // 10 ETH
-            }
-            :
-            [],
-      // gasPrice: 8000000000, // default is 'auto' which breaks chains without the london hardfork
+      accounts: ACCOUNTS_CONFIG,
     },
     // Polygon Mumbai Testnet
     mumbai: {
       url: TESTNET_POLYGON_MUMBAI_RPC || "",
-      accounts:
-        process.env.LOCAL_PRIVATE_KEY !== undefined ?
-          [process.env.LOCAL_PRIVATE_KEY]
-          :
-          process.env.LOCAL_WALLET_MNEMONIC !== undefined ?
-            {
-              mnemonic: process.env.LOCAL_WALLET_MNEMONIC,
-              passphrase: "",
-              path: "m/44'/60'/0'/0",
-              initialIndex: 0,
-              count: 20,
-              accountsBalance: "10000000000000000000", // 10 ETH
-            }
-            :
-            [],
-      // gasPrice: 8000000000, // default is 'auto' which breaks chains without the london hardfork
+      accounts: ACCOUNTS_CONFIG,
     },
     // Polygon Mainnet
     polygon: {
       url: MAINNET_POLYGON__RPC || "",
-      accounts:
-        process.env.PROJECT_PRIVATE_KEY !== undefined ?
-          [process.env.PROJECT_PRIVATE_KEY]
-          :
-          process.env.PROJECT_WALLET_MNEMONIC !== undefined ?
-            {
-              mnemonic: process.env.PROJECT_WALLET_MNEMONIC,
-              passphrase: "",
-              path: "m/44'/60'/0'/0",
-              initialIndex: 0,
-              count: 20,
-              accountsBalance: "10000000000000000000", // 10 ETH
-            }
-            :
-            [],
-      // gasPrice: 8000000000, // default is 'auto' which breaks chains without the london hardfork
+      accounts: ACCOUNTS_CONFIG,
     },
 
   },
-  
+
   paths: {
     // hardhat default
     sources: "./contracts",
