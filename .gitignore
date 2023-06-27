@@ -64,6 +64,10 @@ client/src/contracts
 # hardhat-deploy
 hardhat-deploy/deployments/localhost
 
+# scripts deployments
+scripts/deployments/
+
+
 # Generated doc files
 docs/generated
 
