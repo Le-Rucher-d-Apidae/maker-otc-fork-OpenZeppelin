@@ -197,16 +197,17 @@ const HARDHAT_FORK_NETWORK = process.env.HARDHAT_FORK_NETWORK
 console.debug(`HARDHAT_FORK_NETWORK = "${HARDHAT_FORK_NETWORK}"`)
 const HARDHAT_FORK_NETWORK_URL = process.env[HARDHAT_FORK_NETWORK]
 console.info(`HARDHAT_FORK_NETWORK_URL = "${HARDHAT_FORK_NETWORK_URL}"`)
-const HARDHAT_FORK_NETWORK_BLOCK_NUMBER = process.env.HARDHAT_FORK_NETWORK_BLOCK_NUMBER
-console.info(`HARDHAT_FORK_NETWORK_BLOCK_NUMBER = "${HARDHAT_FORK_NETWORK_BLOCK_NUMBER}"`)
+
+const HARDHAT_FORK_NETWORK_BLOCK_NUMBER = (process.env.HARDHAT_FORK_NETWORK_BLOCK_NUMBER?parseInt(process.env.HARDHAT_FORK_NETWORK_BLOCK_NUMBER):undefined)
+console.debug(`HARDHAT_FORK_NETWORK_BLOCK_NUMBER = ${HARDHAT_FORK_NETWORK_BLOCK_NUMBER}`)
 
 const FORKING_CONFIG = HARDHAT_FORK_NETWORK_URL ? 
-  {forking: {
+  {
     url: HARDHAT_FORK_NETWORK_URL,
     blockNumber: HARDHAT_FORK_NETWORK_BLOCK_NUMBER
-  }} :
+  } :
   undefined
-;
+  ;
 
 const getAccountsConfig = (network) => {
   
@@ -239,27 +240,10 @@ const getAccountsConfig = (network) => {
 }
 
 const ACCOUNTS_CONFIG = getAccountsConfig()
-console.debug(`ACCOUNTS_CONFIG_HH = ${JSON.stringify(ACCOUNTS_CONFIG)}`)
+console.debug(`ACCOUNTS_CONFIG = ${JSON.stringify(ACCOUNTS_CONFIG)}`)
 const ACCOUNTS_CONFIG_HH = getAccountsConfig("hardhat")
 console.debug(`ACCOUNTS_CONFIG_HH = ${JSON.stringify(ACCOUNTS_CONFIG_HH)}`)
-/*
-accounts:
-LOCAL_PRIVATE_KEY !== undefined ?
-{privateKey: LOCAL_PRIVATE_KEY, balance: ACCOUNT_START_ETH_BALANCE}
-:
-process.env.LOCAL_WALLET_MNEMONIC !== undefined ?
-  {
-    mnemonic: process.env.LOCAL_WALLET_MNEMONIC,
-    passphrase: "",
-    path: "m/44'/60'/0'/0",
-    initialIndex: 0,
-    count: 20,
-    accountsBalance: "10000000000000000000", // 10 ETH
-  }
-  :
-  [],
 
-*/
 
 console.log('-------------------------------------')
 
@@ -413,7 +397,8 @@ module.exports = {
   networks: {
     hardhat: {
       accounts: ACCOUNTS_CONFIG_HH,
-      FORKING_CONFIG,
+      // hardfork: string;
+      forking: FORKING_CONFIG,
     },
     // Goerli Testnet
     goerli: {
@@ -524,3 +509,5 @@ module.exports = {
     timeout: 40000
   }
 }
+
+console.debug("hardhat.config.js: module.exports", module.exports);
