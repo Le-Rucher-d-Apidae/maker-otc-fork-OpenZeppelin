@@ -9,7 +9,7 @@ const FEE_1_00 = 10000 // 0x2710 1% Fee
 const FEE_0_05 = 500 // 0x01f4 0.05% Fee // v3-pool 0x85bc6CBFb02a110D5839b344545B02fB6cb70cD5
 const FEE_0_001 = 100 // 0x0064 0.001% Fee // v3-pool 0x765fDB41ea7Fd9fF26C8DD4eEa20A4248f106622
 
-const FEE =  '0x' + FEE_0_30.toString(16) // convert to hex
+const FEE =  '0x' + FEE_0_001.toString(16) // convert to hex
 // console.debug( `FEE = ${FEE}` );
 
 let params ={
