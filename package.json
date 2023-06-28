@@ -71,7 +71,7 @@
     "depPGLoc": "npx hardhat run scripts/deployPayableGreeter.js --network localhost",
     "depLocV": "npx hardhat run scripts/deployGreeter.js --network localhost --verbose",
     "depUniOraMumb": "npx hardhat run scripts/deployUniswapV3Oracle.js --network mumbai --verbose",
-    "verifyMumb": "npx hardhat verify 0xfFBb55e95807E8eFBfe86e2624c226C118BF3f80 --constructor-args scripts/deployGreeter-arguments.js --network mumbai ",
+    "verifyMumb": "npx hardhat etherscan-verify --network mumbai",
     "installNCU": "npm i -g npm-check-updates",
     "updatePackages": "ncu --upgrade",
     "updateNpm": "npm update -g",

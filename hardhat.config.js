@@ -240,10 +240,28 @@ const getAccountsConfig = (network) => {
 }
 
 const ACCOUNTS_CONFIG = getAccountsConfig()
-console.debug(`ACCOUNTS_CONFIG = ${JSON.stringify(ACCOUNTS_CONFIG)}`)
+// console.debug(`ACCOUNTS_CONFIG = ${JSON.stringify(ACCOUNTS_CONFIG)}`)
 const ACCOUNTS_CONFIG_HH = getAccountsConfig("hardhat")
-console.debug(`ACCOUNTS_CONFIG_HH = ${JSON.stringify(ACCOUNTS_CONFIG_HH)}`)
+// console.debug(`ACCOUNTS_CONFIG_HH = ${JSON.stringify(ACCOUNTS_CONFIG_HH)}`)
 
+
+const POLYGONSCAN_API_KEY = ( PROVIDER_CONFIG == PROVIDER_CONFIG__LOCAL ?
+  process.env.LOCAL__POLYGONSCAN_API_KEY :
+  process.env.PROJECT__POLYGONSCAN_API_KEY
+)
+console.debug(`POLYGONSCAN_API_KEY = "${POLYGONSCAN_API_KEY}"`)
+
+const TESTNET_POLYGON_MUMBAI__API_URL = ( PROVIDER_CONFIG == PROVIDER_CONFIG__LOCAL ?
+  process.env.LOCAL__TESTNET_POLYGON_MUMBAI__API_URL :
+  process.env.PROJECT__TESTNET_POLYGON_MUMBAI__API_URL
+)
+console.debug(`TESTNET_POLYGON_MUMBAI__API_URL = "${TESTNET_POLYGON_MUMBAI__API_URL}"`)
+
+const MAINNET_POLYGON_MUMBAI__API_URL = ( PROVIDER_CONFIG == PROVIDER_CONFIG__LOCAL ?
+  process.env.LOCAL__MAINNET_POLYGON__API_URL :
+  process.env.PROJECT__MAINNET_POLYGON_MUMBAI__API_URL
+)
+console.debug(`MAINNET_POLYGON_MUMBAI__API_URL = "${MAINNET_POLYGON_MUMBAI__API_URL}"`)
 
 console.log('-------------------------------------')
 
@@ -399,6 +417,12 @@ module.exports = {
       accounts: ACCOUNTS_CONFIG_HH,
       // hardfork: string;
       forking: FORKING_CONFIG,
+      verify: {
+        etherscan: {
+          apiUrl: TESTNET_POLYGON_MUMBAI__API_URL,
+          apiKey: POLYGONSCAN_API_KEY
+        }
+      },
     },
     // Goerli Testnet
     goerli: {
@@ -415,11 +439,23 @@ module.exports = {
     mumbai: {
       url: TESTNET_POLYGON_MUMBAI_RPC || "",
       accounts: ACCOUNTS_CONFIG,
+      verify: {
+        etherscan: {
+          apiUrl: TESTNET_POLYGON_MUMBAI__API_URL,
+          apiKey: POLYGONSCAN_API_KEY
+        }
+      },
     },
     // Polygon Mainnet
     polygon: {
       url: MAINNET_POLYGON__RPC || "",
       accounts: ACCOUNTS_CONFIG,
+      verify: {
+        etherscan: {
+          apiUrl: MAINNET_POLYGON_MUMBAI__API_URL,
+          apiKey: POLYGONSCAN_API_KEY
+        }
+      },
     },
 
   },
