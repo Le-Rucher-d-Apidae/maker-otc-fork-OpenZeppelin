@@ -73,6 +73,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // uint256 public dustLimit;
     uint128 public dustLimit;
     address public priceOracle;
+    uint16 TIME_WEIGHTED_AVERAGE = 1 hours;
 
     // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
@@ -269,7 +270,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
 
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
-        uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, 1 );
+        uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
 
         _setMinSell(pay_gem, dust);
     }
