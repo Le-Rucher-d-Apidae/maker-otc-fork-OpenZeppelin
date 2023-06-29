@@ -11,16 +11,19 @@ import "../IOracle.sol";
 
 contract UniswapV3Twap is IOracle {
     address public immutable token0;
-    address public immutable token1;
-    address public immutable pool;
+    // address public immutable token1;
+    // address public immutable pool;
+    address public immutable factory;
 
     constructor(
         address _factory,
-        address _token0,
-        address _token1,
-        uint24 _fee
+        address _token0
+        // address _token1,
+        // uint24 _fee
     ) {
         token0 = _token0;
+        factory = _factory;
+/* 
         token1 = _token1;
 
         address _pool = IUniswapV3Factory(_factory).getPool(
@@ -31,22 +34,34 @@ contract UniswapV3Twap is IOracle {
         require(_pool != address(0), "pool doesn't exist");
 
         pool = _pool;
+ */
     }
 
     function estimateAmountOut(
-        address tokenIn,
-        uint128 amountIn,
-        uint32 secondsAgo
-    ) external view override returns (uint amountOut) {
-        require(tokenIn == token0 || tokenIn == token1, "invalid token");
+        address _tokenIn, // tokenIn
+        uint24 _fee, // Uniswap V3 Pool fee
+        uint128 _amountIn, // amountIn of token0 to quote against _tokenIn
+        uint32 _secondsAgo // secondsAgo : Time Weighted Average Price 
+    ) external view override returns (uint tokenIn_amountOut) {
 
-        address tokenOut = tokenIn == token0 ? token1 : token0;
+        require(_tokenIn != token0, "invalid token");
 
-        // (int24 tick, ) = OracleLibrary.consult(pool, secondsAgo);
+        address pool = IUniswapV3Factory(factory).getPool(
+            token0,
+            _tokenIn,
+            _fee
+        );
+        require(pool != address(0), "pool doesn't exist");
+
+        // require(_tokenIn == token0 || _tokenIn == token1, "invalid token");
+
+        // address tokenOut = _tokenIn == token0 ? token1 : token0;
+
+        // (int24 tick, ) = OracleLibrary.consult(pool, _secondsAgo);
 
         // Code copied from OracleLibrary.sol, consult()
         uint32[] memory secondsAgos = new uint32[](2);
-        secondsAgos[0] = secondsAgo;
+        secondsAgos[0] = _secondsAgo;
         secondsAgos[1] = 0;
 
         // int56 since tick * time = int24 * uint32
@@ -58,7 +73,7 @@ contract UniswapV3Twap is IOracle {
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
 
         // int56 / uint32 = int24
-        int24 tick = int24(tickCumulativesDelta / secondsAgo);
+        int24 tick = int24(tickCumulativesDelta / _secondsAgo);
         // Always round to negative infinity
         /*
         int doesn't round down when it is negative
@@ -72,16 +87,28 @@ contract UniswapV3Twap is IOracle {
         down
         */
         if (
-            tickCumulativesDelta < 0 && (tickCumulativesDelta % secondsAgo != 0)
+            tickCumulativesDelta < 0 && (tickCumulativesDelta % _secondsAgo != 0)
         ) {
             tick--;
         }
 
-        amountOut = OracleLibrary.getQuoteAtTick(
-            tick,
-            amountIn,
-            tokenIn,
-            tokenOut
+        /* 
+            Given a tick and a token amount, calculates the amount of token received in exchange
+            Parameters:
+            Name	Type	Description
+            tick	int24	Tick value used to calculate the quote
+            baseAmount	uint128	Amount of token to be converted
+            baseToken	address	Address of an ERC20 token contract used as the baseAmount denomination
+            quoteToken	address	Address of an ERC20 token contract used as the quoteAmount denomination
+            Return Values:
+            Name	Type	Description
+            quoteAmount	uint256	Amount of quoteToken received for baseAmount of baseToken
+        */
+        tokenIn_amountOut = OracleLibrary.getQuoteAtTick(
+            tick, // tick
+            _amountIn, // baseAmount
+            token0, // baseToken
+            _tokenIn // quoteToken
         );
     }
 }

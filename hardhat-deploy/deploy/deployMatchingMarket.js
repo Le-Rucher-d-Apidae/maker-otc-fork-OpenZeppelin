@@ -11,7 +11,7 @@ module.exports = async (
   getChainId,
   getUnnamedAccounts,
 }) => {
-  const {deploy, getNetworkName, deployIfDifferent} = deployments;
+  const {deploy, getNetworkName} = deployments;
   getChainId().then( (chainId) => {
     console.log( `Deploying ${contractName} on network ${getNetworkName()} (chainId:${chainId})  with args:` );
     console.dir( args );

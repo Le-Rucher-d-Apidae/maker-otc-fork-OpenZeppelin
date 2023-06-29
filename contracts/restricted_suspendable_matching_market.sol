@@ -260,7 +260,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     //    cost more gas to accept the offer, than the value
     //    of tokens received.
     function setMinSell(
-        IERC20 pay_gem     //token to assign minimum sell amount to
+        IERC20 pay_gem,     //token to assign minimum sell amount to
+        uint24 _fee    // Uniswap V3 Pool fee
     )
         public
     {
@@ -270,8 +271,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
 
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
-        uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
-
+        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+        uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
         _setMinSell(pay_gem, dust);
     }
 

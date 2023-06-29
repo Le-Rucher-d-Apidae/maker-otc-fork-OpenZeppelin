@@ -3,8 +3,6 @@ const params = require("../deploy-params/UniswapV3Oracle-params")
 
 const contractName = params.contractName;
 const log = params.log;
-const args = params.args;
-
 
 module.exports = async (
   {
@@ -13,12 +11,18 @@ module.exports = async (
   getChainId,
   getUnnamedAccounts,
 }) => {
-  const {deploy, getNetworkName, deployIfDifferent} = deployments;
-  getChainId().then( (chainId) => {
-    console.log( `Deploying ${contractName} on network ${getNetworkName()} (chainId:${chainId})  with args:` );
-    console.dir( args );
-  });
+  const {deploy, getNetworkName} = deployments;
+  const chainId = await getChainId();
+  const networkName = getNetworkName()
   const {deployer} = await getNamedAccounts();
+
+  const getArgs = (chainId) => {
+      return params.args[chainId];
+  };
+
+  const args = getArgs(chainId);
+  console.log( `Deploying ${contractName} on network ${networkName} (chainId:${chainId})  with args:` );
+  console.dir( args );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
   const deployResult = await deploy(
