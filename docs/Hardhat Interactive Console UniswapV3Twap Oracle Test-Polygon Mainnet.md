@@ -48,8 +48,10 @@ const FEE_0001 =  '0x' + FEE_0_01.toString(16); // convert to hex
 // const univ3Oracle3000 = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, wEth, wMatic, FEE_030);
 // const univ3Oracle500 = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, wEth, wMatic, FEE_0005);
 // const univ3Oracle100 = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, wEth, wMatic, FEE_0001);
-const univ3Oracle = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, USDC_PolygonMainnet );
-
+const univ3OracleUSDC = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, USDC_PolygonMainnet );
+const univ3OracleUSDT = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, USDT_PolygonMainnet );
+const univ3OracleBUSD = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, BUSD_PolygonMainnet );
+const univ3OracleDAI = await UniswapV3Twap_CF.deploy( UniswapV3Factory_addr, DAI_PolygonMainnet );
 ```
 
 Get univ3Oracles addresses
@@ -58,6 +60,10 @@ Get univ3Oracles addresses
 // console.log("univ3Oracle500.address", univ3Oracle500.address);
 // console.log("univ3Oracle100.address", univ3Oracle100.address);
 console.log("univ3Oracle.address", univ3Oracle.address);
+console.log("univ3OracleUSDC.address", univ3OracleUSDC.address);
+console.log("univ3OracleUSDT.address", univ3OracleUSDT.address);
+console.log("univ3OracleBUSD.address", univ3OracleBUSD.address);
+console.log("univ3OracleDAI.address", univ3OracleDAI.address);
 
 ```
 
@@ -65,8 +71,7 @@ console.log("univ3Oracle.address", univ3Oracle.address);
 Call univ3Oracle's estimateAmountOut()
 ```shell
 
-
-let tokenIn = wEth;
+// Amounts in wei
 const amount_100WETH = "100000000000000000000"; // 100_000_000_000_000_000_000; // 100 ETH
 const amount_10WETH = "10000000000000000000"; // 10_000_000_000_000_000_000; // 10 ETH
 const amount_1WETH = "1000000000000000000"; // 1_000_000_000_000_000_000; // 1 ETH
@@ -75,61 +80,46 @@ const amount_0_015WETH = "15000000000000000"; // 15_000_000_000_000_000 // 0.015
 const amount_0_0001WETH = "100000000000000"; // 10_000_000_000_000_000 // 0.0001 ETH
 const amount_0_00000000000001 = "10000"; // 10_000 // 0.00000000000001 ETH
 
-0.015
+// Amounts for stable coins
+const amount_1USDC = "1000000"; // 1_000_000; // 1 USDC
+const amount_10USDC = "10000000"; // 10_000_000; // 10 USDC
+const amount_100USDC = "100000000"; // 100_000_000; // 100 USDC
 
-let amountInWETH = amount_0_0001WETH;
+const amount_1USDT = "1000000"; // 1_000_000; // 1 USDT
+const amount_10USDT = "10000000"; // 10_000_000; // 10 USDT
+const amount_100USDT = "100000000"; // 100_000_000; // 100 USDT
 
+const amount_1BUSD = "1000000000000000000"; // 1_000_000_000_000_000_000; // 1 BUSD
+const amount_10BUSD = "10000000000000000000"; // 10_000_000_000_000_000_000; // 10 BUSD
+const amount_100BUSD = "100000000000000000000"; // 100_000_000_000_000_000_000; // 100 BUSD
+
+const amount_1DAI = "1000000000000000000"; // 1_000_000_000_000_000_000; // 1 DAI
+const amount_10DAI = "10000000000000000000"; // 10_000_000_000_000_000_000; // 10 DAI
+const amount_100DAI = "100000000000000000000"; // 100_000_000_000_000_000_000; // 100 DAI
+
+// TIME
 const LAST_HOUR = 3600;
-let average_weighted_time = LAST_HOUR;
+
+
+(await univ3OracleUSDC.estimateAmountOut(USDT_PolygonMainnet, FEE_0001, amount_1USDT, LAST_HOUR)).toString()
+(await univ3OracleUSDC.estimateAmountOut(USDT_PolygonMainnet, FEE_0001, amount_10USDT, LAST_HOUR)).toString()
+(await univ3OracleUSDC.estimateAmountOut(USDT_PolygonMainnet, FEE_0001, amount_100USDT, LAST_HOUR)).toString()
+
+(await univ3OracleUSDC.estimateAmountOut(BUSD_PolygonMainnet, FEE_0001, amount_1BUSD, LAST_HOUR)).toString()
+(await univ3OracleUSDC.estimateAmountOut(BUSD_PolygonMainnet, FEE_0001, amount_10BUSD, LAST_HOUR)).toString()
+(await univ3OracleUSDC.estimateAmountOut(BUSD_PolygonMainnet, FEE_0001, amount_100BUSD, LAST_HOUR)).toString()
+
+(await univ3OracleUSDC.estimateAmountOut(DAI_PolygonMainnet, FEE_0001, amount_1DAI, LAST_HOUR)).toString()
+(await univ3OracleUSDC.estimateAmountOut(DAI_PolygonMainnet, FEE_0001, amount_10DAI, LAST_HOUR)).toString()
+(await univ3OracleUSDC.estimateAmountOut(DAI_PolygonMainnet, FEE_0001, amount_100DAI, LAST_HOUR)).toString()
 
 // revert: invalid token
-await univ3Oracle.estimateAmountOut(tokenIn, FEE_0001, amountInWETH,average_weighted_time);
-
-tokenIn = wMatic;
-let amountOutWMatic = await univ3Oracle.estimateAmountOut(tokenIn, FEE_0001, amountInWETH,average_weighted_time);
+(await univ3Oracle.estimateAmountOut(USDC_PolygonMainnet, FEE_0001, amount_1USDC, LAST_HOUR)).toString()
 
 
-
-amountIn = amount_0_0001WETH;
-amountIn = amount_0_00000000000001;
-amountIn = amount_1WETH;
-amountIn = amount_0_01WETH;
-amountIn = amount_0_015WETH;
-
-fee = FEE_1;
-fee = FEE_0_30;
-fee = FEE_0_05;
-
-(await univ3Oracle.estimateAmountOut(tokenIn, fee, amountIn,average_weighted_time)).toString()
-
-let amountOutWMatic5 = await univ3Oracle.estimateAmountOut(tokenIn, fee, amountIn,average_weighted_time);
-
-
-(await univ3Oracle.estimateAmountOut(tokenIn, fee, amountIn,average_weighted_time)).toString()
-
-
-let amountOutWMatic2 = await univ3Oracle.estimateAmountOut(tokenIn, FEE_0001, amountIn,average_weighted_time);
-console.log(amountOutWMatic);
-console.log( amountOutWMatic.toString() ); // ethers.BigNumber.toString()
-
-
-let amountOutWMatic1 = await univ3Oracle100.estimateAmountOut(tokenIn,amountInWETH,average_weighted_time);
-console.log(amountOutWMatic1);
-console.log( amountOutWMatic1.toString() ); // ethers.BigNumber.toString()
-
-let amountOutWMatic2 = await univ3Oracle500.estimateAmountOut(tokenIn,amountInWETH,average_weighted_time);
-console.log(amountOutWMatic2);
-console.log( amountOutWMatic2.toString() ); // ethers.BigNumber.toString()
-
-let amountOutWMatic3 = await univ3Oracle3000.estimateAmountOut(tokenIn,amountInWETH,average_weighted_time);
-console.log(amountOutWMatic3);
-console.log( amountOutWMatic3.toString() ); // ethers.BigNumber.toString()
-
-console.log(amountOutWMatic4);
-console.log( amountOutWMatic4.toString() ); // ethers.BigNumber.toString()
-
-console.log(amountOutWMatic5);
-console.log( amountOutWMatic5.toString() ); // ethers.BigNumber.toString()
+// let tokenIn = USDT_PolygonMainnet;
+// let average_weighted_time = LAST_HOUR;
+// let amountIn = amount_1USDT;
 
 
 Exit Hh console
