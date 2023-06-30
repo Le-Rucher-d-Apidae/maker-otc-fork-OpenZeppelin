@@ -1,8 +1,8 @@
 
-const params = require("../deploy-params/UniswapV3Oracle-params")
+const oracle_params = require("../deploy-params/UniswapV3Oracle-params")
 
-const contractName = params.contractName;
-const log = params.log;
+const oracle_contractName = oracle_params.contractName;
+const oracle_log = oracle_params.log;
 
 module.exports = async (
   {
@@ -17,27 +17,27 @@ module.exports = async (
   const {deployer} = await getNamedAccounts();
 
   const getArgs = (chainId) => {
-      return params.args[chainId];
+      return oracle_params.args[chainId];
   };
 
   const args = getArgs(chainId);
-  console.log( `Deploying ${contractName} on network ${networkName} (chainId:${chainId})  with args:` );
+  console.log( `Deploying ${oracle_contractName} on network ${networkName} (chainId:${chainId})  with args:` );
   console.dir( args );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
   const deployResult = await deploy(
-    contractName,
+    oracle_contractName,
     {
       from: deployer,
       gasLimit: 4000000,
       args: args,
-      log: log,
+      log: oracle_log,
     }
   );
 
   if (deployResult.newlyDeployed) {
     console.log(
-      `${contractName} deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`
+      `${oracle_contractName} deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`
     );
   }
 
