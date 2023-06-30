@@ -414,6 +414,9 @@ module.exports = {
 
   networks: {
     hardhat: {
+      live: false,
+      saveDeployments: false,
+      tags: ["test", "local"],
       accounts: ACCOUNTS_CONFIG_HH,
       // hardfork: string;
       forking: FORKING_CONFIG,
@@ -437,6 +440,9 @@ module.exports = {
     },
     // Polygon Mumbai Testnet
     mumbai: {
+      live: true,
+      saveDeployments: true,
+      tags: ["staging"],
       url: TESTNET_POLYGON_MUMBAI_RPC || "",
       accounts: ACCOUNTS_CONFIG,
       verify: {
@@ -448,6 +454,8 @@ module.exports = {
     },
     // Polygon Mainnet
     polygon: {
+      live: true,
+      saveDeployments: true,
       url: MAINNET_POLYGON__RPC || "",
       accounts: ACCOUNTS_CONFIG,
       verify: {
