@@ -27,7 +27,8 @@ const args_PolygonMainnet = [UniswapV3Factory_addr, USDC_PolygonMainnet]; // Pol
 let params ={
   contractName: contractName,
   args: {
-    31337:  args_PolygonMumbaiTestnet, // HardHat : use Polygon Mumbai Testnet or Polygon Mainnet
+    // 31337:  args_PolygonMumbaiTestnet, // HardHat : use Polygon Mumbai Testnet
+    31337:  args_PolygonMainnet, // HardHat : use Polygon Mainnet
     80001:  args_PolygonMumbaiTestnet, // Polygon Mumbai Testnet
     137:    args_PolygonMainnet, // Polygon Mainnet
     },

@@ -28,6 +28,7 @@ module.exports = async (
 
   const token_deployment = await deployments.get(token_contractName);
   const token_address = token_deployment.address
+  const mainTradableToken = token_address;
 
   const oracle_deployment = await deployments.get(uniswapV3Oracle_contractName);
   const oracle_address = oracle_deployment.address;
@@ -40,12 +41,13 @@ module.exports = async (
   // console.log( `oracle_deployment.args:` );
   // console.dir( oracle_deployment.args );
   const oracle_args_token_address = oracle_deployment.args[1];
+  const dustToken = oracle_args_token_address;
 
   // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-  const args = [ token_address, isMarketSuspended, oracle_args_token_address, dustLimit, oracle_address ];
+  const args = [ mainTradableToken, isMarketSuspended, dustToken, dustLimit, oracle_address ];
 
   console.log( `Deploying ${contractName} on network ${networkName} (chainId:${chainId})  with args:` );
-  const argsArrayLogs = { token_address: token_address, isMarketSuspended: isMarketSuspended, oracle_args_token_address: oracle_args_token_address, dustLimit: dustLimit, oracle_address: oracle_address };
+  const argsArrayLogs = { mainTradableToken: mainTradableToken, isMarketSuspended: isMarketSuspended, dustToken: dustToken, dustLimit: dustLimit, oracle_address: oracle_address };
   console.dir( argsArrayLogs );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
