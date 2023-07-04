@@ -1,8 +1,6 @@
+const { getContractName, getDeployArgs, getParamsArgs } = require("./deployFn")
 
-const params = require("../deploy-params/ApidaeToken-params")
-
-const contractName = params.contractName;
-const log = params.log;
+const token_params = require("../deploy-params/ApidaeToken-params")
 
 module.exports = async (
   {
@@ -16,15 +14,15 @@ module.exports = async (
   const networkName = getNetworkName()
   const {deployer} = await getNamedAccounts();
 
-
-  const getParamsArgs = (chainId) => {
-      return params.args[chainId];
-  };
-
-  const args = getParamsArgs(chainId);
+  const contractName = getContractName(token_params);
+  const args = getParamsArgs(token_params, chainId);
+  const deployArgs = getDeployArgs(token_params, chainId);
   console.log( `Deploying ${contractName} on network ${networkName} (chainId:${chainId})  with args:` );
   const argsArrayLogs = { tokenName: args[0], tokenSymbol: args[1], tokenSupply: args[2] };
   console.dir( argsArrayLogs );
+
+  console.log( `deployArgs:` );
+  console.dir( deployArgs );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
   const deployResult = await deploy(
@@ -33,7 +31,7 @@ module.exports = async (
       from: deployer,
       gasLimit: 4000000,
       args: args,
-      log: log,
+      deployArgs,
     }
   );
 

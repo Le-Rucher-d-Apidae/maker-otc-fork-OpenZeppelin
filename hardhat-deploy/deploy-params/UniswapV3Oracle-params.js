@@ -27,12 +27,19 @@ const args_PolygonMainnet = [UniswapV3Factory_addr, USDC_PolygonMainnet]; // Pol
 let params ={
   contractName: contractName,
   args: {
-    // 31337:  args_PolygonMumbaiTestnet, // HardHat : use Polygon Mumbai Testnet
-    31337:  args_PolygonMainnet, // HardHat : use Polygon Mainnet
+    // 31337:  args_PolygonMumbaiTestnet, // HardHat fork on Polygon Mumbai Testnet
+    31337:  args_PolygonMainnet, // HardHat fork on Polygon Mainnet
     80001:  args_PolygonMumbaiTestnet, // Polygon Mumbai Testnet
     137:    args_PolygonMainnet, // Polygon Mainnet
     },
-    log: true,
+  deploy: {
+    31337:  { log: true, waitConfirmations: 1 }, // HardHat fork on Polygon Mumbai Testnet
+    31337:  { log: true, waitConfirmations: 1 }, // HardHat fork on Polygon Mainnet
+    80001:  { log: true, waitConfirmations: 6 }, // Polygon Mumbai Testnet
+    137:    { log: true, waitConfirmations: 6 }, // Polygon Mainnet
+  },
+    // log: true,
+    // waitConfirmations: 1, // Number of confirmations to wait between deployments (default: 1)
 }
 
 module.exports = params;

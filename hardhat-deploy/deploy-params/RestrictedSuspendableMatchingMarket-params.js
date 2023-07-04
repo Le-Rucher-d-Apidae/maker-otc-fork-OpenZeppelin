@@ -21,7 +21,13 @@ let params ={
     80001:  [isMarketSuspended, /* dustToken, */ dustLimit], // Polygon Mumbai Testnet
     137:    [isMarketSuspended, /* dustToken, */ dustLimit], // Polygon Mainnet
     },
-    log: true,
+  deploy: {
+    31337:  { log: true, waitConfirmations: 1 }, // HardHat fork on Polygon Mumbai Testnet
+    31337:  { log: true, waitConfirmations: 1 }, // HardHat fork on Polygon Mainnet
+    80001:  { log: true, waitConfirmations: 6 }, // Polygon Mumbai Testnet
+    137:    { log: true, waitConfirmations: 6 }, // Polygon Mainnet
+  },
+    // log: true,
 }
 
 module.exports = params;

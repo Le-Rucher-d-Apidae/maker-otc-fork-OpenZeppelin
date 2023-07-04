@@ -65,17 +65,25 @@
     "testPG": "npx hardhat test --network localhost --grep PayableGreeter",
     "testTrace": "npx hardhat test --trace",
     "testFulltrace": "npx hardhat test --fulltrace",
+
     "HhDeployLoc": "npx hardhat --network localhost deploy",
     "depUniOraLocV": "npx hardhat run scripts/deployUniswapV3Oracle.js --network localhost --verbose",
     "depGLoc": "npx hardhat run scripts/deployGreeter.js --network localhost",
     "depPGLoc": "npx hardhat run scripts/deployPayableGreeter.js --network localhost",
     "depLocV": "npx hardhat run scripts/deployGreeter.js --network localhost --verbose",
+
+    "depTokenLoc": "npx hardhat deploy --tags Token --network localhost",
     "depOracleLoc": "npx hardhat deploy --tags Oracle --network localhost",
     "depMatchingMartketLoc": "npx hardhat deploy --tags MatchingMarket --network localhost",
     "depOracleMumb": "npx hardhat deploy --tags Oracle --network mumbai",
     "depUniOraMumb2": "npx hardhat run scripts/deployUniswapV3Oracle.js --network mumbai --verbose",
     "depMatchingMartketMumb": "npx hardhat deploy --tags MatchingMarket --network mumbai",
     "verifyMumb": "npx hardhat etherscan-verify --network mumbai",
+
+
+    "sourcifyMumb": "npx hardhat --network mumbai mainnet sourcify",
+    
+
     "installNCU": "npm i -g npm-check-updates",
     "updatePackages": "ncu --upgrade",
     "updateNpm": "npm update -g",

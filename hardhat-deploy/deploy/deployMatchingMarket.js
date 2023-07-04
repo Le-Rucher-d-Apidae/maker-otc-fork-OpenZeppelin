@@ -1,14 +1,8 @@
+const { getContractName, getDeployArgs, getParamsArgs } = require("./deployFn")
+
 const matchingMarket_params = require("../deploy-params/RestrictedSuspendableMatchingMarket-params")
-
 const token_params = require("../deploy-params/ApidaeToken-params")
-const token_contractName = token_params.contractName;
-
-
 const uniswapV3Oracle_params = require("../deploy-params/UniswapV3Oracle-params")
-const uniswapV3Oracle_contractName = uniswapV3Oracle_params.contractName;
-
-const contractName = matchingMarket_params.contractName;
-const log = matchingMarket_params.log;
 
 module.exports = async (
   {
@@ -22,10 +16,10 @@ module.exports = async (
   const networkName = getNetworkName()
   const {deployer} = await getNamedAccounts();
 
-  const getParamsArgs = (chainId) => {
-    return matchingMarket_params.args[chainId];
-  };
-
+  const contractName = getContractName(matchingMarket_params);
+  const token_contractName = getContractName(token_params);
+  const uniswapV3Oracle_contractName = uniswapV3Oracle_params.contractName;
+  
   const token_deployment = await deployments.get(token_contractName);
   const token_address = token_deployment.address
   const mainTradableToken = token_address;
@@ -33,22 +27,22 @@ module.exports = async (
   const oracle_deployment = await deployments.get(uniswapV3Oracle_contractName);
   const oracle_address = oracle_deployment.address;
 
-  const matchingMarket_args = getParamsArgs(chainId);
+  const matchingMarket_args = getParamsArgs(matchingMarket_params, chainId);
   const isMarketSuspended = matchingMarket_args[0];
   const dustLimit = matchingMarket_args[1];
 
-  // console.log( `Oracle address: ${oracle_address}` );
-  // console.log( `oracle_deployment.args:` );
-  // console.dir( oracle_deployment.args );
   const oracle_args_token_address = oracle_deployment.args[1];
   const dustToken = oracle_args_token_address;
 
   // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
   const args = [ mainTradableToken, isMarketSuspended, dustToken, dustLimit, oracle_address ];
-
+  const deployArgs = getDeployArgs(matchingMarket_params, chainId);
   console.log( `Deploying ${contractName} on network ${networkName} (chainId:${chainId})  with args:` );
   const argsArrayLogs = { mainTradableToken: mainTradableToken, isMarketSuspended: isMarketSuspended, dustToken: dustToken, dustLimit: dustLimit, oracle_address: oracle_address };
   console.dir( argsArrayLogs );
+
+console.log( `deployArgs:` );
+console.dir( deployArgs );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
 
@@ -58,7 +52,7 @@ module.exports = async (
       from: deployer,
       gasLimit: 4000000,
       args: args,
-      log: log,
+      deployArgs,
     }
   );
 
@@ -67,7 +61,6 @@ module.exports = async (
       `${contractName} deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`
     );
   }
-
 
 };
 
