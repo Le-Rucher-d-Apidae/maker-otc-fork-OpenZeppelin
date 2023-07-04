@@ -22,7 +22,9 @@ module.exports = async (
 
   const args = getArgs(chainId);
   console.log( `Deploying ${oracle_contractName} on network ${networkName} (chainId:${chainId})  with args:` );
-  console.dir( args );
+  const argsArrayLogs = { uniswapV3FactoryAddress: args[0], tokenAddress: args[1] };
+  console.dir( argsArrayLogs );
+
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
   const deployResult = await deploy(

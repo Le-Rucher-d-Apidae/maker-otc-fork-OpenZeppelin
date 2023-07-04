@@ -23,7 +23,8 @@ module.exports = async (
 
   const args = getParamsArgs(chainId);
   console.log( `Deploying ${contractName} on network ${networkName} (chainId:${chainId})  with args:` );
-  console.dir( args );
+  const argsArrayLogs = { tokenName: args[0], tokenSymbol: args[1], tokenSupply: args[2] };
+  console.dir( argsArrayLogs );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
   const deployResult = await deploy(
