@@ -1,4 +1,4 @@
-const { getContractName, getDeployArgs, getParamsArgs } = require("./deployFn")
+const { getContractName, getDeployArgs, getParamsArgs } = require("../deploy-tools/deployFn")
 
 const token_params = require("../deploy-params/ApidaeToken-params")
 
@@ -14,30 +14,35 @@ module.exports = async (
   const networkName = getNetworkName()
   const {deployer} = await getNamedAccounts();
 
-  const contractName = getContractName(token_params);
-  const args = getParamsArgs(token_params, chainId);
-  const deployArgs = getDeployArgs(token_params, chainId);
-  console.log( `Deploying ${contractName} on network ${networkName} (chainId:${chainId})  with args:` );
-  const argsArrayLogs = { tokenName: args[0], tokenSymbol: args[1], tokenSupply: args[2] };
-  console.dir( argsArrayLogs );
+  const token_contractName = getContractName(token_params);
+  const token_paramsArgs = getParamsArgs(token_params, chainId);
+  const token_deployArgs = getDeployArgs(token_params, chainId);
+  console.log();
+  console.log( `Deploying ${token_contractName} on network ${networkName} (chainId:${chainId})  with args:` );
+  const token_argsArrayLogs = { tokenName: token_paramsArgs[0], tokenSymbol: token_paramsArgs[1], tokenSupply: token_paramsArgs[2] };
+  console.dir( token_argsArrayLogs );
 
   console.log( `deployArgs:` );
-  console.dir( deployArgs );
+  console.dir( token_deployArgs );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
   const deployResult = await deploy(
-    contractName,
+    token_contractName,
     {
       from: deployer,
       gasLimit: 4000000,
-      args: args,
-      deployArgs,
+      args: token_paramsArgs,
+      deployArgs: token_deployArgs,
     }
   );
 
   if (deployResult.newlyDeployed) {
     console.log(
-      `${contractName} deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`
+      `${token_contractName} deployed at ${deployResult.address} using ${deployResult.receipt.gasUsed} gas`
+    );
+  } else {
+    console.log(
+      `${token_contractName} deployment skipped with no changes`
     );
   }
 
