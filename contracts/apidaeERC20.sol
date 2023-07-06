@@ -19,7 +19,7 @@ contract ApidaeERC20 is ERC20, ERC20Burnable, Ownable {
         _mint( _mintSupplyTo, mintAmount);
         // console2.log( "ApidaeERC20 constructor:_mint ", _totalSupply, "tokens (#tokens units: ", mintAmount, ") to ", _mintSupplyTo );
         console2.log( "ApidaeERC20 constructor:_mint ()", _totalSupply, " tokens) to; ", _mintSupplyTo );
-        console2.log( "ApidaeERC20 constructor:_mint tokens units:", _mintSupplyTo );
+        console2.log( "ApidaeERC20 constructor:_mint tokens units:", mintAmount );
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
