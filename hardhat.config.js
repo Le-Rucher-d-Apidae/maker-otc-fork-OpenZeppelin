@@ -26,6 +26,7 @@ const createDirAndSubdirsIfNotExists = require("./js/tools").createDirAndSubdirs
 require("@nomiclabs/hardhat-etherscan")
 //require("@nomiclabs/hardhat-waffle")
 require("@nomicfoundation/hardhat-toolbox");
+// require("@nomicfoundation/hardhat-verify"); // Unable to verify contract on Sepolia due to Error HH210: Redefinition of task verify failed
 require("hardhat-gas-reporter")
 require("solidity-docgen")
 // require("solidity-coverage")
@@ -263,6 +264,16 @@ const MAINNET_POLYGON_MUMBAI__API_URL = ( PROVIDER_CONFIG == PROVIDER_CONFIG__LO
 )
 console.debug(`MAINNET_POLYGON_MUMBAI__API_URL = "${MAINNET_POLYGON_MUMBAI__API_URL}"`)
 
+
+
+const MAINNET_ETHERSCAN_API_KEY = undefined;
+console.debug(`MAINNET_ETHERSCAN_API_KEY = "${MAINNET_ETHERSCAN_API_KEY}"`)
+const GOERLI_ETHERSCAN_API_KEY = undefined;
+console.debug(`GOERLI_ETHERSCAN_API_KEY = "${GOERLI_ETHERSCAN_API_KEY}"`)
+const SEPOLIA_ETHERSCAN_API_KEY = undefined;
+console.debug(`SEPOLIA_ETHERSCAN_API_KEY = "${SEPOLIA_ETHERSCAN_API_KEY}"`)
+
+
 console.log('-------------------------------------')
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -429,12 +440,16 @@ module.exports = {
     },
     // Goerli Testnet
     goerli: {
+      live: true,
+      saveDeployments: true,
       url: TESTNET_GOERLI_RPC || "",
       accounts: ACCOUNTS_CONFIG,
       // gasPrice: 8000000000, // default is 'auto' which breaks chains without the london hardfork
     },
     // Sepolia Testnet
     sepolia: {
+      live: true,
+      saveDeployments: true,
       url: TESTNET_SEPOLIA_RPC || "",
       accounts: ACCOUNTS_CONFIG,
     },
@@ -509,9 +524,10 @@ module.exports = {
 
   etherscan: {
     apiKey: {
-        mainnet: process.env.MAINNET_ETHERSCAN_API_KEY,
-        goerli: process.env.GOERLI_ETHERSCAN_API_KEY,
-        sepolia: process.env.SEPOLIA_ETHERSCAN_API_KEY,
+        mainnet: MAINNET_ETHERSCAN_API_KEY,
+        goerli: GOERLI_ETHERSCAN_API_KEY,
+        sepolia: SEPOLIA_ETHERSCAN_API_KEY,
+/*
         // binance smart chain
         bsc: "YOUR_BSCSCAN_API_KEY",
         bscTestnet: "YOUR_BSCSCAN_API_KEY",
@@ -524,9 +540,6 @@ module.exports = {
         // optimism
         optimisticEthereum: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
         optimisticKovan: "YOUR_OPTIMISTIC_ETHERSCAN_API_KEY",
-        // polygon
-        polygon: process.env.POLYGONSCAN_API_KEY,
-        polygonMumbai: process.env.POLYGONSCAN_API_KEY,
         // arbitrum
         arbitrumOne: "YOUR_ARBISCAN_API_KEY",
         arbitrumTestnet: "YOUR_ARBISCAN_API_KEY",
@@ -546,6 +559,10 @@ module.exports = {
         sokol: "api-key",
         aurora: "api-key",
         auroraTestnet: "api-key",
+*/
+        // polygon
+        polygon: POLYGONSCAN_API_KEY,
+        polygonMumbai: POLYGONSCAN_API_KEY,
       }
     },
   
