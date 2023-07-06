@@ -503,6 +503,9 @@ module.exports = {
       deployer: {
           default: 0,
       },
+      tokenOwner: {
+        default: 1,
+      }
       // player: {
       //     default: 1,
       // },
