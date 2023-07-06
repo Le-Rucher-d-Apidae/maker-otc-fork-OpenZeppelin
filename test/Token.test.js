@@ -24,10 +24,8 @@ describe("Token contract", function() {
     const supply = await Token.totalSupply();
 
     if (deployer != tokenOwner) {
-      console.log("deployer != tokenOwner");
       expect(deployerBalance).to.equal(0);
     } else {
-      console.log("deployer == tokenOwner");
       expect(deployerBalance).to.equal(supply);
     }
 
