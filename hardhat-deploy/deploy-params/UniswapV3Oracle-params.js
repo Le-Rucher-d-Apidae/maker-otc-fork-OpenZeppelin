@@ -21,8 +21,10 @@ const USDC_PolygonMainnet = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174" // USDC
 // const FEE =  '0x' + FEE_0_001.toString(16) // convert to hex
 // console.debug( `FEE = ${FEE}` );
 
-const args_PolygonMumbaiTestnet = [UniswapV3Factory_addr, wEth_PolygonMumbaiTestnet]; // Polygon Mumbai Testnet
-const args_PolygonMainnet = [UniswapV3Factory_addr, USDC_PolygonMainnet]; // Polygon Mainnet
+// const args_PolygonMumbaiTestnet = [UniswapV3Factory_addr, wEth_PolygonMumbaiTestnet]; // Polygon Mumbai Testnet
+// const args_PolygonMainnet = [UniswapV3Factory_addr, USDC_PolygonMainnet]; // Polygon Mainnet
+const args_PolygonMumbaiTestnet = [UniswapV3Factory_addr, ]; // Polygon Mumbai Testnet
+const args_PolygonMainnet = [UniswapV3Factory_addr, ]; // Polygon Mainnet
 
 let params ={
   contractName: contractName,
