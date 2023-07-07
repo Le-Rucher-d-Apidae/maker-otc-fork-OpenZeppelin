@@ -42,8 +42,8 @@ module.exports = async (
   const argsArrayLogs = { mainTradableToken: mainTradableToken, isMarketSuspended: isMarketSuspended, dustToken: dustToken, dustLimit: dustLimit, oracle_address: oracle_address };
   console.dir( argsArrayLogs );
 
-console.log( `deployArgs:` );
-console.dir( matchingMarket_deployArgs );
+  console.log( `deployArgs:` );
+  console.dir( matchingMarket_deployArgs );
 
   // the following will only deploy "{contractName}" if the contract was never deployed or if the code changed since last deployment
 
