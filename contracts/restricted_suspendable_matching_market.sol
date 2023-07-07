@@ -260,10 +260,11 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     //    cost more gas to accept the offer, than the value
     //    of tokens received.
     function setMinSell(
-        IERC20 pay_gem,     //token to assign minimum sell amount to
+        IERC20 pay_gem, //token to assign minimum sell amount to
         uint24 _fee    // Uniswap V3 Pool fee
     )
         public
+        tokenAllowed(pay_gem)
     {
         require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
         // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
