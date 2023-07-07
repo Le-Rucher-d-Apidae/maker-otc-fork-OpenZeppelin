@@ -32,11 +32,26 @@ contract SimpleMarketWithFees is SimpleMarket {
 
     using SafeERC20 for IERC20;
 
-    event Fees(
+    uint256 public feePercent;
+    uint256 public feeMaxPercent;
+    address public feeCollector;
+
+    event Fee(
         uint256 amount,
         IERC20 token,
         address recipient
     );
+
+    constructor(uint256 _feePercent, address _feeCollector, uint256 _feeMaxPercent) {
+        feePercent = _feePercent;
+        feeCollector = _feeCollector;
+        feeMaxPercent = _feeMaxPercent;
+    }
+
+    function setFeePercent(uint256 _feePercent) public onlyOwner {
+        require(_feePercent <= feeMaxPercent, "Fee percent too high");
+        feePercent = _feePercent;
+    }
 
     // Accept given `quantity` of an offer. Transfers funds from caller to
     // offer maker, and from market to caller.
