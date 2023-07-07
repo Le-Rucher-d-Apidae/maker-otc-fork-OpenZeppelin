@@ -35,7 +35,7 @@ module.exports = async (
   const dustToken = oracle_args_token_address;
 
   // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-  const matchingMarket_allArgs = [ mainTradableToken, isMarketSuspended, dustToken, dustLimit, oracle_address ];
+  const matchingMarket_allParamsArgs = [ mainTradableToken, isMarketSuspended, dustToken, dustLimit, oracle_address ];
   const matchingMarket_deployArgs = getDeployArgs(matchingMarket_params, chainId);
   console.log();
   console.log( `Deploying ${matchingMarket_contractName} on network ${networkName} (chainId:${chainId})  with args:` );
@@ -52,7 +52,7 @@ console.dir( matchingMarket_deployArgs );
     {
       from: deployer,
       gasLimit: 4000000,
-      args: matchingMarket_allArgs,
+      args: matchingMarket_allParamsArgs,
       deployArgs: matchingMarket_deployArgs,
     }
   );
