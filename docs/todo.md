@@ -1,4 +1,3 @@
-fees ?
-pairs ?
-minimum amount ?
-suspend market (panic button) ?
+- add trading fees
+- enhance oracle
+- set minimum amount
