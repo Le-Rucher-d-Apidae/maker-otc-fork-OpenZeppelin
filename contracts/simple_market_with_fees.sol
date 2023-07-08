@@ -32,11 +32,81 @@ contract SimpleMarketWithFees is SimpleMarket {
 
     using SafeERC20 for IERC20;
 
-    event Fees(
+    // Fees
+    // 1000000 = 100% Fee, 100000 = 10% Fee, 10000 = 1% Fee, 100 = 0.01% Fee, 1 = 0.0001% Fee
+    uint256 public immutable MARKETMAXFEE;
+    uint256 public marketFee;
+    uint256 public buyFee;
+    uint256 public sellFee;
+    address public marketFeeCollector;
+    mapping (address => bool) public marketFeeExemption;
+
+    // mapping (address => Fee) public marketFee;
+
+    event CollectFee(
         uint256 amount,
         IERC20 token,
         address recipient
     );
+
+    event WithdrawFees(
+        uint256 amount,
+        address recipient
+    );
+
+    // struct Fee {
+    //      uint256 totalTransferFees;
+    //      uint256 availableTransferFees;
+    //  }
+
+
+    constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, bool _buyFee, bool _sellFee) SimpleMarket() {
+        MARKETMAXFEE = _marketMaxFee;
+        require(_marketFee <= _marketMaxFee, "Fee percent too high");
+        setMarketFee(_marketFee);
+        setBuyAndSellFee(_buyFee, _sellFee);
+        setMarketFeeCollector(_marketFeeCollector);
+    }
+
+    function setBuyAndSellFee(bool _buyFee, bool _sellFee) public onlyOwner {
+        if (_buyFee) {
+            if (_sellFee) {
+                buyFee = marketFee/2;
+                sellFee = marketFee/2;
+                return;
+            } else {
+                buyFee = marketFee;
+                sellFee = 0;
+            }
+        } else if (_sellFee) {
+            buyFee = 0;
+            sellFee = marketFee;
+        }
+    }
+
+    function setMarketFeeExemption(address _address, bool _exempt) public onlyOwner {
+        marketFeeExemption[_address] = _exempt;
+    }
+
+    function setMarketFee(uint256 _marketFee) public onlyOwner {
+        require(_marketFee <= MARKETMAXFEE, "Fee percent too high");
+        marketFee = _marketFee;
+    }
+
+    function setMarketFeeCollector(address  _marketFeeCollector) public onlyOwner {
+        require(_marketFeeCollector != address(0), "Fee collector cannot be zero address");
+        marketFeeCollector = _marketFeeCollector;
+    }
+
+    function withdrawFees() external {
+        require(msg.sender == marketFeeCollector || msg.sender == owner() , "Only fee collector or owner can call withdraw fees");
+
+        // TODO : Fees
+        uint256 amount = 0;
+
+        emit WithdrawFees(amount, marketFeeCollector);
+        //ERC20.safeTransfer(msg.sender, amount);
+    }
 
     // Accept given `quantity` of an offer. Transfers funds from caller to
     // offer maker, and from market to caller.
@@ -63,10 +133,17 @@ contract SimpleMarketWithFees is SimpleMarket {
 
         offers[id].pay_amt = offerInfo.pay_amt - quantity;
         offers[id].buy_amt = offerInfo.buy_amt - spend;
+
         // address msgSender = _msgSender();
+        // offerInfo.buy_gem.safeTransferFrom(msg.sender /*msgSender*/, offerInfo.owner, spend);
+        // offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity);
+
+        buyFee = 0;
+        payFee = 0;
+
+        // Collect fees
         offerInfo.buy_gem.safeTransferFrom(msg.sender /*msgSender*/, offerInfo.owner, spend);
         offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity);
-
 
         // TODO : Fees
         // TODO : Fees
