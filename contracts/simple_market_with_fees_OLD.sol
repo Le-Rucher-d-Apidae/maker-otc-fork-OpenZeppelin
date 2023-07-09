@@ -27,14 +27,6 @@ import "forge-std/console2.sol";
 // import "@openzeppelin/contracts/access/Ownable.sol";
 // import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./simple_market.sol";
-import "./matchingMarketConfigurationWithFees.sol";
-
-
-contract SimpleMarketWithFeesErrorCodes {
-    // Limits
-    string internal constant _SMWFZCFG000 = "SimpleMarketWithFees: _matchingMarketConfigurationWithFeescannot be zero address";
-    
-}
 
 contract SimpleMarketWithFeesEvents {
 
@@ -49,13 +41,24 @@ contract SimpleMarketWithFeesEvents {
     );
 }
 
-contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, SimpleMarketWithFeesErrorCodes {
+contract SimpleMarketWithFees_OLD is SimpleMarket, SimpleMarketWithFeesEvents {
 
     using SafeERC20 for IERC20;
 
-    MatchingMarketConfigurationWithFees public matchingMarketConfigurationWithFees;
+    // Fees
+    // 1000000 = 100% Fee, 100000 = 10% Fee, 10000 = 1% Fee, 100 = 0.01% Fee, 1 = 0.0001% Fee
+    uint256 public constant ONEHUNDREDPERCENT  = 1000000;
+    uint256 public immutable MARKETMAXFEE;
+    uint256 public marketFee;
+    uint256 public buyFee;
+    uint256 public sellFee;
+    address public marketFeeCollector;
+
+    mapping (address => bool) public marketFeeExemption;
 
     // mapping (address => Fee) public marketFee;
+
+
 
     // struct Fee {
     //      uint256 totalTransferFees;
@@ -64,15 +67,75 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
 
 
     // constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, bool _buyFee, bool _sellFee) SimpleMarket() {
-    // constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, uint _buyFee, uint _sellFee) SimpleMarket() {
-    constructor(MatchingMarketConfigurationWithFees _matchingMarketConfigurationWithFees) SimpleMarket() {    
-        require( address(_matchingMarketConfigurationWithFees) != NULL_ADDRESS, _SMWFZCFG000);
-        matchingMarketConfigurationWithFees = _matchingMarketConfigurationWithFees;
+    constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, uint _buyFee, uint _sellFee) SimpleMarket() {
+        require(_marketMaxFee <= ONEHUNDREDPERCENT, "Market max fee too high");
+        MARKETMAXFEE = _marketMaxFee;
+        require(_marketFee <= _marketMaxFee, "Market fee percent too high");
+        setMarketFee(_marketFee);
+        setBuyAndSellFee(_buyFee, _sellFee);
+        setMarketFeeCollector(_marketFeeCollector);
     }
 
+    function setBuyAndSellFee(bool _buyFee, bool _sellFee) public onlyOwner {
+        if (_buyFee) {
+            if (_sellFee) {
+                buyFee = marketFee/2;
+                sellFee = marketFee/2;
+                return;
+            } else {
+                buyFee = marketFee;
+                sellFee = 0;
+            }
+        } else if (_sellFee) {
+            buyFee = 0;
+            sellFee = marketFee;
+        }
+    }
+ 
+    /**
+     * @dev Set buy and sell fee
+     * @param _buyFee  0 = no buy fee
+     * @param _sellFee 0 = no sell fee
+     * @notice Splits marketFee between buy and sell fee
+     * @notice If buyFee and sellFee are both 0, then there is no fee
+     */
+    function setBuyAndSellFee(uint _buyFee, uint _sellFee) public onlyOwner {
+        require(_buyFee <= ONEHUNDREDPERCENT, "Market buyFee fee too high");
+        require(_sellFee <= ONEHUNDREDPERCENT, "Market sellFee fee too high");
+
+        if (_buyFee>0) {
+            if (_sellFee>0) {
+                uint buyAndSell= _buyFee+_sellFee;
+                buyFee = marketFee * _buyFee / buyAndSell;
+                sellFee = marketFee * _sellFee / buyAndSell;
+                return;
+            } else {
+                buyFee = marketFee; // 100% of marketFee
+                sellFee = 0;
+            }
+        } else if (_sellFee>0) {
+            buyFee = 0;
+            sellFee = marketFee;
+        } else if (marketFee>0) {
+            revert("Both buy and sell fee cannot be 0");
+        }
+    }
+
+    function setMarketFeeExemption(address _address, bool _exempt) public onlyOwner {
+        marketFeeExemption[_address] = _exempt;
+    }
+
+    function setMarketFee(uint256 _marketFee) public onlyOwner {
+        require(_marketFee <= MARKETMAXFEE, "Fee percent too high");
+        marketFee = _marketFee;
+    }
+
+    function setMarketFeeCollector(address  _marketFeeCollector) public onlyOwner {
+        require(_marketFeeCollector != address(0), "Fee collector cannot be zero address");
+        marketFeeCollector = _marketFeeCollector;
+    }
 
     function withdrawFees() external {
-        address marketFeeCollector = matchingMarketConfigurationWithFees.marketFeeCollector();
         require(msg.sender == marketFeeCollector || msg.sender == owner() , "Only fee collector or owner can call withdraw fees");
 
         // TODO : Fees
@@ -114,31 +177,22 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         // offerInfo.buy_gem.safeTransferFrom(msg.sender /*msgSender*/, offerInfo.owner, spend);
         // offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity);
 
+
         // Collect fees
-        uint spendFee = matchingMarketConfigurationWithFees.calculateSellFee(spend);
-        uint quantityFee = matchingMarketConfigurationWithFees.calculateBuyFee(quantity);
+        uint spendFee = spend * sellFee / ONEHUNDREDPERCENT;
+        uint quantityFee = quantity * buyFee / ONEHUNDREDPERCENT;
         console2.log("spendFee", spendFee);
         console2.log("quantityFee", quantityFee);
 
+
         // offer bought gem : Transfer from buyer to offerer : bought amount minus fees
         offerInfo.buy_gem.safeTransferFrom(msg.sender /*msgSender*/, offerInfo.owner, spend-spendFee);
-        console2.log("sent ", spend-spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
-        console2.log("from Buyer", msg.sender, " to Offerer", offerInfo.owner);
-
-
         // offer bought gem : Transfer from buyer to this contract : fees
-        offerInfo.buy_gem.safeTransferFrom( msg.sender, address(this), spendFee);
-        console2.log("sent ", spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
-        console2.log("from Buyer ", msg.sender, " to this contract ", address(this));
+        offerInfo.buy_gem.safeTransferFrom(address(this), offerInfo.owner, spendFee);
 
-        // offer sold gem : Transfer buyer sold gem to offerer : bought amount minus fees
+        // offer sold gem : Transfer to sold gem to offerer : bought amount minus fees
         offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity-quantityFee);
-        console2.log("sent ", quantity-quantityFee, " pay_gem  ", address(offerInfo.pay_gem) );
-        console2.log("from ", address(this), " to Buyer ", msg.sender);
-
-
         // offer sold gem : No need to transfer sold sold gem to this contract : fees remains in this contract
-        console2.log(" keeping pay_gem", address(offerInfo.pay_gem),  " as fee for qty: ", quantityFee);
 
         emit LogItemUpdate(id);
         emit LogTake(
