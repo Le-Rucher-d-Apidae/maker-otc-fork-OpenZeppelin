@@ -27,12 +27,12 @@ import "forge-std/console2.sol";
 // import "@openzeppelin/contracts/access/Ownable.sol";
 // import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./simple_market.sol";
-import "./matchingMarketConfigurationWithFees.sol";
+import "./SimpleMarketConfigurationWithFees.sol";
 
 
 contract SimpleMarketWithFeesErrorCodes {
     // Limits
-    string internal constant _SMWFZCFG000 = "SimpleMarketWithFees: _matchingMarketConfigurationWithFeescannot be zero address";
+    string internal constant _SMWFZCFG000 = "SimpleMarketWithFees: Configuration cannot be zero address";
     
 }
 
@@ -53,7 +53,7 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
 
     using SafeERC20 for IERC20;
 
-    MatchingMarketConfigurationWithFees public matchingMarketConfigurationWithFees;
+    SimpleMarketConfigurationWithFees public simpleMarketConfigurationWithFees;
 
     // mapping (address => Fee) public marketFee;
 
@@ -65,17 +65,21 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
 
     // constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, bool _buyFee, bool _sellFee) SimpleMarket() {
     // constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, uint _buyFee, uint _sellFee) SimpleMarket() {
-    constructor(MatchingMarketConfigurationWithFees _matchingMarketConfigurationWithFees) SimpleMarket() {    
-        require( address(_matchingMarketConfigurationWithFees) != NULL_ADDRESS, _SMWFZCFG000);
-        matchingMarketConfigurationWithFees = _matchingMarketConfigurationWithFees;
+    constructor(SimpleMarketConfigurationWithFees _simpleMarketConfigurationWithFees) SimpleMarket() {    
+        require( address(_simpleMarketConfigurationWithFees) != NULL_ADDRESS, _SMWFZCFG000);
+        simpleMarketConfigurationWithFees = _simpleMarketConfigurationWithFees;
     }
 
 
     function withdrawFees() external {
-        address marketFeeCollector = matchingMarketConfigurationWithFees.marketFeeCollector();
+        address marketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
         require(msg.sender == marketFeeCollector || msg.sender == owner() , "Only fee collector or owner can call withdraw fees");
 
-        // TODO : Fees
+        // TODO : withdraw fees
+        // TODO : withdraw fees
+        // TODO : withdraw fees
+        // TODO : withdraw fees
+        // TODO : withdraw fees
         uint256 amount = 0;
 
         emit WithdrawFees(amount, marketFeeCollector);
@@ -115,8 +119,8 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         // offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity);
 
         // Collect fees
-        uint spendFee = matchingMarketConfigurationWithFees.calculateSellFee(spend);
-        uint quantityFee = matchingMarketConfigurationWithFees.calculateBuyFee(quantity);
+        uint spendFee = simpleMarketConfigurationWithFees.calculateSellFee(spend);
+        uint quantityFee = simpleMarketConfigurationWithFees.calculateBuyFee(quantity);
         console2.log("spendFee", spendFee);
         console2.log("quantityFee", quantityFee);
 

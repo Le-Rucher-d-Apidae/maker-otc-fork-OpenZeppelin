@@ -27,10 +27,12 @@ import "forge-std/console2.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "../contracts/MarketsConstants.sol";
+
 contract VmCheat {
     Vm vm;
 
-    address public NULL_ADDRESS = address(0x0);
+    // address public NULL_ADDRESS = address(0x0);
     IERC20 public NULL_ERC20 = IERC20(NULL_ADDRESS);
     address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D; // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
 

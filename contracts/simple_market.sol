@@ -28,6 +28,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import "../contracts/MarketsConstants.sol";
+
 contract EventfulMarket {
     event LogItemUpdate(uint id);
     event LogTrade(uint pay_amt, address indexed pay_gem,
@@ -121,7 +123,7 @@ contract SimpleMarketErrorCodes {
 contract SimpleMarket is EventfulMarket, SimpleMarketErrorCodes, Ownable {
 
     using SafeERC20 for IERC20;
-    address public constant NULL_ADDRESS = address(0x0);
+    // address public constant NULL_ADDRESS = address(0x0);
 
     uint public last_offer_id; // defaults to 0 when deployed
 

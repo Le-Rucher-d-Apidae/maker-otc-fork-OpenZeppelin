@@ -57,6 +57,9 @@
     "testHH": "npx hardhat test",
     "testFoundryAll": "forge test -vv",
     "testFoundrySmpl": "forge test -vvv --match-contract ^SimpleMarket_*",
+    "testFoundrySmplCfgWFs": "forge test -vvv --match-contract ^SimpleMarketConfigurationWithFees_*",
+    "testFoundrySmplWFs": "forge test -vvv --match-contract ^SimpleMarketWithFees_*",
+
     "testFoundrySusp": "forge test -vvv --match-contract ^SuspendableSimpleMarket_*",
     "testFoundryRest1": "forge test -vvv --match-contract ^Restricted1SuspendableSimpleMarket_*",
     "testFoundryRest2": "forge test -vvv --match-contract ^Restricted2SuspendableSimpleMarket_*",

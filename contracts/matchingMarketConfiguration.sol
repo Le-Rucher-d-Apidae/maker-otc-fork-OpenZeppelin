@@ -26,6 +26,8 @@ import "forge-std/console2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "../contracts/MarketsConstants.sol";
+
 contract MatchingMarketConfigurationErrorCodes {
     // Limits
     string internal constant _MMLMTBLW001 = "dustLimit_ is below threshold";
@@ -36,7 +38,7 @@ contract MatchingMarketConfigurationErrorCodes {
 
 contract MatchingMarketConfiguration is Ownable, MatchingMarketConfigurationErrorCodes {
 
-    address public constant NULL_ADDRESS = address(0x0);
+    // address public constant NULL_ADDRESS = address(0x0);
     // dust token address
     address public dustToken;
     // limit of dust token
