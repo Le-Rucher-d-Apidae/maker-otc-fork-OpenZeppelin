@@ -127,9 +127,11 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
 
 
         // offer bought gem : Transfer from buyer to this contract : fees
-        offerInfo.buy_gem.safeTransferFrom( msg.sender, address(this), spendFee);
-        console2.log("sent ", spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
-        console2.log("from Buyer ", msg.sender, " to this contract ", address(this));
+        if (spendFee > 0) {
+            offerInfo.buy_gem.safeTransferFrom( msg.sender, address(this), spendFee);
+            console2.log("sent ", spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
+            console2.log("from Buyer ", msg.sender, " to this contract ", address(this));
+        }
 
         // offer sold gem : Transfer buyer sold gem to offerer : bought amount minus fees
         offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity-quantityFee);
@@ -152,8 +154,12 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
             uint128(spend),
             uint64(block.timestamp)
         );
-        emit CollectFee(spendFee, offerInfo.buy_gem);
-        emit CollectFee(quantityFee, offerInfo.pay_gem);
+        if (spendFee > 0) {
+            emit CollectFee(spendFee, offerInfo.buy_gem);
+        }
+        if (quantityFee > 0) {
+            emit CollectFee(quantityFee, offerInfo.pay_gem);
+        }
         emit LogTrade(quantity, address(offerInfo.pay_gem), spend, address(offerInfo.buy_gem));
 
         if (offers[id].pay_amt == 0) {
