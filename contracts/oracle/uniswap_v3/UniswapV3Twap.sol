@@ -2,6 +2,8 @@
 
 // credits: https://github.com/t4sk/uniswap-v3-twap/tree/main
 
+// contracts/oracle/uniswap_v3/UniswapV3Twap.sol
+
 pragma solidity 0.7.6;
 
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
@@ -9,11 +11,20 @@ import "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 
 import "../IOracle.sol";
 
-contract UniswapV3Twap is IOracle {
+contract UniswapV3Consts {
+    uint24 public constant FEE_HIGH     = 10000;    // 0x2710   1% Fee
+    uint24 public constant FEE_MEDIUM   = 3000;     // 0x0bb8   0.30% Fee
+    uint24 public constant FEE_LOW      = 500;      // 0x01f4   0.05% Fee
+    uint24 public constant FEE_LOWEST   = 100;      // 0x64     0.001% Fee
+}
+
+contract UniswapV3Twap is IOracle, UniswapV3Consts {
     address public immutable token0;
     // address public immutable token1;
     // address public immutable pool;
     address public immutable factory;
+
+
 
     constructor(
         address _factory,
