@@ -29,8 +29,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../contracts/MarketsConstants.sol";
 import "../contracts/MarketsConstantsFees.sol";
+import "../contracts/SimpleMarketConfigurationWithFees_Constants.sol";
+
 import "../contracts/matchingMarketConfiguration.sol";
 
+/* 
 contract SimpleMarketConfigurationWithFeesErrorCodes {
     // Limits
     string internal constant _MMWFLMT010 = "Market max fee too high.";
@@ -40,7 +43,7 @@ contract SimpleMarketConfigurationWithFeesErrorCodes {
     // Zero address
     string internal constant _MMWFZ000 = "Fee collector cannot be zero address.";
 }
-
+*/
 contract SimpleMarketConfigurationWithFeesEvents {
     event CollectFee(
         uint256 amount,
@@ -50,7 +53,7 @@ contract SimpleMarketConfigurationWithFeesEvents {
 }
 
 contract SimpleMarketConfigurationWithFees is
-    SimpleMarketConfigurationWithFeesErrorCodes, SimpleMarketConfigurationWithFeesEvents, Ownable {
+    /* SimpleMarketConfigurationWithFeesErrorCodes, */ SimpleMarketConfigurationWithFeesEvents, Ownable {
 
     // address public constant NULL_ADDRESS = address(0x0);
 

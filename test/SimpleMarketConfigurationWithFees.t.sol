@@ -14,6 +14,8 @@ import "forge-std/console2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../contracts/MarketsConstantsFees.sol";
+// import "../contracts/SimpleMarketConfigurationWithFees_Constants.sol";
+
 import "../contracts/SimpleMarketConfigurationWithFees.sol";
 
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
@@ -43,7 +45,7 @@ contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
 
         // Should fail on null address
         // FAIL. Reason: "Fee collector cannot be zero address."
-        vm.expectRevert( "Fee collector cannot be zero address." );
+        vm.expectRevert( bytes(_MMWFZ000) );
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             10_000, // Max fee = 1.0%
@@ -86,7 +88,7 @@ contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
 
         // Should fail : fee > Market max fee
         // FAIL. Reason: "Market fee too high."
-        vm.expectRevert( "Market fee too high." );
+        vm.expectRevert( bytes(_MMWFLMT011) );
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
@@ -132,7 +134,7 @@ contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
 
         // Should fail : Market max fee > 100%
         // FAIL. Reason: "Market max fee too high."
-        vm.expectRevert( "Market max fee too high." );
+        vm.expectRevert( bytes(_MMWFLMT010) );
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             ONEHUNDREDPERCENT+1, // Max fee > 100%
@@ -195,7 +197,7 @@ contract SimpleMarketConfigurationWithFees_ZeroTests is DSTest, VmCheat {
 
         // Should fail : Market fee > Market max fee
         // FAIL. Reason: "Market fee too high."
-        vm.expectRevert( "Market fee too high." );
+        vm.expectRevert( bytes(_MMWFLMT011) );
         simpleMarketConfigurationWithFees.setMarketFee(1);
     }
 
@@ -208,7 +210,7 @@ contract SimpleMarketConfigurationWithFees_ZeroTests is DSTest, VmCheat {
 }
 
 
-contract SimpleMarketConfigurationWithFees_MaxTests is DSTest, VmCheat {
+contract SimpleMarketConfigurationWithFees_CheckRatios is DSTest, VmCheat {
 
     SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees;
     address someUser;
@@ -267,21 +269,7 @@ contract SimpleMarketConfigurationWithFees_MaxTests is DSTest, VmCheat {
         assertTrue(sellFee == 10_000 * SELLFEE / (BUYFEE + SELLFEE) );
     }
 */
-    function testCurrentFeeCollector() public {
 
-        address marketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
-        assertTrue(marketFeeCollector == someUser);
-        
-    }
-
-    function testUpdateFeeCollector() public {
-
-        assertTrue(someUser2 != someUser);
-        simpleMarketConfigurationWithFees.setMarketFeeCollector(someUser2);
-        address marketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
-        assertTrue(marketFeeCollector == someUser2);
-
-    }
 
 /*
 
@@ -309,33 +297,98 @@ contract SimpleMarketConfigurationWithFees_MaxTests is DSTest, VmCheat {
 */
 }
 
+contract SimpleMarketConfigurationWithFees_CheckFeeCollector is DSTest, VmCheat {
 
-contract SimpleMarketConfigurationWithFeesTests is DSTest, VmCheat {
-/*
     SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees;
+    address someUser;
+    address someUser2;
+    uint constant BUYFEE = 1000;
+    uint constant SELLFEE = 1000;
 
     function setUp() public override{
         super.setUp();
         console2.log("SimpleMarketConfigurationWithFeesTests: setUp()");
 
+        string memory someMnemonic = "test test test test test test test test test test test junk";
+        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
+        uint256 somePrivateKey2 = vm.deriveKey(someMnemonic, 33);
+        someUser = vm.addr(somePrivateKey);
+        someUser2 = vm.addr(somePrivateKey2);
 
         simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
-            0, // Max fee = 0%
+            10_000, // Max fee = 1%
             0, // Current fee =  0%
-            NULL_ADDRESS,
-            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
-            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+            someUser,
+            BUYFEE, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            SELLFEE  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
         );
+    }
+
+    function testCurrentFeeCollector() public {
+
+        address marketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
+        assertTrue(marketFeeCollector == someUser);
+        
+    }
+
+    function testUpdateFeeCollector() public {
+
+        assertTrue(someUser2 != someUser);
+        simpleMarketConfigurationWithFees.setMarketFeeCollector(someUser2);
+        address marketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
+        assertTrue(marketFeeCollector == someUser2);
 
     }
 
-    function testFees1() public {
+}
 
-        simpleMarketConfigurationWithFees.setMarketFee(1);
-        
-        
+contract SimpleMarketConfigurationWithFeesTests is DSTest, VmCheat {
+
+    SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees;
+    address someUser;
+    uint constant BUYFEE = 1000;
+    uint constant SELLFEE = 1000;
+
+    function setUp() public override {
+        super.setUp();
+        console2.log("SimpleMarketConfigurationWithFees_Test: setUp()");
+
+        string memory someMnemonic = "test test test test test test test test test test test junk";
+        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
+        someUser = vm.addr(somePrivateKey);
+
+        simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
+            10_000, // Max fee = 1%
+            0, // Current fee =  0%
+            someUser,
+            BUYFEE, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            SELLFEE  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
     }
 
+
+    function testFeesRatioBuySellOk() public {
+
+        simpleMarketConfigurationWithFees.setMarketBuyAndSellFeeRatios(ONEHUNDREDPERCENT, 0);
+        simpleMarketConfigurationWithFees.setMarketBuyAndSellFeeRatios(0, ONEHUNDREDPERCENT);
+        simpleMarketConfigurationWithFees.setMarketBuyAndSellFeeRatios(ONEHUNDREDPERCENT, ONEHUNDREDPERCENT);
+    }
+
+    function testFeesRatioBuyTooHigh() public {
+
+        // Should fail : Market fee > Market max fee
+        // FAIL. Reason: "Market fee too high."
+        vm.expectRevert( bytes(_MMWFLMT020) );
+        simpleMarketConfigurationWithFees.setMarketBuyAndSellFeeRatios(ONEHUNDREDPERCENT+1, 0);
+
+        vm.expectRevert( bytes(_MMWFLMT021) );
+        simpleMarketConfigurationWithFees.setMarketBuyAndSellFeeRatios(0, ONEHUNDREDPERCENT+1);
+
+        vm.expectRevert( bytes(_MMWFLMT020) ); // Buy is checked first
+        simpleMarketConfigurationWithFees.setMarketBuyAndSellFeeRatios(ONEHUNDREDPERCENT+1, ONEHUNDREDPERCENT+1);
+    }
+
+/* 
     function testFees2() public {
 
         simpleMarketConfigurationWithFees.setMarketBuyAndSellFeeRatios(1,1);
@@ -343,5 +396,5 @@ contract SimpleMarketConfigurationWithFeesTests is DSTest, VmCheat {
         
     }
 
-*/
+ */
 }
