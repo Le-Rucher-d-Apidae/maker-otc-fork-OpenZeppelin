@@ -42,8 +42,8 @@ contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
     function testSimpleMarketConfigurationWithFeesConstructorNullCollector() public {
 
         // Should fail on null address
-        // FAIL. Reason: "Fee collector cannot be zero address"
-        vm.expectRevert( "Fee collector cannot be zero address" );
+        // FAIL. Reason: "Fee collector cannot be zero address."
+        vm.expectRevert( "Fee collector cannot be zero address." );
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             10_000, // Max fee = 1.0%
@@ -85,8 +85,8 @@ contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
     function testSimpleMarketConfigurationWithFeesConstructorZero2() public {
 
         // Should fail : fee > Market max fee
-        // FAIL. Reason: "Market fee too high"
-        vm.expectRevert( "Market fee too high" );
+        // FAIL. Reason: "Market fee too high."
+        vm.expectRevert( "Market fee too high." );
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
@@ -131,8 +131,8 @@ contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
     function testSimpleMarketConfigurationWithFeesConstructorOneHundredPlus() public {
 
         // Should fail : Market max fee > 100%
-        // FAIL. Reason: "Market max fee too high"
-        vm.expectRevert( "Market max fee too high" );
+        // FAIL. Reason: "Market max fee too high."
+        vm.expectRevert( "Market max fee too high." );
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             ONEHUNDREDPERCENT+1, // Max fee > 100%
@@ -194,8 +194,8 @@ contract SimpleMarketConfigurationWithFees_ZeroTests is DSTest, VmCheat {
     function testZeroFees1() public {
 
         // Should fail : Market fee > Market max fee
-        // FAIL. Reason: "Market fee too high"
-        vm.expectRevert( "Market fee too high" );
+        // FAIL. Reason: "Market fee too high."
+        vm.expectRevert( "Market fee too high." );
         simpleMarketConfigurationWithFees.setMarketFee(1);
     }
 
