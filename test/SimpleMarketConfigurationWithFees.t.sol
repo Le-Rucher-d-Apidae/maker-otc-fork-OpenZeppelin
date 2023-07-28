@@ -18,7 +18,7 @@ import "../contracts/MarketsConstantsFees.sol";
 
 import "../contracts/SimpleMarketConfigurationWithFees.sol";
 
-import {VmCheat, DSTokenBase} from "./markets.t.sol";
+import {VmCheat, DSTokenBase, SOMEMNEMONIC_01} from "./markets.t.sol";
 
 
 contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
@@ -29,9 +29,9 @@ contract SimpleMarketConfigurationWithFees_Constructor_Test is DSTest, VmCheat {
         super.setUp();
         console2.log("SimpleMarketConfigurationWithFees_Test: setUp()");
 
-        string memory someMnemonic = "test test test test test test test test test test test junk";
-        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
-        someUser = vm.addr(somePrivateKey);
+        // uint256 somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
+        // someUser = vm.addr(somePrivateKey_99);
+        someUser = someUser_99;
     }
 
     // constructor(
@@ -183,9 +183,9 @@ contract SimpleMarketConfigurationWithFees_ZeroTests is DSTest, VmCheat {
         super.setUp();
         console2.log("SimpleMarketConfigurationWithFeesTests: setUp()");
 
-        string memory someMnemonic = "test test test test test test test test test test test junk";
-        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
-        someUser = vm.addr(somePrivateKey);
+        // uint256 somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
+        // someUser = vm.addr(somePrivateKey_99);
+        someUser = someUser_99;
 
         simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
@@ -279,9 +279,9 @@ contract SimpleMarketConfigurationWithFees_MaxTests is DSTest, VmCheat {
         super.setUp();
         console2.log("SimpleMarketConfigurationWithFeesTests: setUp()");
 
-        string memory someMnemonic = "test test test test test test test test test test test junk";
-        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
-        someUser = vm.addr(somePrivateKey);
+        // uint256 somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
+        // someUser = vm.addr(somePrivateKey_99);
+        someUser = someUser_33;
 
         simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             MARKETMAXFEE, // Max fee = 100%
@@ -367,11 +367,13 @@ contract SimpleMarketConfigurationWithFees_CheckRatios is DSTest, VmCheat {
         super.setUp();
         console2.log("SimpleMarketConfigurationWithFeesTests: setUp()");
 
-        string memory someMnemonic = "test test test test test test test test test test test junk";
-        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
-        uint256 somePrivateKey2 = vm.deriveKey(someMnemonic, 33);
-        someUser = vm.addr(somePrivateKey);
-        someUser2 = vm.addr(somePrivateKey2);
+        // uint256 somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
+        // uint256 somePrivateKey_33 = vm.deriveKey(SOMEMNEMONIC_01, 33);
+        // someUser = vm.addr(somePrivateKey_99);
+        // someUser2 = vm.addr(somePrivateKey_33);
+
+        someUser = someUser_33;
+        someUser2 = someUser_99;
 
         simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             MARKETMAXFEE, // Max fee = 1%
@@ -589,11 +591,10 @@ contract SimpleMarketConfigurationWithFees_CheckFeeCollector is DSTest, VmCheat 
         super.setUp();
         console2.log("SimpleMarketConfigurationWithFeesTests: setUp()");
 
-        string memory someMnemonic = "test test test test test test test test test test test junk";
-        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
-        uint256 somePrivateKey2 = vm.deriveKey(someMnemonic, 33);
-        someUser = vm.addr(somePrivateKey);
-        someUser2 = vm.addr(somePrivateKey2);
+        uint256 somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
+        uint256 somePrivateKey_33 = vm.deriveKey(SOMEMNEMONIC_01, 33);
+        someUser = vm.addr(somePrivateKey_99);
+        someUser2 = vm.addr(somePrivateKey_33);
 
         simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             10_000, // Max fee = 1%
@@ -633,9 +634,8 @@ contract SimpleMarketConfigurationWithFeesTests is DSTest, VmCheat {
         super.setUp();
         console2.log("SimpleMarketConfigurationWithFees_Test: setUp()");
 
-        string memory someMnemonic = "test test test test test test test test test test test junk";
-        uint256 somePrivateKey = vm.deriveKey(someMnemonic, 99);
-        someUser = vm.addr(somePrivateKey);
+        uint256 somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
+        someUser = vm.addr(somePrivateKey_99);
 
         simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             10_000, // Max fee = 1%
