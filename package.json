@@ -87,6 +87,7 @@
     "updatePackages": "ncu --upgrade",
     "updateNpm": "npm update -g",
     "npm:cleanCache": "npm cache clean -f",
+    "cleanNodeModules": "del-cli ./node_modules",
     "cleanBuildDir": "del-cli ./artifacts",
     "cleanDocsDir": "del-cli ./docs/generated/solidity-docs/natspec/",
     "clnBld": "npm run cleanBuildDir",
