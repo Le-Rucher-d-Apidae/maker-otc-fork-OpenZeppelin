@@ -44,6 +44,7 @@ contract SimpleMarketWithFees_Test is DSTest, VmCheat, EventfulMarket {
     function setUp() public override {
         super.setUp();
         console2.log("SimpleMarketWithFees_Test: setUp()");
+        address feeCollector = someUser_22;
 
 /* 
         // SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
@@ -57,7 +58,7 @@ contract SimpleMarketWithFees_Test is DSTest, VmCheat, EventfulMarket {
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
             0, // Current fee =  0%
-            NULL_ADDRESS,
+            feeCollector,
             1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
             1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
         );
@@ -355,6 +356,8 @@ contract TransferTest is DSTest, VmCheat {
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest: setUp()");
+        address feeCollector = someUser_33;
+
 
 /* 
         // SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
@@ -368,7 +371,7 @@ contract TransferTest is DSTest, VmCheat {
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
             0, // Current fee =  0%
-            NULL_ADDRESS,
+            feeCollector,
             1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
             1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
         );
@@ -406,7 +409,7 @@ contract SimpleMarketWithFees_OfferTransferTest is TransferTest {
 
 contract SimpleMarketWithFees_BuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
+        uint256 id = otc.offer(30, mkr, 100, dai); // <- error
 
         uint256 balance_before = dai.balanceOf(address(user1));
         user1.doBuy(id, 30);
