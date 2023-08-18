@@ -35,7 +35,7 @@ contract MarketTester {
     }
 }
 
-contract SimpleMarketWithFees_Test is DSTest, VmCheat, EventfulMarket {
+contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
@@ -43,18 +43,9 @@ contract SimpleMarketWithFees_Test is DSTest, VmCheat, EventfulMarket {
 
     function setUp() public override {
         super.setUp();
-        console2.log("SimpleMarketWithFees_Test: setUp()");
+        console2.log("SimpleMarketWithZeroFees_Test: setUp()");
         address feeCollector = someUser_22;
 
-/* 
-        // SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
-        //     10_000, // Max fee = 1.0%
-        //     5000, // Current fee =  0.5%
-        //     NULL_ADDRESS,
-        //     1, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
-        //     1  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
-        // );
- */
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
             0, // Current fee =  0%
@@ -358,16 +349,6 @@ contract TransferTest is DSTest, VmCheat {
         console2.log("TransferTest: setUp()");
         address feeCollector = someUser_33;
 
-
-/* 
-        // SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
-        //     10_000, // Max fee = 1.0%
-        //     5000, // Current fee =  0.5%
-        //     NULL_ADDRESS,
-        //     1, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
-        //     1  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
-        // );
- */
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
             0, // Current fee =  0%
@@ -388,7 +369,7 @@ contract TransferTest is DSTest, VmCheat {
     }
 }
 
-contract SimpleMarketWithFees_OfferTransferTest is TransferTest {
+contract SimpleMarketWithZeroFees_OfferTransferTest is TransferTest {
     function testSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -407,7 +388,7 @@ contract SimpleMarketWithFees_OfferTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithFees_BuyTransferTest is TransferTest {
+contract SimpleMarketWithZeroFees_BuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai); // <- error
 
@@ -446,7 +427,7 @@ contract SimpleMarketWithFees_BuyTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithFees_PartialBuyTransferTest is TransferTest {
+contract SimpleMarketWithZeroFees_PartialBuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -494,7 +475,7 @@ contract SimpleMarketWithFees_PartialBuyTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithFees_CancelTransferTest is TransferTest {
+contract SimpleMarketWithZeroFees_CancelTransferTest is TransferTest {
     function testSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -535,7 +516,7 @@ contract SimpleMarketWithFees_CancelTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithFees_GasTest is DSTest, VmCheat {
+contract SimpleMarketWithZeroFees_GasTest is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
     SimpleMarket otc;
