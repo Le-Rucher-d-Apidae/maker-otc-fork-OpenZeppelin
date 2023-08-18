@@ -36,22 +36,51 @@ contract VmCheat {
     IERC20 public NULL_ERC20 = IERC20(NULL_ADDRESS);
     address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D; // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
 
-    uint256 immutable somePrivateKey_99;
+    uint256 immutable somePrivateKey_11;
+    uint256 immutable somePrivateKey_22;
     uint256 immutable somePrivateKey_33;
+    uint256 immutable somePrivateKey_44;
+    uint256 immutable somePrivateKey_55;
+    uint256 immutable somePrivateKey_66;
+    uint256 immutable somePrivateKey_77;
+    uint256 immutable somePrivateKey_88;
+    uint256 immutable somePrivateKey_99;
 
-    address payable immutable someUser_99;
+    address payable immutable someUser_11;
+    address payable immutable someUser_22;
     address payable immutable someUser_33;
+    address payable immutable someUser_44;
+    address payable immutable someUser_55;
+    address payable immutable someUser_66;
+    address payable immutable someUser_77;
+    address payable immutable someUser_88;
+    address payable immutable someUser_99;
 
 
     constructor() {
         vm = Vm(address(CHEAT_CODE));
         console2.log("VmCheat: constructor()");
 
-        somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
-        somePrivateKey_33 = vm.deriveKey(SOMEMNEMONIC_01, 33);
 
-        someUser_99 = payable( vm.addr(somePrivateKey_99) );
+        somePrivateKey_11 = vm.deriveKey(SOMEMNEMONIC_01, 11);
+        somePrivateKey_22 = vm.deriveKey(SOMEMNEMONIC_01, 22);
+        somePrivateKey_33 = vm.deriveKey(SOMEMNEMONIC_01, 33);
+        somePrivateKey_44 = vm.deriveKey(SOMEMNEMONIC_01, 44);
+        somePrivateKey_55 = vm.deriveKey(SOMEMNEMONIC_01, 55);
+        somePrivateKey_66 = vm.deriveKey(SOMEMNEMONIC_01, 66);
+        somePrivateKey_77 = vm.deriveKey(SOMEMNEMONIC_01, 77);
+        somePrivateKey_88 = vm.deriveKey(SOMEMNEMONIC_01, 88);
+        somePrivateKey_99 = vm.deriveKey(SOMEMNEMONIC_01, 99);
+
+        someUser_11 = payable( vm.addr(somePrivateKey_11) );
+        someUser_22 = payable( vm.addr(somePrivateKey_22) );
         someUser_33 = payable( vm.addr(somePrivateKey_33) );
+        someUser_44 = payable( vm.addr(somePrivateKey_44) );
+        someUser_55 = payable( vm.addr(somePrivateKey_55) );
+        someUser_66 = payable( vm.addr(somePrivateKey_66) );
+        someUser_77 = payable( vm.addr(somePrivateKey_77) );
+        someUser_88 = payable( vm.addr(somePrivateKey_88) );
+        someUser_99 = payable( vm.addr(somePrivateKey_99) );
     }
 
     function setUp() public virtual {
