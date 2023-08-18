@@ -46,7 +46,7 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         console2.log("SimpleMarketWithZeroFees_Test: setUp()");
         address feeCollector = someUser_22;
 
-        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
             0, // Current fee =  0%
             feeCollector,
@@ -54,7 +54,7 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
             1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
         );
 
-        otc = new SimpleMarketWithFees(simpleMarketConfigurationWithFees);
+        otc = new SimpleMarketWithFees(simpleMarketConfigurationWithZeroFees);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -349,7 +349,7 @@ contract TransferTest is DSTest, VmCheat {
         console2.log("TransferTest: setUp()");
         address feeCollector = someUser_33;
 
-        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
             0, // Max fee = 0%
             0, // Current fee =  0%
             feeCollector,
@@ -357,7 +357,7 @@ contract TransferTest is DSTest, VmCheat {
             1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
         );
 
-        otc = new SimpleMarketWithFees(simpleMarketConfigurationWithFees);
+        otc = new SimpleMarketWithFees(simpleMarketConfigurationWithZeroFees);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
