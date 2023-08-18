@@ -342,64 +342,64 @@ contract TransferTest is DSTest, VmCheat {
         otc = new SimpleMarketWithFees(simpleMarketConfigurationWithZeroFees);
         user1 = new MarketTester(otc);
 
-        dai = new DSTokenBase(10 ** 9);
-        mkr = new DSTokenBase(10 ** 6);
+        dai = new DSTokenBase(10 ** 9 * DAI_DECIMALS);
+        mkr = new DSTokenBase(10 ** 6 * DAI_DECIMALS);
 
-        dai.transfer(address(user1), 100);
-        user1.doApprove(address(otc), 100, dai);
-        mkr.approve(address(otc), 300);
+        dai.transfer(address(user1), 100 * DAI_DECIMALS);
+        user1.doApprove(address(otc), 100 * DAI_DECIMALS, dai);
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
     }
 }
 
 contract SimpleMarketWithZeroFees_OfferTransferTest is TransferTest {
     function testSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         uint256 balance_after = mkr.balanceOf(address(this));
 
-        assertEq(balance_before - balance_after, 300);
+        assertEq(balance_before - balance_after, 300 * MKR_DECIMALS);
         assertTrue(id > 0);
     }
     function testSmplMrktOfferTransfersToMarket() public {
         uint256 balance_before = mkr.balanceOf(address(otc));
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_after - balance_before, 300);
+        assertEq(balance_after - balance_before, 300 * MKR_DECIMALS);
         assertTrue(id > 0);
     }
 }
 
 contract SimpleMarketWithZeroFees_BuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
-        user1.doBuy(id, 300);
+        user1.doBuy(id, 300 * MKR_DECIMALS);
         uint256 balance_after = dai.balanceOf(address(user1));
 
-        assertEq(balance_before - balance_after, 100);
+        assertEq(balance_before - balance_after, 100 * DAI_DECIMALS);
     }
     function testSmplMrktBuyTransfersToSeller() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = dai.balanceOf(address(this));
-        user1.doBuy(id, 150);
+        user1.doBuy(id, 150 * DAI_DECIMALS);
         uint256 balance_after = dai.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 50);
+        assertEq(balance_after - balance_before, 50 * DAI_DECIMALS);
     }
     function testSmplMrktBuyTransfersFromMarket() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
-        user1.doBuy(id, 300);
+        user1.doBuy(id, 300 * MKR_DECIMALS);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 300);
+        assertEq(balance_before - balance_after, 300 * MKR_DECIMALS);
     }
     function testSmplMrktBuyTransfersToBuyer() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = mkr.balanceOf(address(user1));
         user1.doBuy(id, 300);
@@ -411,90 +411,90 @@ contract SimpleMarketWithZeroFees_BuyTransferTest is TransferTest {
 
 contract SimpleMarketWithZeroFees_PartialBuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer_Partial() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
-        user1.doBuy(id, 150);
+        user1.doBuy(id, 150 * MKR_DECIMALS);
         uint256 balance_after = dai.balanceOf(address(user1));
 
-        assertEq(balance_before - balance_after, 50);
+        assertEq(balance_before - balance_after, 50 * DAI_DECIMALS);
     }
     function testSmplMrktBuyTransfersToSeller_Partial() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = dai.balanceOf(address(this));
-        user1.doBuy(id, 150);
+        user1.doBuy(id, 150 * MKR_DECIMALS);
         uint256 balance_after = dai.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 50);
+        assertEq(balance_after - balance_before, 50 * DAI_DECIMALS);
     }
     function testSmplMrktBuyTransfersFromMarket_Partial() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
-        user1.doBuy(id, 15);
+        user1.doBuy(id, 15 * MKR_DECIMALS);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 15);
+        assertEq(balance_before - balance_after, 15 * MKR_DECIMALS);
     }
     function testSmplMrktBuyTransfersToBuyer_Partial() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = mkr.balanceOf(address(user1));
-        user1.doBuy(id, 15);
+        user1.doBuy(id, 15 * MKR_DECIMALS);
         uint256 balance_after = mkr.balanceOf(address(user1));
 
-        assertEq(balance_after - balance_before, 15);
+        assertEq(balance_after - balance_before, 15 * MKR_DECIMALS);
     }
     function testSmplMrktBuyOddTransfersFromBuyer_Partial() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = dai.balanceOf(address(user1));
-        user1.doBuy(id, 170);
+        user1.doBuy(id, 180 * MKR_DECIMALS);
         uint256 balance_after = dai.balanceOf(address(user1));
 
-        assertEq(balance_before - balance_after, 56);
+        assertEq(balance_before - balance_after, 60 * DAI_DECIMALS);
     }
 }
 
 contract SimpleMarketWithZeroFees_CancelTransferTest is TransferTest {
     function testSmplMrktCancelTransfersFromMarket() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 300);
+        assertEq(balance_before - balance_after, 300 * MKR_DECIMALS);
     }
     function testSmplMrktCancelTransfersToSeller() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
         uint256 balance_before = mkr.balanceOf(address(this));
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 300);
+        assertEq(balance_after - balance_before, 300 * MKR_DECIMALS);
     }
     function testSmplMrktCancelPartialTransfersFromMarket() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
-        user1.doBuy(id, 150);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
+        user1.doBuy(id, 150 * MKR_DECIMALS);
 
         uint256 balance_before = mkr.balanceOf(address(otc));
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(otc));
 
-        assertEq(balance_before - balance_after, 150);
+        assertEq(balance_before - balance_after, 150 * MKR_DECIMALS);
     }
     function testSmplMrktCancelPartialTransfersToSeller() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
-        user1.doBuy(id, 150);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
+        user1.doBuy(id, 150 * MKR_DECIMALS);
 
         uint256 balance_before = mkr.balanceOf(address(this));
         otc.cancel(id);
         uint256 balance_after = mkr.balanceOf(address(this));
 
-        assertEq(balance_after - balance_before, 150);
+        assertEq(balance_after - balance_before, 150 * MKR_DECIMALS);
     }
 }
 
