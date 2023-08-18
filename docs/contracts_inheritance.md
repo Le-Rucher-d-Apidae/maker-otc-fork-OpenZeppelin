@@ -14,6 +14,14 @@ MEV(MatchingEvents)
 DSM(DSMath)
 RSMM{RestrictedSuspendableMatchingMarket}
 ERRMM(RestrictedSuspendableMatchingMarketErrorCodes)
+
+SMWF{SimpleMarketWithFees}
+ERRSMWF(SimpleMarketWithFeesErrorCodes)
+EVSMWF(SimpleMarketWithFeesEvents)
+
+CFGSMWF(SimpleMarketConfigurationWithFees)
+
+
 EV --> SMPL
 ER --> SMPL
 OW --> SMPL
@@ -25,5 +33,10 @@ ERRMM --> RSMM
 RSUSPSMPL --> RSMM
 MEV --> RSMM
 DSM --> RSMM
+
+
+ERRSMWF --> SMWF
+EVSMWF --> SMWF
+SMPL --> SMWF
 
 ```
