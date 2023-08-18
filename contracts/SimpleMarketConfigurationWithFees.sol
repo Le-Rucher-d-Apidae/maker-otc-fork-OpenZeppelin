@@ -65,6 +65,35 @@ contract SimpleMarketConfigurationWithFees is
 
     mapping (address => bool) public marketFeeExemption;
 
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+    // TODO : implement EXEMPTION
+
     // Represents total fee percent that gets taken on each trade
     // uint256 public totalFeePercent;
     // // Represents percent precision
@@ -173,6 +202,7 @@ contract SimpleMarketConfigurationWithFees is
 
         // buyFeeRatio = _buyFeeRatio;
         // sellFeeRatio = _sellFeeRatio;
+        console2.log("computeMarketBuyAndSellFees--------START");
 
         if (marketFee == 0) {
             console2.log("computeMarketBuyAndSellFees:marketFee is 0");
@@ -222,19 +252,22 @@ contract SimpleMarketConfigurationWithFees is
 
         console2.log("computeMarketBuyAndSellFees:buyFee+sellFee: ", buyFee+sellFee);
         console2.log("computeMarketBuyAndSellFees:marketFee: ", marketFee);
+
+        console2.log("computeMarketBuyAndSellFees--------END");
+
         assert (buyFee+sellFee == marketFee);
     }
 
    function calculateBuyFee(uint256 amount) external view returns (uint256){
-    console2.log("calculateBuyFee: ", amount, "buyFee: ", buyFee);
-    console2.log("amount * buyFee / ONEHUNDREDPERCENT: ", amount * buyFee / ONEHUNDREDPERCENT);
-        return amount * buyFee / ONEHUNDREDPERCENT;
+        console2.log("calculateBuyFee amount: ", amount, " buyFee: ", buyFee);
+        console2.log("amount * buyFee / ONEHUNDREDPERCENT = buy fee amount: ", (amount * buyFee) / ONEHUNDREDPERCENT);
+        return (amount * buyFee) / ONEHUNDREDPERCENT;
     }
 
    function calculateSellFee(uint256 amount) external view returns (uint256){
-    console2.log("calculateSellFee: ", amount, "sellFee: ", sellFee);
-    console2.log("amount * sellFee / ONEHUNDREDPERCENT: ", amount * sellFee / ONEHUNDREDPERCENT);
-        return amount * sellFee / ONEHUNDREDPERCENT;
+        console2.log("calculateSellFee amount:" , amount, " sellFee: ", sellFee);
+        console2.log("amount * sellFee / ONEHUNDREDPERCENT = sell fee amount: ", (amount * sellFee) / ONEHUNDREDPERCENT);
+        return (amount * sellFee) / ONEHUNDREDPERCENT;
     }
 
     function setMarketFeeExemption(address _address, bool _exempt) public onlyOwner {
