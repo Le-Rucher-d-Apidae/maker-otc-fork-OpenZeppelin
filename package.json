@@ -60,7 +60,7 @@
     "testFoundrySmpl": "forge test -vvv --match-contract ^SimpleMarket_*",
     "testFoundrySmplCfgWFs": "forge test -vvv --match-contract ^SimpleMarketConfigurationWithFees_*",
     "testFoundrySmplW0Fees": "forge test -vvv --match-contract ^SimpleMarketWithZeroFees_*",
-    "testFoundrySmplWFees": "forge test -vvv --match-contract ^SimpleMarketWithFees_*",
+    "testFoundrySmplWSomeFees": "forge test -vvv --match-contract ^SimpleMarketWithSomeFees_*",
     "testFoundrySusp": "forge test -vvv --match-contract ^SuspendableSimpleMarket_*",
     "testFoundryRest1": "forge test -vvv --match-contract ^Restricted1SuspendableSimpleMarket_*",
     "testFoundryRest2": "forge test -vvv --match-contract ^Restricted2SuspendableSimpleMarket_*",

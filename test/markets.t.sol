@@ -34,6 +34,10 @@ contract VmCheat {
 
     // address public NULL_ADDRESS = address(0x0);
     IERC20 public NULL_ERC20 = IERC20(NULL_ADDRESS);
+
+    uint256 constant MKR_DECIMALS = 10 ** 18;
+    uint256 constant DAI_DECIMALS = 10 ** 18;
+
     address constant CHEAT_CODE = 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D; // bytes20(uint160(uint256(keccak256('hevm cheat code')))); // 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D
 
     uint256 immutable somePrivateKey_11;
