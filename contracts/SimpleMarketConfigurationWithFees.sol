@@ -31,17 +31,6 @@ import "../contracts/SimpleMarketConfigurationWithFees_Constants.sol";
 
 import "../contracts/matchingMarketConfiguration.sol";
 
-/* 
-contract SimpleMarketConfigurationWithFeesErrorCodes {
-    // Limits
-    string internal constant _MMWFLMT010 = "Market max fee too high.";
-    string internal constant _MMWFLMT011 = "Market fee too high.";
-    string internal constant _MMWFLMT020 = "Market buyFeeRatio fee too high.";
-    string internal constant _MMWFLMT021 = "Market sellFeeRatio fee too high.";
-    // Zero address
-    string internal constant _MMWFZ000 = "Fee collector cannot be zero address.";
-}
-*/
 contract SimpleMarketConfigurationWithFeesEvents {
     event CollectFee(
         uint256 amount,
@@ -52,7 +41,6 @@ contract SimpleMarketConfigurationWithFeesEvents {
         bool _exempt
     );
 }
-
 
 contract SimpleMarketConfigurationWithFees is
     /* SimpleMarketConfigurationWithFeesErrorCodes, */ SimpleMarketConfigurationWithFeesEvents, Ownable {

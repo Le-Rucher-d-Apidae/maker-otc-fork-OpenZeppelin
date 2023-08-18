@@ -72,8 +72,11 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         simpleMarketConfigurationWithFees = _simpleMarketConfigurationWithFees;
     }
 
-
-    function withdrawFees() external {
+    /**
+     * 
+     * @param _maxWithdrawTokenCount : max number of tokens to withdraw
+     */
+    function withdrawFees(uint16 _maxWithdrawTokenCount) external {
         address marketFeeCollector = msg.sender;
         address cfgMarketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
         require(marketFeeCollector == cfgMarketFeeCollector || marketFeeCollector == owner() , _SMWFZSEC001);
@@ -82,7 +85,12 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         // TODO : TEST withdraw fees
         // TODO : TEST withdraw fees
         // TODO : TEST withdraw fees
-        for (uint i = collectedFeesTokensAddresses.length-1; i >= 0; i++) {
+        uint16 count = 0;
+
+        for (uint i = collectedFeesTokensAddresses.length-1; i >= 0 && count <= _maxWithdrawTokenCount; i++) {
+            // if (count >= _maxWithdrawTokenCount) {
+            //     break;
+            // }
             IERC20 collectedFeesTokenAddress = collectedFeesTokensAddresses[i];
             uint256 amount = collectedFeesTokenAddress.balanceOf(address(this));
             collectedFeesTokenAddress.safeTransfer( marketFeeCollector, amount );
