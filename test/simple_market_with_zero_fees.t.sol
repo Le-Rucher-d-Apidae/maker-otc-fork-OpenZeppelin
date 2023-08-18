@@ -141,9 +141,9 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         // emit LogItemUpdate(id);
     }
     function testSmplMrktPartiallyFilledOrderDai() public {
-        mkr.transfer(address(user1), 10); // Move 10 MKR to user1
-        user1.doApprove(address(otc), 10, mkr); // user1 approve spending 10 MKR to OTC
-        dai.approve(address(otc), 500); // Approve 500 DAI to OTC
+        mkr.transfer(address(user1), 10 * MKR_DECIMALS ); // Move 10 MKR to user1
+        user1.doApprove(address(otc), 10 * MKR_DECIMALS, mkr); // user1 approve spending 10 MKR to OTC
+        dai.approve(address(otc), 500 * DAI_DECIMALS); // Approve 500 DAI to OTC
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
         console.log("my_mkr_balance_before", my_mkr_balance_before);
@@ -155,10 +155,10 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         console.log("user1_dai_balance_before", user1_dai_balance_before);
 
         // Offer : Sell 500 DAI, buy 200 MKR (buy DAI with MKR) 4 MKR = 10 DAI
-        uint256 id = otc.offer(500, dai, 200, mkr);
+        uint256 id = otc.offer(500 * DAI_DECIMALS, dai, 200 * MKR_DECIMALS, mkr);
         console.log("id", id);
         // Buy for 10 DAI of MKR (spend 4 MKR)
-        assertTrue(user1.doBuy(id, 10));
+        assertTrue(user1.doBuy(id, 10 * DAI_DECIMALS));
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
         console.log("my_mkr_balance_after", my_mkr_balance_after);
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
@@ -170,12 +170,12 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         (uint256 sell_val, IERC20 sell_token, uint256 buy_val, IERC20 buy_token) = otc.getOffer(id);
         console.log("sell_val", sell_val, "buy_val", buy_val);
 
-        assertEq(500, my_dai_balance_before - my_dai_balance_after);
-        assertEq(4, my_mkr_balance_after - my_mkr_balance_before);
-        assertEq(10, user1_dai_balance_after - user1_dai_balance_before);
-        assertEq(4, user1_mkr_balance_before - user1_mkr_balance_after);
-        assertEq(490, sell_val);
-        assertEq(196, buy_val); // FAILS HERE
+        assertEq(500 * DAI_DECIMALS, my_dai_balance_before - my_dai_balance_after);
+        assertEq(4 * MKR_DECIMALS, my_mkr_balance_after - my_mkr_balance_before);
+        assertEq(10 * DAI_DECIMALS, user1_dai_balance_after - user1_dai_balance_before);
+        assertEq(4 * MKR_DECIMALS, user1_mkr_balance_before - user1_mkr_balance_after);
+        assertEq(490 * DAI_DECIMALS, sell_val);
+        assertEq(196 * MKR_DECIMALS, buy_val); // FAILS HERE
 
         // assertTrue(address(sell_token) != address(0));
         // assertTrue(address(buy_token) != address(0));
@@ -199,17 +199,17 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         // emit LogItemUpdate(id);
     }
     function testSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
-        dai.transfer(address(user1), 300);
-        user1.doApprove(address(otc), 300, dai);
-        mkr.approve(address(otc), 200);
+        dai.transfer(address(user1), 300 * DAI_DECIMALS);
+        user1.doApprove(address(otc), 300 * DAI_DECIMALS, dai);
+        mkr.approve(address(otc), 200 * MKR_DECIMALS);
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
         uint256 my_dai_balance_before = dai.balanceOf(address(this));
         uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
         uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
 
-        uint256 id = otc.offer(200, mkr, 500, dai);
-        assertTrue(!user1.doBuy(id, 201));
+        uint256 id = otc.offer(200 * MKR_DECIMALS, mkr, 500 * DAI_DECIMALS, dai);
+        assertTrue(!user1.doBuy(id, 201 * MKR_DECIMALS));
 
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
@@ -218,13 +218,12 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         (uint256 sell_val, IERC20 sell_token, uint256 buy_val, IERC20 buy_token) = otc.getOffer(id);
 
         assertEq(0, my_dai_balance_before - my_dai_balance_after);
-        assertEq(200, my_mkr_balance_before - my_mkr_balance_after);
+        assertEq(200 * MKR_DECIMALS, my_mkr_balance_before - my_mkr_balance_after);
         assertEq(0, user1_dai_balance_before - user1_dai_balance_after);
         assertEq(0, user1_mkr_balance_before - user1_mkr_balance_after);
-        assertEq(200, sell_val);
-        assertEq(500, buy_val);
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
+        assertEq(200 * MKR_DECIMALS, sell_val);
+        assertEq(500 * DAI_DECIMALS, buy_val);
+
         assertTrue(address(sell_token) != NULL_ADDRESS);
         assertTrue(address(buy_token) != NULL_ADDRESS);
 
@@ -235,17 +234,18 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         // emit LogItemUpdate(id);
     }
     function testSmplMrktInsufficientlyFilledOrder() public {
-        mkr.approve(address(otc), 300);
-        uint256 id = otc.offer(300, mkr, 10, dai);
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 10 * DAI_DECIMALS, dai);
 
-        dai.transfer(address(user1), 1);
-        user1.doApprove(address(otc), 1, dai);
-        bool success = user1.doBuy(id, 1);
+        dai.transfer(address(user1), 1 * DAI_DECIMALS);
+        user1.doApprove(address(otc), 1 * DAI_DECIMALS, dai);
+        // Buy value must be low enough to be rounded to zero in order to return false
+        bool success = user1.doBuy(id, 1); // buy for (1 / DAI_DECIMALS) DAI of MKR
         assertTrue(!success);
     }
     function testSmplMrktCancel() public {
-        mkr.approve(address(otc), 300);
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         assertTrue(otc.cancel(id));
 
         // // TODO: migrate Events checks
@@ -259,64 +259,64 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         // emit LogItemUpdate(id);
     }
     function testFailSmplMrktCancelNotOwner() public {
-        mkr.approve(address(otc), 300);
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         user1.doCancel(id);
     }
     function testFailSmplMrktCancelInactive() public {
-        mkr.approve(address(otc), 300);
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         assertTrue(otc.cancel(id));
         otc.cancel(id);
     }
     function testFailSmplMrktBuyInactive() public {
-        mkr.approve(address(otc), 300);
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         assertTrue(otc.cancel(id));
         otc.buy(id, 0);
     }
     function testFailSmplMrktOfferNotEnoughFunds() public {
         mkr.transfer(NULL_ADDRESS, mkr.balanceOf(address(this)) - 29);
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         assertTrue(id >= 0);     //ugly hack to stop compiler from throwing a warning for unused var id
     }
     function testFailSmplMrktBuyNotEnoughFunds() public {
-        uint256 id = otc.offer(300, mkr, 101, dai);
+        uint256 id = otc.offer(300* MKR_DECIMALS, mkr, 101 * DAI_DECIMALS, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
-        user1.doApprove(address(otc), 101, dai);
+        user1.doApprove(address(otc), 101* DAI_DECIMALS, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance before", dai.balanceOf(address(user1)));
-        assertTrue(user1.doBuy(id, 101));
+        assertTrue(user1.doBuy(id, 101 * DAI_DECIMALS));
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
     function testFailSmplMrktBuyNotEnoughApproval() public {
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
-        user1.doApprove(address(otc), 99, dai);
+        user1.doApprove(address(otc), 99 * DAI_DECIMALS, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance before", dai.balanceOf(address(user1)));
-        assertTrue(user1.doBuy(id, 100));
+        assertTrue(user1.doBuy(id, 100 * DAI_DECIMALS));
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
     function testFailSmplMrktOfferSameToken() public {
-        dai.approve(address(otc), 200);
-        otc.offer(100, dai, 100, dai);
+        dai.approve(address(otc), 200 * DAI_DECIMALS);
+        otc.offer(100 * DAI_DECIMALS, dai, 100 * DAI_DECIMALS, dai);
     }
     function testSmplMrktBuyTooMuch() public {
-        mkr.approve(address(otc), 300);
-        uint256 id = otc.offer(300, mkr, 100, dai);
-        assertTrue(!otc.buy(id, 500));
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
+        assertTrue(!otc.buy(id, 500 * DAI_DECIMALS));
     }
     function testFailSmplMrktOverflow() public {
-        mkr.approve(address(otc), 300);
-        uint256 id = otc.offer(300, mkr, 100, dai);
+        mkr.approve(address(otc), 300 * MKR_DECIMALS);
+        uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
         // Overflow
         otc.buy(id, uint(type(uint256).max+1)); // otc.buy(id, uint(-1));
     }
     function testFailSmplMrktTransferFromEOA() public {
-        otc.offer(300, IERC20(address(123)), 100, dai);
+        otc.offer(300 * MKR_DECIMALS, IERC20(address(123)), 100 * DAI_DECIMALS, dai);
     }
 }
 
