@@ -126,6 +126,8 @@ contract SimpleMarketConfigurationWithFees is
     ) private onlyOwner
     {
         require(MARKETMAXFEE <= ONEHUNDREDPERCENT,_MMWFLMT010);
+        require( (_marketFee == 0) || (_marketFee >= SMALLEST_FEE),_MMWFLMT000);
+        
         // MARKETMAXFEE = _marketMaxFee;
         setMarketFeeCollector(_marketFeesCollector);
 

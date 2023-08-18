@@ -21,6 +21,7 @@ pragma solidity ^0.8.21;
     // Limits
     string constant _MMWFLMT010 = "Market max fee too high.";
     string constant _MMWFLMT011 = "Market fee too high.";
+    string constant _MMWFLMT000 = "Market fee too low. Must be at least 2 (= 0.0002%) or set it to zero.";
     string constant _MMWFLMT020 = "Market buyFeeRatio fee too high.";
     string constant _MMWFLMT021 = "Market sellFeeRatio fee too high.";
     // Zero address
