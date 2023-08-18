@@ -11,7 +11,6 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-// import "../contracts/simple_market.sol";
 import "../contracts/simple_market_with_fees.sol";
 import "../contracts/SimpleMarketConfigurationWithFees.sol";
 
