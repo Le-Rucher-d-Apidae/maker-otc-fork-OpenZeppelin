@@ -31,6 +31,7 @@ import "./SimpleMarketConfigurationWithFees.sol";
 contract SimpleMarketWithFeesErrorCodes {
     // Limits
     string internal constant _SMWFZCFG000 = "SimpleMarketWithFees: Configuration cannot be zero address";
+    string internal constant _SMWFZSEC001 = "Only fee collector or owner can call withdraw fees";
     
 }
 
@@ -42,6 +43,7 @@ contract SimpleMarketWithFeesEvents {
     );
 
     event WithdrawFees(
+        IERC20 token,
         uint256 amount,
         address recipient
     );
@@ -52,6 +54,8 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
     using SafeERC20 for IERC20;
 
     SimpleMarketConfigurationWithFees public simpleMarketConfigurationWithFees;
+    IERC20[] public collectedFeesTokensAddresses;
+    mapping (IERC20 => bool) public collectedFeesTokensAddressesMap;
 
     // mapping (address => Fee) public marketFee;
 
@@ -70,19 +74,23 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
 
 
     function withdrawFees() external {
-        address marketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
-        require(msg.sender == marketFeeCollector || msg.sender == owner() , "Only fee collector or owner can call withdraw fees");
-
-        // TODO : withdraw fees
-        // TODO : withdraw fees
-        // TODO : withdraw fees
-        // TODO : withdraw fees
-        // TODO : withdraw fees
-        uint256 amount = 0;
-
-        emit WithdrawFees(amount, marketFeeCollector);
-        //ERC20.safeTransfer(msg.sender, amount);
-    }
+        address marketFeeCollector = msg.sender;
+        address cfgMarketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
+        require(marketFeeCollector == cfgMarketFeeCollector || marketFeeCollector == owner() , _SMWFZSEC001);
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+        for (uint i = collectedFeesTokensAddresses.length-1; i >= 0; i++) {
+            IERC20 collectedFeesTokenAddress = collectedFeesTokensAddresses[i];
+            uint256 amount = collectedFeesTokenAddress.balanceOf(address(this));
+            collectedFeesTokenAddress.safeTransfer( marketFeeCollector, amount );
+            emit WithdrawFees( collectedFeesTokenAddress, amount, marketFeeCollector );
+            collectedFeesTokensAddressesMap[collectedFeesTokenAddress] = false;
+            collectedFeesTokensAddresses.pop();
+        } // for
+    } // withdrawFees
 
     // Accept given `quantity` of an offer. Transfers funds from caller to
     // offer maker, and from market to caller.
@@ -157,9 +165,19 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
             uint64(block.timestamp)
         );
         if (spendFee > 0) {
+            // add token address to fee collector addresses
+            if (!collectedFeesTokensAddressesMap[offerInfo.buy_gem]) {
+                collectedFeesTokensAddressesMap[offerInfo.buy_gem] = true;
+                collectedFeesTokensAddresses.push(offerInfo.buy_gem);
+            }
             emit CollectFee(spendFee, offerInfo.buy_gem);
         }
         if (quantityFee > 0) {
+            // add token address to fee collector addresses
+            if (!collectedFeesTokensAddressesMap[offerInfo.pay_gem]) {
+                collectedFeesTokensAddressesMap[offerInfo.pay_gem] = true;
+                collectedFeesTokensAddresses.push(offerInfo.pay_gem);
+            }
             emit CollectFee(quantityFee, offerInfo.pay_gem);
         }
         emit LogTrade(quantity, address(offerInfo.pay_gem), spend, address(offerInfo.buy_gem));
