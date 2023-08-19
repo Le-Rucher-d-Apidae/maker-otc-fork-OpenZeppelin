@@ -47,7 +47,7 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
             2 * ONEPERCENT, // Max fee = 2%
-            SMALLEST_FEE /* ONEPERCENT / 1000 */, // Current fee =  1%/1 000 = 0.001%
+            SMALLEST_FEE, // Current fee =  1%/1 000 = 0.001%
             feeCollector,
             1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee)) = 0.0005%
             1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee)) = 0.0005%
@@ -109,36 +109,62 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         // emit LogItemUpdate(id);
     }
 
-/*
-
      function testSmplMrktPartiallyFilledOrderMkr() public {
         dai.transfer(address(user1), 300 * DAI_DECIMALS);
         user1.doApprove(address(otc), 300 * DAI_DECIMALS, dai);
         mkr.approve(address(otc), 200 * MKR_DECIMALS);
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
+        // console2.log("my_mkr_balance_before = ", my_mkr_balance_before);
+
         uint256 my_dai_balance_before = dai.balanceOf(address(this));
+        // console2.log("my_dai_balance_before = ", my_dai_balance_before);
+
         uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
+        // console2.log("user1_mkr_balance_before = ", user1_mkr_balance_before);
+
         uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
+        // console2.log("user1_dai_balance_before = ", user1_dai_balance_before);
+
 
         uint256 id = otc.offer(200 * MKR_DECIMALS, mkr, 500 * DAI_DECIMALS, dai);
-        assertTrue(user1.doBuy(id, 10 * MKR_DECIMALS));
-        uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
-        uint256 my_dai_balance_after = dai.balanceOf(address(this));
-        uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
-        uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
-        (uint256 sell_val, IERC20 sell_token, uint256 buy_val, IERC20 buy_token) = otc.getOffer(id);
+        assertTrue(user1.doBuy(id, 10 * MKR_DECIMALS)); // Buy for 25 DAI of MKR (buy 10 MKR)
 
+        uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
+        // console2.log("my_mkr_balance_after = ", my_mkr_balance_after);
+
+        uint256 my_dai_balance_after = dai.balanceOf(address(this));
+        // console2.log("my_dai_balance_after = ", my_dai_balance_after);
+
+        uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
+        // console2.log("user1_mkr_balance_after = ", user1_mkr_balance_after);
+
+        uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
+        // console2.log("user1_dai_balance_after = ", user1_dai_balance_after);
+
+        (uint256 sell_val, IERC20 sell_token, uint256 buy_val, IERC20 buy_token) = otc.getOffer(id);
+        // console2.log("sell_val", sell_val, "buy_val", buy_val);
+
+        {
         assertEq(200 * MKR_DECIMALS, my_mkr_balance_before - my_mkr_balance_after);
-        assertEq(25 * DAI_DECIMALS, my_dai_balance_after - my_dai_balance_before);
-        assertEq(10 * MKR_DECIMALS, user1_mkr_balance_after - user1_mkr_balance_before);
-        assertEq(25 * DAI_DECIMALS, user1_dai_balance_before - user1_dai_balance_after);
-        assertEq(190 * MKR_DECIMALS , sell_val);
-        assertEq(475 * DAI_DECIMALS, buy_val);
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
-        assertTrue(address(sell_token) != NULL_ADDRESS);
-        assertTrue(address(buy_token) != NULL_ADDRESS);
+
+        uint256 spent = 25 * DAI_DECIMALS; // ((10 * MKR_DECIMALS) * (500 * DAI_DECIMALS)) / (200 * MKR_DECIMALS) 
+        uint spentFee = otc.simpleMarketConfigurationWithFees().calculateSellFee( spent );
+        // console2.log("spentFee", spentFee);
+        assertEq(25 * DAI_DECIMALS - spentFee, my_dai_balance_after - my_dai_balance_before);
+        }
+        {
+        uint256 bought = 10 * MKR_DECIMALS;
+        uint boughtFee = otc.simpleMarketConfigurationWithFees().calculateBuyFee( bought );
+        // console2.log("boughtFee", boughtFee);
+
+        assertEq(10 * MKR_DECIMALS - boughtFee, user1_mkr_balance_after - user1_mkr_balance_before);
+        }
+        // assertEq(25 * DAI_DECIMALS, user1_dai_balance_before - user1_dai_balance_after);
+        // assertEq(190 * MKR_DECIMALS , sell_val);
+        // assertEq(475 * DAI_DECIMALS, buy_val);
+        // assertTrue(address(sell_token) != NULL_ADDRESS);
+        // assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
         // // expectEventsExact(address(otc));
@@ -155,6 +181,8 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
     }
+/*
+
     function testSmplMrktPartiallyFilledOrderDai() public {
         mkr.transfer(address(user1), 10 * MKR_DECIMALS ); // Move 10 MKR to user1
         user1.doApprove(address(otc), 10 * MKR_DECIMALS, mkr); // user1 approve spending 10 MKR to OTC
@@ -192,8 +220,6 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         assertEq(490 * DAI_DECIMALS, sell_val);
         assertEq(196 * MKR_DECIMALS, buy_val); // FAILS HERE
 
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
        assertTrue(address(sell_token) != NULL_ADDRESS);
        assertTrue(address(buy_token) != NULL_ADDRESS);
 
@@ -369,7 +395,7 @@ contract TransferTest is DSTest, VmCheat {
     }
 }
 
-contract SimpleMarketWithZeroFees_OfferTransferTest is TransferTest {
+contract SimpleMarketWithSomeFees_OfferTransferTest is TransferTest {
     function testSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
@@ -388,7 +414,7 @@ contract SimpleMarketWithZeroFees_OfferTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithZeroFees_BuyTransferTest is TransferTest {
+contract SimpleMarketWithSomeFees_BuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
@@ -427,7 +453,7 @@ contract SimpleMarketWithZeroFees_BuyTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithZeroFees_PartialBuyTransferTest is TransferTest {
+contract SimpleMarketWithSomeFees_PartialBuyTransferTest is TransferTest {
     function testSmplMrktBuyTransfersFromBuyer_Partial() public {
         uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
@@ -475,7 +501,7 @@ contract SimpleMarketWithZeroFees_PartialBuyTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithZeroFees_CancelTransferTest is TransferTest {
+contract SimpleMarketWithSomeFees_CancelTransferTest is TransferTest {
     function testSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(300 * MKR_DECIMALS, mkr, 100 * DAI_DECIMALS, dai);
 
@@ -516,7 +542,7 @@ contract SimpleMarketWithZeroFees_CancelTransferTest is TransferTest {
     }
 }
 
-contract SimpleMarketWithZeroFees_GasTest is DSTest, VmCheat {
+contract SimpleMarketWithSomeFees_GasTest is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
     SimpleMarket otc;
