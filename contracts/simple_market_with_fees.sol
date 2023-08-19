@@ -54,9 +54,16 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
 
     using SafeERC20 for IERC20;
 
+    struct CollectedToken {
+        IERC20 token;
+        uint256 amount;
+    }
+
     SimpleMarketConfigurationWithFees public simpleMarketConfigurationWithFees;
-    IERC20[] public collectedFeesTokensAddresses;
-    mapping (IERC20 => bool) public collectedFeesTokensAddressesMap;
+    // IERC20[] public collectedFeesTokensAddresses;
+    CollectedToken[] public collectedTokensFees;
+    mapping (IERC20 => uint256) public collectedFeesTokensAddressesToArrayIdx;
+    // TODO : add collected fees quantity
 
     // mapping (address => Fee) public marketFee;
 
@@ -88,27 +95,30 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         // TODO : TEST withdraw fees
         uint16 count = 0;
 
-        for (uint i = collectedFeesTokensAddresses.length-1; i >= 0 && count <= _maxWithdrawTokenCount; i++) {
+        for (uint i = collectedTokensFees.length-1; i >= 0 && count <= _maxWithdrawTokenCount; i++) {
             // if (count >= _maxWithdrawTokenCount) {
             //     break;
             // }
-            IERC20 collectedFeesTokenAddress = collectedFeesTokensAddresses[i];
+            // IERC20 collectedFeesTokenAddress = collectedTokensFees[i];
+            IERC20 collectedFeesTokenAddress = collectedTokensFees[i].token;
+            
             uint256 amount = collectedFeesTokenAddress.balanceOf(address(this));
             if (amount == 0) { // Should not happen
                 continue;
             }
             collectedFeesTokenAddress.safeTransfer( marketFeeCollector, amount );
             emit WithdrawFees( collectedFeesTokenAddress, amount, marketFeeCollector );
-            collectedFeesTokensAddressesMap[collectedFeesTokenAddress] = false;
-            collectedFeesTokensAddresses.pop();
+            collectedFeesTokensAddressesToArrayIdx[collectedFeesTokenAddress] = 0;
+            collectedTokensFees.pop();
         } // for
     } // withdrawFees
 
     /**
      * @dev Withdraw fees for given token address
-     * @param _tokenAddress : token address to withdraw fees
+     * @param _collectedFeesTokenAddress : token address to withdraw fees
      */
-    function withdrawFees(IERC20 _tokenAddress) external returns (uint256 withdrawnAmount) {
+    function withdrawFees(IERC20 _collectedFeesTokenAddress // _tokenAddress
+        ) external returns (uint256 withdrawnAmount) {
         address marketFeeCollector = msg.sender;
         address cfgMarketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
         require(marketFeeCollector == cfgMarketFeeCollector || marketFeeCollector == owner() , _SMWFZSEC001);
@@ -118,36 +128,44 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         // TODO : TEST withdraw fees
         // TODO : TEST withdraw fees
 
-        require( collectedFeesTokensAddressesMap[_tokenAddress], _SMWFZNTFND001);
+        // IERC20 _collectedFeesTokenAddress = IERC20(_tokenAddress);
+        console2.log( "withdrawFees: _tokenAddress= ", address(_collectedFeesTokenAddress) );
+        require( collectedFeesTokensAddressesToArrayIdx[_collectedFeesTokenAddress] > 0, _SMWFZNTFND001);
 
-
-        IERC20 collectedFeesTokenAddress = IERC20(_tokenAddress);
-        withdrawnAmount = collectedFeesTokenAddress.balanceOf(address(this));
-        if (withdrawnAmount == 0) { // Should not happen
-            require(false, _SMWFZZRO001) ;
-        }
-        collectedFeesTokenAddress.safeTransfer( marketFeeCollector, withdrawnAmount );
-        emit WithdrawFees( collectedFeesTokenAddress, withdrawnAmount, marketFeeCollector );
-        collectedFeesTokensAddressesMap[collectedFeesTokenAddress] = false;
-
-        // console2.log( "withdrawFees: _tokenAddress= ", address(_tokenAddress), " withdrawnAmount=", withdrawnAmount );
-
+        // Find token address in array
         // Shift array and delete last entry to remove token address
-        uint256 arrayLastIdx = collectedFeesTokensAddresses.length-1;
-        // console2.log( "withdrawFees: arrayLastIdx=", arrayLastIdx );
+        console2.log( "withdrawFees: collectedTokensFees.length= ", collectedTokensFees.length );
+        
+
+        uint256 arrayLastIdx = collectedTokensFees.length-1;
+        console2.log( "withdrawFees: arrayLastIdx= ", arrayLastIdx );
+        // uint256 pos = 0;
+        // uint256 amount = 0;
         for (uint256 i = 0; i <= arrayLastIdx; i++) {
-            // console2.log( "withdrawFees: for i = ", i , " collectedFeesTokensAddresses[i]=", address(collectedFeesTokensAddresses[i]) );
-            if (collectedFeesTokensAddresses[i] == collectedFeesTokenAddress) {
-                // console2.log( "withdrawFees: found i = ", i );
+            console2.log( "withdrawFees: for i = ", i );
+            console2.log( "withdrawFees:  = collectedTokensFees[i].token= ", address(collectedTokensFees[i].token), " _collectedFeesTokenAddress= ", address(_collectedFeesTokenAddress) );
+            if (collectedTokensFees[i].token == _collectedFeesTokenAddress) {
+                // pos = i;
+                // amount = collectedTokensFees[i].amount;
+                withdrawnAmount = collectedTokensFees[i].amount;
+                console2.log( "withdrawFees: for i = ", i, " withdrawnAmount=", withdrawnAmount );
+                require(withdrawnAmount > 0, _SMWFZZRO001) ;
                 // Shift entries
                 for (uint256 j = i; j+1 < arrayLastIdx; j++) {
                     // console2.log( "withdrawFees: for j = ", j );
-                    collectedFeesTokensAddresses[j] = collectedFeesTokensAddresses[j+1];
+                    collectedTokensFees[j] = collectedTokensFees[j+1];
                 }
                 break;
             }
         } // for
-        collectedFeesTokensAddresses.pop();
+        collectedTokensFees.pop();
+
+        console2.log( "withdrawFees: _tokenAddress= ", address(_collectedFeesTokenAddress), " withdrawnAmount=", withdrawnAmount );
+
+        _collectedFeesTokenAddress.safeTransfer( marketFeeCollector, withdrawnAmount );
+        emit WithdrawFees( _collectedFeesTokenAddress, withdrawnAmount, marketFeeCollector );
+        collectedFeesTokensAddressesToArrayIdx[_collectedFeesTokenAddress] = 0;
+
 
     } // withdrawFees
 
@@ -225,17 +243,42 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         );
         if (spendFee > 0) {
             // add token address to fee collector addresses
-            if (!collectedFeesTokensAddressesMap[offerInfo.buy_gem]) {
-                collectedFeesTokensAddressesMap[offerInfo.buy_gem] = true;
-                collectedFeesTokensAddresses.push(offerInfo.buy_gem);
+            if (collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] == 0) {
+                collectedTokensFees.push( CollectedToken(offerInfo.buy_gem, spendFee) );
+
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+
+                collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] = collectedTokensFees.length;
+                // collectedTokensFees.push(offerInfo.buy_gem);
+                // CollectedToken memory collectedToken = CollectedToken(offerInfo.buy_gem, spendFee);
+            } else {
+                // Find token array idx and add fees
+                collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] ].amount += spendFee;
             }
             emit CollectFee(spendFee, offerInfo.buy_gem);
         }
         if (quantityFee > 0) {
             // add token address to fee collector addresses
-            if (!collectedFeesTokensAddressesMap[offerInfo.pay_gem]) {
-                collectedFeesTokensAddressesMap[offerInfo.pay_gem] = true;
-                collectedFeesTokensAddresses.push(offerInfo.pay_gem);
+            if (collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] == 0) {
+
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+                // ARRAY INDEX STARTS AT 1
+
+                collectedTokensFees.push( CollectedToken(offerInfo.pay_gem, quantityFee) );
+                collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] = collectedTokensFees.length;
+                // collectedTokensFees.push(offerInfo.pay_gem);
+                // CollectedToken memory collectedToken = CollectedToken(offerInfo.pay_gem, quantityFee);
+                collectedTokensFees.push( CollectedToken(offerInfo.pay_gem, quantityFee) );
+            } else {
+                // Find token array idx and add fees
+                collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] ].amount += quantityFee;
             }
             emit CollectFee(quantityFee, offerInfo.pay_gem);
         }

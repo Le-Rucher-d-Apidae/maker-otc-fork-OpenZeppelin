@@ -36,9 +36,12 @@ contract MarketTester {
 
 contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
+    address someUser;
     IERC20 dai;
     IERC20 mkr;
     SimpleMarketWithFees otc;
+    uint256 constant DAI_TOTAL_SUPPLY = 10 ** 9 * DAI_DECIMALS;
+    uint256 constant MKR_TOTAL_SUPPLY = 10 ** 6 * MKR_DECIMALS;
 
     function setUp() public override {
         super.setUp();
@@ -56,12 +59,16 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         otc = new SimpleMarketWithFees(simpleMarketConfigurationWithFees);
         user1 = new MarketTester(otc);
 
-        dai = new DSTokenBase(10 ** 9 * MKR_DECIMALS);
-        mkr = new DSTokenBase(10 ** 6 * DAI_DECIMALS);
+        dai = new DSTokenBase(DAI_TOTAL_SUPPLY);
+        mkr = new DSTokenBase(MKR_TOTAL_SUPPLY);
+
+        someUser = someUser_77;
     }
     function testSmplMrktBasicTrade() public {
+        
         dai.transfer(address(user1), 100 * DAI_DECIMALS);
         user1.doApprove(address(otc), 100 * DAI_DECIMALS, dai);
+
         mkr.approve(address(otc), 300 * MKR_DECIMALS);
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
@@ -110,15 +117,21 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
     }
 
      function testSmplMrktPartiallyFilledOrderMkr() public {
-        dai.transfer(address(user1), 300 * DAI_DECIMALS);
+        uint256 user1_Dai = 300 * DAI_DECIMALS;
+        dai.transfer(address(user1), user1_Dai);
+        dai.transfer(address(someUser), DAI_TOTAL_SUPPLY - user1_Dai); // Move all remaining DAI to someUser
+        
         user1.doApprove(address(otc), 300 * DAI_DECIMALS, dai);
+        uint256 _mkr = 200 * MKR_DECIMALS;
         mkr.approve(address(otc), 200 * MKR_DECIMALS);
+
+        mkr.transfer(address(someUser), MKR_TOTAL_SUPPLY - _mkr); // Move all remaining MKR to someUser
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
         // console2.log("my_mkr_balance_before = ", my_mkr_balance_before);
 
         uint256 my_dai_balance_before = dai.balanceOf(address(this));
-        // console2.log("my_dai_balance_before = ", my_dai_balance_before);
+        console2.log("my_dai_balance_before = ", my_dai_balance_before);
 
         uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
         // console2.log("user1_mkr_balance_before = ", user1_mkr_balance_before);
@@ -126,15 +139,20 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
         // console2.log("user1_dai_balance_before = ", user1_dai_balance_before);
 
-
+        // uint256  DAI_BUY_OFFER = 500 * DAI_DECIMALS;
+        // Offer 200 MKR for 500 DAI (sell MKR for DAI)
         uint256 id = otc.offer(200 * MKR_DECIMALS, mkr, 500 * DAI_DECIMALS, dai);
-        assertTrue(user1.doBuy(id, 10 * MKR_DECIMALS)); // Buy for 25 DAI of MKR (buy 10 MKR)
+        // Buy for 25 DAI of MKR (buy 10 MKR)
+        assertTrue(user1.doBuy(id, 10 * MKR_DECIMALS)); 
+
+        // Remaining DAI in user1 account : 300 - 25 = 275
+        // Remaining MKR : 200 - 10 = 190
 
         uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
         // console2.log("my_mkr_balance_after = ", my_mkr_balance_after);
 
         uint256 my_dai_balance_after = dai.balanceOf(address(this));
-        // console2.log("my_dai_balance_after = ", my_dai_balance_after);
+        console2.log("my_dai_balance_after = ", my_dai_balance_after);
 
         uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
         // console2.log("user1_mkr_balance_after = ", user1_mkr_balance_after);
@@ -148,23 +166,32 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         {
         assertEq(200 * MKR_DECIMALS, my_mkr_balance_before - my_mkr_balance_after);
 
-        uint256 spent = 25 * DAI_DECIMALS; // ((10 * MKR_DECIMALS) * (500 * DAI_DECIMALS)) / (200 * MKR_DECIMALS) 
-        uint spentFee = otc.simpleMarketConfigurationWithFees().calculateSellFee( spent );
-        // console2.log("spentFee", spentFee);
-        assertEq(25 * DAI_DECIMALS - spentFee, my_dai_balance_after - my_dai_balance_before);
+        uint256 SPENT_DAI = 25 * DAI_DECIMALS; // ((10 * MKR_DECIMALS) * (500 * DAI_DECIMALS)) / (200 * MKR_DECIMALS) 
+        uint spentFee = otc.simpleMarketConfigurationWithFees().calculateSellFee( SPENT_DAI );
+        console2.log("DAI spentFee", spentFee);
+        assertEq( SPENT_DAI - spentFee, my_dai_balance_after - my_dai_balance_before);
+        // check fees
+        uint256 collected_dai = otc.withdrawFees( dai );
+        console2.log("collected_dai", collected_dai);
+        // assertEq( spentFee, collected_dai );
+        assertEq( SPENT_DAI, user1_dai_balance_before - user1_dai_balance_after);
         }
         {
         uint256 bought = 10 * MKR_DECIMALS;
         uint boughtFee = otc.simpleMarketConfigurationWithFees().calculateBuyFee( bought );
-        // console2.log("boughtFee", boughtFee);
-
+        console2.log("boughtFee", boughtFee);
         assertEq(10 * MKR_DECIMALS - boughtFee, user1_mkr_balance_after - user1_mkr_balance_before);
+        // check fees
+        console2.log( "withdrawFees: mkr address:",address(mkr) );
+        uint256 collected_mkr = otc.withdrawFees( mkr );
+        console2.log("collected_mkr", collected_mkr);
+        assertEq( boughtFee, collected_mkr );
         }
-        // assertEq(25 * DAI_DECIMALS, user1_dai_balance_before - user1_dai_balance_after);
-        // assertEq(190 * MKR_DECIMALS , sell_val);
-        // assertEq(475 * DAI_DECIMALS, buy_val);
-        // assertTrue(address(sell_token) != NULL_ADDRESS);
-        // assertTrue(address(buy_token) != NULL_ADDRESS);
+
+        assertEq(190 * MKR_DECIMALS , sell_val);
+        assertEq(475 * DAI_DECIMALS, buy_val);
+        assertTrue(address(sell_token) != NULL_ADDRESS);
+        assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
         // // expectEventsExact(address(otc));
