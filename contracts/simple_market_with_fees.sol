@@ -32,7 +32,8 @@ contract SimpleMarketWithFeesErrorCodes {
     // Limits
     string internal constant _SMWFZCFG000 = "SimpleMarketWithFees: Configuration cannot be zero address";
     string internal constant _SMWFZSEC001 = "Only fee collector or owner can call withdraw fees";
-    
+    string internal constant _SMWFZNTFND001 = "Nothing to collect for this token address";
+    string internal constant _SMWFZZRO001 = "No amount to collect for this token address";
 }
 
 contract SimpleMarketWithFeesEvents {
@@ -73,7 +74,7 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
     }
 
     /**
-     * 
+     * dev Withdraw fees for <count> tokens starting from the last one
      * @param _maxWithdrawTokenCount : max number of tokens to withdraw
      */
     function withdrawFees(uint16 _maxWithdrawTokenCount) external {
@@ -93,11 +94,61 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
             // }
             IERC20 collectedFeesTokenAddress = collectedFeesTokensAddresses[i];
             uint256 amount = collectedFeesTokenAddress.balanceOf(address(this));
+            if (amount == 0) { // Should not happen
+                continue;
+            }
             collectedFeesTokenAddress.safeTransfer( marketFeeCollector, amount );
             emit WithdrawFees( collectedFeesTokenAddress, amount, marketFeeCollector );
             collectedFeesTokensAddressesMap[collectedFeesTokenAddress] = false;
             collectedFeesTokensAddresses.pop();
         } // for
+    } // withdrawFees
+
+    /**
+     * @dev Withdraw fees for given token address
+     * @param _tokenAddress : token address to withdraw fees
+     */
+    function withdrawFees(IERC20 _tokenAddress) external returns (uint256 withdrawnAmount) {
+        address marketFeeCollector = msg.sender;
+        address cfgMarketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
+        require(marketFeeCollector == cfgMarketFeeCollector || marketFeeCollector == owner() , _SMWFZSEC001);
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+        // TODO : TEST withdraw fees
+
+        require( collectedFeesTokensAddressesMap[_tokenAddress], _SMWFZNTFND001);
+
+
+        IERC20 collectedFeesTokenAddress = IERC20(_tokenAddress);
+        withdrawnAmount = collectedFeesTokenAddress.balanceOf(address(this));
+        if (withdrawnAmount == 0) { // Should not happen
+            require(false, _SMWFZZRO001) ;
+        }
+        collectedFeesTokenAddress.safeTransfer( marketFeeCollector, withdrawnAmount );
+        emit WithdrawFees( collectedFeesTokenAddress, withdrawnAmount, marketFeeCollector );
+        collectedFeesTokensAddressesMap[collectedFeesTokenAddress] = false;
+
+        // console2.log( "withdrawFees: _tokenAddress= ", address(_tokenAddress), " withdrawnAmount=", withdrawnAmount );
+
+        // Shift array and delete last entry to remove token address
+        uint256 arrayLastIdx = collectedFeesTokensAddresses.length-1;
+        // console2.log( "withdrawFees: arrayLastIdx=", arrayLastIdx );
+        for (uint256 i = 0; i <= arrayLastIdx; i++) {
+            // console2.log( "withdrawFees: for i = ", i , " collectedFeesTokensAddresses[i]=", address(collectedFeesTokensAddresses[i]) );
+            if (collectedFeesTokensAddresses[i] == collectedFeesTokenAddress) {
+                // console2.log( "withdrawFees: found i = ", i );
+                // Shift entries
+                for (uint256 j = i; j+1 < arrayLastIdx; j++) {
+                    // console2.log( "withdrawFees: for j = ", j );
+                    collectedFeesTokensAddresses[j] = collectedFeesTokensAddresses[j+1];
+                }
+                break;
+            }
+        } // for
+        collectedFeesTokensAddresses.pop();
+
     } // withdrawFees
 
     // Accept given `quantity` of an offer. Transfers funds from caller to
