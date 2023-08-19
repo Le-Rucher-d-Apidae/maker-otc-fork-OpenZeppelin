@@ -58,7 +58,8 @@ const OPTIMIZER_SETTINGS = {
     optimizer: {
       enabled: true,
       runs: 200
-      }
+      },
+      // viaIR: true,
   }
 
 console.log('-------------------------------------')
