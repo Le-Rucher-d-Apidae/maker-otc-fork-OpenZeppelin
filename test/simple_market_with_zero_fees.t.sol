@@ -96,6 +96,7 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         // emit LogItemUpdate(id);
     }
     function testSmplMrktPartiallyFilledOrderMkr() public {
+        
         dai.transfer(address(user1), 300 * DAI_DECIMALS);
         user1.doApprove(address(otc), 300 * DAI_DECIMALS, dai);
         mkr.approve(address(otc), 200 * MKR_DECIMALS);
@@ -119,8 +120,6 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         assertEq(25 * DAI_DECIMALS, user1_dai_balance_before - user1_dai_balance_after);
         assertEq(190 * MKR_DECIMALS , sell_val);
         assertEq(475 * DAI_DECIMALS, buy_val);
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
         assertTrue(address(sell_token) != NULL_ADDRESS);
         assertTrue(address(buy_token) != NULL_ADDRESS);
 
@@ -176,10 +175,8 @@ contract SimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
         assertEq(490 * DAI_DECIMALS, sell_val);
         assertEq(196 * MKR_DECIMALS, buy_val); // FAILS HERE
 
-        // assertTrue(address(sell_token) != address(0));
-        // assertTrue(address(buy_token) != address(0));
-       assertTrue(address(sell_token) != NULL_ADDRESS);
-       assertTrue(address(buy_token) != NULL_ADDRESS);
+        assertTrue(address(sell_token) != NULL_ADDRESS);
+        assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
         // // expectEventsExact(address(otc));
