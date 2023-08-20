@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// SimpleMarketConfigurationWithFees_Constants.sol
+/// Suspendable_Simple_Market__constants.sol
+
+// fork of expiring_market.sol Dai Foundation
 
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,12 +20,8 @@
 
 pragma solidity ^0.8.21;
 
-    // Limits
-    string constant _MMWFLMT010 = "Market max fee too high.";
-    string constant _MMWFLMT011 = "Market fee too high.";
-    string constant _MMWFLMT000 = "Market fee too low. Must be at least 2 (= 0.0002%) or set it to zero.";
-    string constant _MMWFLMT020 = "Market buyFeeRatio fee too high.";
-    string constant _MMWFLMT021 = "Market sellFeeRatio fee too high.";
-    // Zero address
-    string constant _MMWFZ000 = "Fee collector cannot be zero address.";
-
+// S Series = Security/Authorization
+string constant _SS201 = "SS201_MARKET_NOT_ACTIVE";
+string constant _SS202 = "SS202_MARKET_ALREADY_UNSUSPENDED";
+string constant _SS203 = "SS203_MARKET_ALREADY_SUSPENDED";
+string constant _SS299 = "SS299_MARKET_ALREADY_CLOSED";

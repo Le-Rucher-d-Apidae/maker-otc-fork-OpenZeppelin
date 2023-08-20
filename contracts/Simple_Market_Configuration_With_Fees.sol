@@ -25,11 +25,11 @@ import "forge-std/console2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../contracts/MarketsConstants.sol";
-import "../contracts/MarketsConstantsFees.sol";
-import "../contracts/SimpleMarketConfigurationWithFees_Constants.sol";
+import "./constants/Markets__constants.sol";
+import "./constants/Markets_Fees__constants.sol";
+import "./constants/Simple_Market_Configuration_With_Fees__constants.sol";
 
-import "../contracts/matchingMarketConfiguration.sol";
+import "./Matching_Market_Configuration.sol";
 
 contract SimpleMarketConfigurationWithFeesEvents {
     event CollectFee(
@@ -49,7 +49,7 @@ contract SimpleMarketConfigurationWithFees is
 
     // Fees
     // 1000000 = 100% Fee, 100000 = 10% Fee, 10000 = 1% Fee, 100 = 0.01% Fee, 1 = 0.0001% Fee
-    // uint256 public constant ONEHUNDREDPERCENT  = 1_000_000;
+    // uint256 public constant FEE_ONE_HUNDRED_PERCENT  = 1_000_000;
     uint256 public immutable MARKETMAXFEE;
 
     uint256 public marketFee;
@@ -125,8 +125,9 @@ contract SimpleMarketConfigurationWithFees is
         uint _sellFeeRatio
     ) private onlyOwner
     {
-        require(MARKETMAXFEE <= ONEHUNDREDPERCENT,_MMWFLMT010);
-        require( (_marketFee == 0) || (_marketFee >= SMALLEST_FEE),_MMWFLMT000);
+        console2.log("SimpleMarketConfigurationWithFees:initialize _marketFee", _marketFee);
+        require(MARKETMAXFEE <= FEE_ONE_HUNDRED_PERCENT,_MMWFLMT010);
+        require( (_marketFee == 0) || (_marketFee >= FEE_SMALLEST),_MMWFLMT000);
         
         // MARKETMAXFEE = _marketMaxFee;
         setMarketFeeCollector(_marketFeesCollector);
@@ -168,8 +169,8 @@ contract SimpleMarketConfigurationWithFees is
      * @notice If buyFee and sellFee are both 0, then there is no fee
      */
     function setMarketBuyAndSellFeeRatios(uint _buyFeeRatio, uint _sellFeeRatio /*, bool _compute*/) public onlyOwner {
-        // require(_buyFeeRatio <= ONEHUNDREDPERCENT, _MMWFLMT020);
-        // require(_sellFeeRatio <= ONEHUNDREDPERCENT, _MMWFLMT021);
+        // require(_buyFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT020);
+        // require(_sellFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT021);
 
         // buyFeeRatio = _buyFeeRatio;
         // sellFeeRatio = _sellFeeRatio;
@@ -186,8 +187,8 @@ contract SimpleMarketConfigurationWithFees is
         console2.log("internal setMarketBuyAndSellFeeRatios _buyFeeRatio", _buyFeeRatio, "_sellFeeRatio", _sellFeeRatio);
         console2.log("internal setMarketBuyAndSellFeeRatios compute", _compute);
 
-        require(_buyFeeRatio <= ONEHUNDREDPERCENT, _MMWFLMT020);
-        require(_sellFeeRatio <= ONEHUNDREDPERCENT, _MMWFLMT021);
+        require(_buyFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT020);
+        require(_sellFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT021);
 
         buyFeeRatio = _buyFeeRatio;
         sellFeeRatio = _sellFeeRatio;
@@ -199,8 +200,8 @@ contract SimpleMarketConfigurationWithFees is
     // function computeMarketBuyAndSellFees(uint _buyFeeRatio, uint _sellFeeRatio) public onlyOwner {
     function computeMarketBuyAndSellFees(/*uint _buyFeeRatio, uint _sellFeeRatio*/) private onlyOwner {
 
-        // require(_buyFeeRatio <= ONEHUNDREDPERCENT, _MMWFLMT020);
-        // require(_sellFeeRatio <= ONEHUNDREDPERCENT, _MMWFLMT021);
+        // require(_buyFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT020);
+        // require(_sellFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT021);
 
         // buyFeeRatio = _buyFeeRatio;
         // sellFeeRatio = _sellFeeRatio;
@@ -262,14 +263,14 @@ contract SimpleMarketConfigurationWithFees is
 
    function calculateBuyFee(uint256 amount) external view returns (uint256){
         console2.log("calculateBuyFee amount: ", amount, " buyFee: ", buyFee);
-        console2.log("amount * buyFee / ONEHUNDREDPERCENT = buy fee amount: ", (amount * buyFee) / ONEHUNDREDPERCENT);
-        return (amount * buyFee) / ONEHUNDREDPERCENT;
+        console2.log("amount * buyFee / FEE_ONE_HUNDRED_PERCENT = buy fee amount: ", (amount * buyFee) / FEE_ONE_HUNDRED_PERCENT);
+        return (amount * buyFee) / FEE_ONE_HUNDRED_PERCENT;
     }
 
    function calculateSellFee(uint256 amount) external view returns (uint256){
         console2.log("calculateSellFee amount:" , amount, " sellFee: ", sellFee);
-        console2.log("amount * sellFee / ONEHUNDREDPERCENT = sell fee amount: ", (amount * sellFee) / ONEHUNDREDPERCENT);
-        return (amount * sellFee) / ONEHUNDREDPERCENT;
+        console2.log("amount * sellFee / FEE_ONE_HUNDRED_PERCENT = sell fee amount: ", (amount * sellFee) / FEE_ONE_HUNDRED_PERCENT);
+        return (amount * sellFee) / FEE_ONE_HUNDRED_PERCENT;
     }
 
     function setMarketFeeExemption(address _address, bool _exempt) public onlyOwner {

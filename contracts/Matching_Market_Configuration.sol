@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// matchingMarketConfiguration.sol
+/// Matching_Market_Configuration.sol
 
 //
 // This program is free software: you can redistribute it and/or modify
@@ -22,17 +22,11 @@ import "forge-std/console2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../contracts/MarketsConstants.sol";
+import "./constants/Markets__constants.sol";
+import "./constants/Matching_Market_Configuration__constants.sol";
 
-contract MatchingMarketConfigurationErrorCodes {
-    // Limits
-    string internal constant _MMLMTBLW001 = "dustLimit_ is below threshold";
 
-    // Zero address
-    string internal constant _MMDST000 = "Dust token address can not be 0x0.";
-}
-
-contract MatchingMarketConfiguration is Ownable, MatchingMarketConfigurationErrorCodes {
+contract MatchingMarketConfiguration is Ownable {
 
     // address public constant NULL_ADDRESS = address(0x0);
     // dust token address

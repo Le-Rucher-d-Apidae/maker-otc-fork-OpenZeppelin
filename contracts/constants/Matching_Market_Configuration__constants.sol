@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// simple_market_with_fees.sol
-
+/// Matching_Market_Configuration__constants.sol
 
 //
 // This program is free software: you can redistribute it and/or modify
@@ -20,7 +19,7 @@
 pragma solidity ^0.8.21;
 
 // Limits
-string constant _SMWFZCFG000 = "SimpleMarketWithFees: Configuration cannot be zero address";
-string constant _SMWFZSEC001 = "Only fee collector or owner can call withdraw fees";
-string constant _SMWFZNTFND001 = "Nothing to collect for this token address";
-string constant _SMWFZZRO001 = "No amount to collect for this token address";
+string constant _MMLMTBLW001 = "dustLimit_ is below threshold";
+
+// Zero address
+string constant _MMDST000 = "Dust token address can not be 0x0.";

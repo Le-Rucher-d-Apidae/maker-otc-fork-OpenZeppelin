@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// suspendable_market.sol
+/// Restricted_Suspendable_Simple_Market.sol
 
 // fork of expiring_market.sol Dai Foundation
 
@@ -23,15 +23,9 @@ pragma solidity ^0.8.21;
 // import "hardhat/console.sol";
 import "forge-std/console2.sol";
 
-import "./suspendable_simple_market.sol";
+import "./constants/Restricted_Suspendable_Simple_Market__constants.sol";
 
-contract RestrictedSuspendableSimpleMarketErrorCodes {
-    // S Series = Security/Authorization
-
-    // T Series = Trades/Offers
-    string internal constant _T001 = "T001_BUY_TOKEN_NOT_ALLOWED";
-    string internal constant _T002 = "T002_SELL_TOKEN_NOT_ALLOWED";
-}
+import "./Suspendable_Simple_Market.sol";
 
 // Invalid Trading pair
 // @notice mean mùain token is missing from the pair
@@ -39,7 +33,7 @@ contract RestrictedSuspendableSimpleMarketErrorCodes {
 // @param sellToken token to sell.
 error InvalidTradingPair(IERC20 buyToken, IERC20 sellToken);
 
-contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, RestrictedSuspendableSimpleMarketErrorCodes {
+contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket {
 
     IERC20 public mainTradableToken; // ApidaeToken
     mapping (IERC20=>bool) tradableTokens; // mainTradableToken must not be in this list
