@@ -43,7 +43,7 @@ contract SimpleMarketConfigurationWithFeesEvents {
 }
 
 contract SimpleMarketConfigurationWithFees is
-    /* SimpleMarketConfigurationWithFeesErrorCodes, */ SimpleMarketConfigurationWithFeesEvents, Ownable {
+    SimpleMarketConfigurationWithFeesEvents, Ownable {
 
     // address public constant NULL_ADDRESS = address(0x0);
 
