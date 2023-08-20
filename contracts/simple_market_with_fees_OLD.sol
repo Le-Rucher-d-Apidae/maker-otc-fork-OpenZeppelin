@@ -24,7 +24,7 @@ import "forge-std/console2.sol";
 // import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "@openzeppelin/contracts/access/Ownable.sol";
 // import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./simple_market.sol";
+import "./Simple_Market.sol";
 
 contract SimpleMarketWithFeesEvents {
 
@@ -45,7 +45,7 @@ contract SimpleMarketWithFees_OLD is SimpleMarket, SimpleMarketWithFeesEvents {
 
     // Fees
     // 1000000 = 100% Fee, 100000 = 10% Fee, 10000 = 1% Fee, 100 = 0.01% Fee, 1 = 0.0001% Fee
-    uint256 public constant ONEHUNDREDPERCENT  = 1000000;
+    uint256 public constant FEE_ONE_HUNDRED_PERCENT  = 1000000;
     uint256 public immutable MARKETMAXFEE;
     uint256 public marketFee;
     uint256 public buyFee;
@@ -66,7 +66,7 @@ contract SimpleMarketWithFees_OLD is SimpleMarket, SimpleMarketWithFeesEvents {
 
     // constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, bool _buyFee, bool _sellFee) SimpleMarket() {
     constructor(uint256 _marketFee, address _marketFeeCollector, uint256 _marketMaxFee, uint _buyFee, uint _sellFee) SimpleMarket() {
-        require(_marketMaxFee <= ONEHUNDREDPERCENT, "Market max fee too high");
+        require(_marketMaxFee <= FEE_ONE_HUNDRED_PERCENT, "Market max fee too high");
         MARKETMAXFEE = _marketMaxFee;
         require(_marketFee <= _marketMaxFee, "Market fee percent too high");
         setMarketFee(_marketFee);
@@ -98,8 +98,8 @@ contract SimpleMarketWithFees_OLD is SimpleMarket, SimpleMarketWithFeesEvents {
      * @notice If buyFee and sellFee are both 0, then there is no fee
      */
     function setBuyAndSellFee(uint _buyFee, uint _sellFee) public onlyOwner {
-        require(_buyFee <= ONEHUNDREDPERCENT, "Market buyFee fee too high");
-        require(_sellFee <= ONEHUNDREDPERCENT, "Market sellFee fee too high");
+        require(_buyFee <= FEE_ONE_HUNDRED_PERCENT, "Market buyFee fee too high");
+        require(_sellFee <= FEE_ONE_HUNDRED_PERCENT, "Market sellFee fee too high");
 
         if (_buyFee>0) {
             if (_sellFee>0) {
@@ -177,8 +177,8 @@ contract SimpleMarketWithFees_OLD is SimpleMarket, SimpleMarketWithFeesEvents {
 
 
         // Collect fees
-        uint spendFee = spend * sellFee / ONEHUNDREDPERCENT;
-        uint quantityFee = quantity * buyFee / ONEHUNDREDPERCENT;
+        uint spendFee = spend * sellFee / FEE_ONE_HUNDRED_PERCENT;
+        uint quantityFee = quantity * buyFee / FEE_ONE_HUNDRED_PERCENT;
         console2.log("spendFee", spendFee);
         console2.log("quantityFee", quantityFee);
 

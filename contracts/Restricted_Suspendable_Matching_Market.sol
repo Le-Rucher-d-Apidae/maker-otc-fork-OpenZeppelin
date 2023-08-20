@@ -20,8 +20,11 @@
 
 pragma solidity ^0.8.21;
 
-import "./restricted_suspendable_simple_market.sol";
 import "../lib/dapphub/ds-math/src/math.sol";
+
+import "./constants/Restricted_Suspendable_Matching_Market__constants.sol";
+
+import "./Restricted_Suspendable_Simple_Market.sol";
 import "./oracle/IOracle.sol";
 
 // interface PriceOracleLike {
@@ -42,16 +45,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract RestrictedSuspendableMatchingMarketErrorCodes {
-    // S Series = Security/Authorization
-    string internal constant _RSS001 = "RS001_REENTRANCY";
-
-    // T Series = Trades/Offers
-    string internal constant _RST001 = "RST001_NOT_OWNER_OR_DUST";
-    string internal constant _RST104 = "RST104_OFFER_AMOUNT_LOW";
-}
-
-contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath, RestrictedSuspendableMatchingMarketErrorCodes {
+contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer

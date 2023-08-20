@@ -30,7 +30,7 @@ import "forge-std/console2.sol";
 // import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/suspendable_simple_market.sol";
+import "../contracts/Suspendable_Simple_Market.sol";
 
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 

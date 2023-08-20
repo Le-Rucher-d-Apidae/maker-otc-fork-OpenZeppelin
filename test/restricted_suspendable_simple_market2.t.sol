@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /// restricted_suspendable_simple_market2.t.sol
-/// apply test found in simple_market.t.sol for the restricted_suspendable_simple_market.sol
+/// apply test found in simple_market.t.sol for the Restricted_Suspendable_Simple_Market.sol
 /// and checks for the restrictions of allowed tokens
 
 // Copyright (C) 2016 - 2021 Dai Foundation
@@ -29,7 +29,7 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/restricted_suspendable_simple_market.sol";
+import "../contracts/Restricted_Suspendable_Simple_Market.sol";
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
 contract MarketTester {

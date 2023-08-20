@@ -20,18 +20,11 @@
 
 pragma solidity ^0.8.21;
 
-import "./simple_market.sol";
+import "./constants/Suspendable_Simple_Market__constants.sol";
 
-contract SuspendableSimpleMarketErrorCodes {
-    // S Series = Security/Authorization
-    string internal constant _SS201 = "SS201_MARKET_NOT_ACTIVE";
-    string internal constant _SS202 = "SS202_MARKET_ALREADY_UNSUSPENDED";
-    string internal constant _SS203 = "SS203_MARKET_ALREADY_SUSPENDED";
-    string internal constant _SS299 = "SS299_MARKET_ALREADY_CLOSED";
-} // contract SimpleMarketErrorCodes
+import "./Simple_Market.sol";
 
-
-contract SuspendableSimpleMarket is SimpleMarket,SuspendableSimpleMarketErrorCodes {
+contract SuspendableSimpleMarket is SimpleMarket {
     bool public closed;
     bool public suspended;
 

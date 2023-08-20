@@ -11,8 +11,8 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/simple_market_with_fees.sol";
-import "../contracts/SimpleMarketConfigurationWithFees.sol";
+import "../contracts/Simple_Market_With_Fees.sol";
+import "../contracts/Simple_Market_Configuration_With_Fees.sol";
 
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
@@ -49,8 +49,8 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         address feeCollector = someUser_22;
 
         SimpleMarketConfigurationWithFees simpleMarketConfigurationWithFees = new SimpleMarketConfigurationWithFees(
-            2 * ONEPERCENT, // Max fee = 2%
-            SMALLEST_FEE, // Current fee =  1%/1 000 = 0.001%
+            2 * FEE_ONE_PERCENT, // Max fee = 2%
+            FEE_SMALLEST, // Current fee =  1%/1 000 = 0.001%
             feeCollector,
             1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee)) = 0.0005%
             1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee)) = 0.0005%

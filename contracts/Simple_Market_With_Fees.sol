@@ -24,9 +24,11 @@ import "forge-std/console2.sol";
 // import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // import "@openzeppelin/contracts/access/Ownable.sol";
 // import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./simple_market.sol";
-import "./SimpleMarketConfigurationWithFees.sol";
-import './simple_market_with_fees_constants.sol';
+
+import './constants/Simple_Market_With_Fees__constants.sol';
+
+import "./Simple_Market.sol";
+import "./Simple_Market_Configuration_With_Fees.sol";
 
 
 contract SimpleMarketWithFeesEvents {
@@ -244,15 +246,7 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents {
             if (collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] == 0) {
 
                 console2.log("buy: spendFee > 0 NOT FOUND collectedTokensFees.length", collectedTokensFees.length);
-
                 collectedTokensFees.push( CollectedToken(offerInfo.buy_gem, spendFee) );
-
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
-
                 collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] = collectedTokensFees.length-1;
                 // collectedTokensFees.push(offerInfo.buy_gem);
                 // CollectedToken memory collectedToken = CollectedToken(offerInfo.buy_gem, spendFee);
@@ -272,11 +266,6 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents {
             if (collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] == 0) {
 
                 console2.log("buy: quantityFee > 0 NOT FOUND collectedTokensFees.length", collectedTokensFees.length);
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
-                // ARRAY INDEX STARTS AT 1
 
                 collectedTokensFees.push( CollectedToken(offerInfo.pay_gem, quantityFee) );
                 collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] = collectedTokensFees.length-1;

@@ -25,7 +25,7 @@ import "forge-std/console2.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/MarketsConstants.sol";
+import "../contracts/constants/Markets__constants.sol";
 
 string constant SOMEMNEMONIC_01 = "test test test test test test test test test test test junk";
 

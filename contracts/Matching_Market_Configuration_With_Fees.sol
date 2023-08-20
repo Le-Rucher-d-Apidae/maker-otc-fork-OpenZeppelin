@@ -21,16 +21,13 @@ pragma solidity ^0.8.21;
 
 
 import "forge-std/console2.sol";
-import "./matchingMarketConfiguration.sol";
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract MatchingMarketConfigurationWithFeesErrorCodes {
-    // Limits
-    string internal constant _MMWFLMT010 = "Market max fee too high";
-    string internal constant _MMWFLMT011 = "Market fee too high";
-    // Zero address
-    string internal constant _MMWFZ000 = "Fee collector cannot be zero address";
-}
+import "./constants/Markets_Fees__constants.sol";
+import "./constants/Matching_Market_Configuration_With_Fees__constants.sol";
+
+import "./Matching_Market_Configuration.sol";
 
 contract MatchingMarketConfigurationWithFeesEvents {
     event CollectFee(
@@ -40,11 +37,11 @@ contract MatchingMarketConfigurationWithFeesEvents {
 
 }
 
-contract MatchingMarketConfigurationWithFees is MatchingMarketConfiguration, MatchingMarketConfigurationWithFeesErrorCodes, MatchingMarketConfigurationWithFeesEvents {
+contract MatchingMarketConfigurationWithFees is MatchingMarketConfiguration, MatchingMarketConfigurationWithFeesEvents {
 
     // Fees
     // 1000000 = 100% Fee, 100000 = 10% Fee, 10000 = 1% Fee, 100 = 0.01% Fee, 1 = 0.0001% Fee
-    uint256 public constant ONEHUNDREDPERCENT  = 1000000;
+    // uint256 public constant FEE_ONE_HUNDRED_PERCENT  = 1000000;
     uint256 public immutable MARKETMAXFEE;
 
     uint256 public marketFee;
@@ -97,7 +94,7 @@ contract MatchingMarketConfigurationWithFees is MatchingMarketConfiguration, Mat
         uint _sellFeeRatio
     ) private onlyOwner
     {
-        require(MARKETMAXFEE <= ONEHUNDREDPERCENT,_MMWFLMT010);
+        require(MARKETMAXFEE <= FEE_ONE_HUNDRED_PERCENT,_MMWFLMT010);
         // MARKETMAXFEE = _marketMaxFee;
         setMarketFee(_marketFee);
         setMarketFeeCollector(_marketFeesCollector);
@@ -123,8 +120,8 @@ contract MatchingMarketConfigurationWithFees is MatchingMarketConfiguration, Mat
      */
     function setMarketBuyAndSellFeeRatios(uint _buyFeeRatio, uint _sellFeeRatio) public onlyOwner {
 
-        require(_buyFeeRatio <= ONEHUNDREDPERCENT, "Market buyFeeRatio fee too high");
-        require(_sellFeeRatio <= ONEHUNDREDPERCENT, "Market sellFeeRatio fee too high");
+        require(_buyFeeRatio <= FEE_ONE_HUNDRED_PERCENT, "Market buyFeeRatio fee too high");
+        require(_sellFeeRatio <= FEE_ONE_HUNDRED_PERCENT, "Market sellFeeRatio fee too high");
 
         buyFeeRatio = _buyFeeRatio;
         sellFeeRatio = _sellFeeRatio;
@@ -155,11 +152,11 @@ contract MatchingMarketConfigurationWithFees is MatchingMarketConfiguration, Mat
     }
 
    function calculateBuyFee(uint256 amount) external view returns (uint256){
-        return amount * buyFee / ONEHUNDREDPERCENT;
+        return amount * buyFee / FEE_ONE_HUNDRED_PERCENT;
     }
 
    function calculateSellFee(uint256 amount) external view returns (uint256){
-        return amount * sellFee / ONEHUNDREDPERCENT;
+        return amount * sellFee / FEE_ONE_HUNDRED_PERCENT;
     }
 
     function setMarketFeeExemption(address _address, bool _exempt) public onlyOwner {
