@@ -186,6 +186,15 @@ contract SimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
         uint256 collected_mkr = otc.withdrawFees( mkr );
         console2.log("collected_mkr", collected_mkr);
         assertEq( boughtFee, collected_mkr );
+
+        }
+
+        {
+        vm.expectRevert( bytes( _SMWFZNTFND001 ) );
+        otc.withdrawFees( mkr );
+
+        vm.expectRevert( bytes( _SMWFZNTFND001 ) );
+        otc.withdrawFees( dai );
         }
 
         assertEq(190 * MKR_DECIMALS , sell_val);
