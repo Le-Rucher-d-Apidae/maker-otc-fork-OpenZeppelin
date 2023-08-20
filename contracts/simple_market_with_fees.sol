@@ -26,15 +26,8 @@ import "forge-std/console2.sol";
 // import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./simple_market.sol";
 import "./SimpleMarketConfigurationWithFees.sol";
+import './simple_market_with_fees_constants.sol';
 
-
-contract SimpleMarketWithFeesErrorCodes {
-    // Limits
-    string internal constant _SMWFZCFG000 = "SimpleMarketWithFees: Configuration cannot be zero address";
-    string internal constant _SMWFZSEC001 = "Only fee collector or owner can call withdraw fees";
-    string internal constant _SMWFZNTFND001 = "Nothing to collect for this token address";
-    string internal constant _SMWFZZRO001 = "No amount to collect for this token address";
-}
 
 contract SimpleMarketWithFeesEvents {
 
@@ -50,7 +43,7 @@ contract SimpleMarketWithFeesEvents {
     );
 }
 
-contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, SimpleMarketWithFeesErrorCodes {
+contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents {
 
     using SafeERC20 for IERC20;
 
@@ -61,8 +54,8 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
 
     SimpleMarketConfigurationWithFees public simpleMarketConfigurationWithFees;
     // IERC20[] public collectedFeesTokensAddresses;
-    CollectedToken[] public collectedTokensFees;
-    mapping (IERC20 => uint256) public collectedFeesTokensAddressesToArrayIdx;
+    CollectedToken[] public collectedTokensFees; // 0 index is not used
+    mapping (IERC20 => uint256) public collectedFeesTokensAddressesToArrayIdx; // contains corresponding collectedTokensFees[INDEX] for an ERC20; 0 means not found
     // TODO : add collected fees quantity
 
     // mapping (address => Fee) public marketFee;
@@ -78,6 +71,7 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
     constructor(SimpleMarketConfigurationWithFees _simpleMarketConfigurationWithFees) SimpleMarket() {    
         require( address(_simpleMarketConfigurationWithFees) != NULL_ADDRESS, _SMWFZCFG000);
         simpleMarketConfigurationWithFees = _simpleMarketConfigurationWithFees;
+        collectedTokensFees.push( CollectedToken(IERC20(NULL_ADDRESS), 0) ); // init : 0 index is not used
     }
 
     /**
@@ -111,6 +105,7 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
             collectedFeesTokensAddressesToArrayIdx[collectedFeesTokenAddress] = 0;
             collectedTokensFees.pop();
         } // for
+        assert(collectedTokensFees.length > 0);
     } // withdrawFees
 
     /**
@@ -166,7 +161,7 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         emit WithdrawFees( _collectedFeesTokenAddress, withdrawnAmount, marketFeeCollector );
         collectedFeesTokensAddressesToArrayIdx[_collectedFeesTokenAddress] = 0;
 
-
+        assert(collectedTokensFees.length > 0);
     } // withdrawFees
 
     // Accept given `quantity` of an offer. Transfers funds from caller to
@@ -204,30 +199,30 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         // Collect fees
         uint spendFee = simpleMarketConfigurationWithFees.calculateSellFee(spend);
         uint quantityFee = simpleMarketConfigurationWithFees.calculateBuyFee(quantity);
-        console2.log("spendFee", spendFee);
-        console2.log("quantityFee", quantityFee);
+        console2.log("buy: spendFee", spendFee);
+        console2.log("buy: quantityFee", quantityFee);
 
         // offer bought gem : Transfer from buyer to offerer : bought amount minus fees
         offerInfo.buy_gem.safeTransferFrom(msg.sender /*msgSender*/, offerInfo.owner, spend-spendFee);
-        console2.log("sent ", spend-spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
-        console2.log("from Buyer", msg.sender, " to Offerer", offerInfo.owner);
+        console2.log("buy: sent ", spend-spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
+        console2.log("buy: from Buyer", msg.sender, " to Offerer", offerInfo.owner);
 
 
         // offer bought gem : Transfer from buyer to this contract : fees
         if (spendFee > 0) {
             offerInfo.buy_gem.safeTransferFrom( msg.sender, address(this), spendFee);
-            console2.log("sent ", spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
-            console2.log("from Buyer ", msg.sender, " to this contract ", address(this));
+            console2.log("buy: sent ", spendFee, " buy_gem  ", address(offerInfo.buy_gem) );
+            console2.log("buy: from Buyer ", msg.sender, " to this contract ", address(this));
         }
 
         // offer sold gem : Transfer buyer sold gem to offerer : bought amount minus fees
         offerInfo.pay_gem.safeTransfer(msg.sender /*msgSender*/, quantity-quantityFee);
-        console2.log("sent ", quantity-quantityFee, " pay_gem  ", address(offerInfo.pay_gem) );
-        console2.log("from ", address(this), " to Buyer ", msg.sender);
+        console2.log("buy: sent ", quantity-quantityFee, " pay_gem  ", address(offerInfo.pay_gem) );
+        console2.log("buy: from ", address(this), " to Buyer ", msg.sender);
 
 
         // offer sold gem : No need to transfer sold sold gem to this contract : fees remains in this contract
-        console2.log(" keeping pay_gem", address(offerInfo.pay_gem),  " as fee for qty: ", quantityFee);
+        console2.log("buy: keeping pay_gem", address(offerInfo.pay_gem),  " as fee for qty: ", quantityFee);
 
         emit LogItemUpdate(id);
         emit LogTake(
@@ -243,7 +238,13 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
         );
         if (spendFee > 0) {
             // add token address to fee collector addresses
+
+            console2.log("buy: spendFee > 0  offerInfo.buy_gem", address(offerInfo.buy_gem), " collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem]: index = ", collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem]);
+
             if (collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] == 0) {
+
+                console2.log("buy: spendFee > 0 NOT FOUND collectedTokensFees.length", collectedTokensFees.length);
+
                 collectedTokensFees.push( CollectedToken(offerInfo.buy_gem, spendFee) );
 
                 // ARRAY INDEX STARTS AT 1
@@ -252,19 +253,25 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
                 // ARRAY INDEX STARTS AT 1
                 // ARRAY INDEX STARTS AT 1
 
-                collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] = collectedTokensFees.length;
+                collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] = collectedTokensFees.length-1;
                 // collectedTokensFees.push(offerInfo.buy_gem);
                 // CollectedToken memory collectedToken = CollectedToken(offerInfo.buy_gem, spendFee);
             } else {
                 // Find token array idx and add fees
+                console2.log("buy: spendFee > 0 FOUND collectedTokensFees.length", collectedTokensFees.length, " collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] = index = " , collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] ) ;
                 collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] ].amount += spendFee;
+                console2.log("buy: spendFee > 0 FOUND collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] ].amount = ", collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem] ].amount );
             }
             emit CollectFee(spendFee, offerInfo.buy_gem);
         }
         if (quantityFee > 0) {
             // add token address to fee collector addresses
+
+            console2.log("buy: quantityFee > 0  offerInfo.buy_gem", address(offerInfo.pay_gem), " collectedFeesTokensAddressesToArrayIdx[offerInfo.buy_gem]: index = ", collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] );
+
             if (collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] == 0) {
 
+                console2.log("buy: quantityFee > 0 NOT FOUND collectedTokensFees.length", collectedTokensFees.length);
                 // ARRAY INDEX STARTS AT 1
                 // ARRAY INDEX STARTS AT 1
                 // ARRAY INDEX STARTS AT 1
@@ -272,13 +279,15 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents, Simpl
                 // ARRAY INDEX STARTS AT 1
 
                 collectedTokensFees.push( CollectedToken(offerInfo.pay_gem, quantityFee) );
-                collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] = collectedTokensFees.length;
+                collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] = collectedTokensFees.length-1;
                 // collectedTokensFees.push(offerInfo.pay_gem);
                 // CollectedToken memory collectedToken = CollectedToken(offerInfo.pay_gem, quantityFee);
                 collectedTokensFees.push( CollectedToken(offerInfo.pay_gem, quantityFee) );
             } else {
                 // Find token array idx and add fees
+                console2.log("buy: spendFee > 0 FOUND collectedTokensFees.length", address(offerInfo.pay_gem), " collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] = index = ", collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] );
                 collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] ].amount += quantityFee;
+                console2.log("buy: spendFee > 0 FOUND collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] ].amount = ", collectedTokensFees[ collectedFeesTokensAddressesToArrayIdx[offerInfo.pay_gem] ].amount );
             }
             emit CollectFee(quantityFee, offerInfo.pay_gem);
         }
