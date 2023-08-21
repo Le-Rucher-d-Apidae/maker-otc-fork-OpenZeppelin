@@ -48,7 +48,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket {
 
     // Tokens checks
     modifier tokenAllowed(IERC20 erc20) {
-        require(tradableTokens[erc20], "Token not authorized");
+        require( erc20==mainTradableToken || tradableTokens[erc20], _RSSM_T000 );
         _;
     }
 
@@ -67,11 +67,11 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket {
         // Sell mainTradableToken
         if (_pay_gem==mainTradableToken) {
             // Buy token must be tradable
-            require(tradableTokens[_buy_gem], _T001);
+            require(tradableTokens[_buy_gem], _RSSM_T001);
         // Buy mainTradableToken
         } else if (_buy_gem==mainTradableToken) {
             // Sold token must be tradable
-            require(tradableTokens[_pay_gem], _T002);
+            require(tradableTokens[_pay_gem], _RSSM_T002);
         } else {
             // mainTradableToken is neither sold or bought : revert
             revert InvalidTradingPair(_pay_gem, _buy_gem);
@@ -92,9 +92,9 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket {
     /// @dev 
     /// @param _erc20 token to check
     function allowToken(IERC20 _erc20) public onlyOwner {
-        require(address(mainTradableToken) != NULL_ADDRESS,"mainTradableToken must be set first");
-        require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
-        require(!tradableTokens[_erc20],"Already allowed");
+        require(address(mainTradableToken) != NULL_ADDRESS, _RSSM_AL100);
+        require(_erc20!=mainTradableToken, _RSSM_AL001);
+        require(!tradableTokens[_erc20],_RSSM_AL010);
         require(address(_erc20) != NULL_ADDRESS);
         // TODO: check is ERC20
         // TODO: check is ERC20
@@ -106,6 +106,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket {
     }
 
     function revokeToken(IERC20 _erc20) public onlyOwner tokenAllowed(_erc20) {
+        require(_erc20!=mainTradableToken, _RSSM_AL000);
         // Allow to remove all tradable tokens
         // existing orders will remain active (no checks are made on buys)
         delete tradableTokens[_erc20];

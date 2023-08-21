@@ -26,6 +26,13 @@ import "forge-std/console2.sol";
 // S Series = Security/Authorization
 
 // T Series = Trades/Offers
-string constant _T001 = "T001_BUY_TOKEN_NOT_ALLOWED";
-string constant _T002 = "T002_SELL_TOKEN_NOT_ALLOWED";
+string constant _RSSM_T000 = "T000_TOKEN NOT AUTHORIZED";
+string constant _RSSM_T001 = "T001_BUY_TOKEN_NOT_ALLOWED";
+string constant _RSSM_T002 = "T002_SELL_TOKEN_NOT_ALLOWED";
 
+// AL Series = Allowances
+string constant _RSSM_AL000 = "Can't revoke mainTradableToken";
+string constant _RSSM_AL001 = "No need to allow mainTradableToken";
+
+string constant _RSSM_AL010 = "Already allowed";
+string constant _RSSM_AL100 = "mainTradableToken must be set first";

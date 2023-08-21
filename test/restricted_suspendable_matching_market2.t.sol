@@ -35,13 +35,24 @@ import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
 
 
-contract DummySimplePriceOracle {
+contract DummySimplePriceOracle is IOracle {
     uint256 price;
     function setPrice(address, uint256 _price) public {
         price = _price;
     }
 
-    function getPriceFor(address, address, uint256) public view returns (uint256) {
+    // function getPriceFor(address, address, uint256) public view returns (uint256) {
+    //     return price;
+    // }
+
+    function estimateAmountOut(
+        address _tokenIn,
+        uint24 _fee,
+        uint128 _amountIn,
+        uint32 _secondsAgo
+    ) external view returns (uint amountOut)
+    {
+        _tokenIn = address(uint160(_fee * _amountIn * _secondsAgo)); // dummy code to remove compiler warnings: unused vars
         return price;
     }
 }

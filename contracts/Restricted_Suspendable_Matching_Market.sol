@@ -258,14 +258,19 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         public
         tokenAllowed(pay_gem)
     {
+        console2.log("Restricted_Suspendable_Matching_Market: setMinSell");
         require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
         // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
         require(IERC20(pay_gem) != dustToken, "Can't set dust for the dustToken");
+
 
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
         // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
         uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+
+        console2.log("Restricted_Suspendable_Matching_Market: setMinSell 3 dust = ", dust);
+
         _setMinSell(pay_gem, dust);
     }
 
