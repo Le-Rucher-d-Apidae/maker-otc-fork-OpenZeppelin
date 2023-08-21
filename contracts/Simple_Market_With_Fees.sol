@@ -119,11 +119,6 @@ contract SimpleMarketWithFees is SimpleMarket, SimpleMarketWithFeesEvents {
         address marketFeeCollector = msg.sender;
         address cfgMarketFeeCollector = simpleMarketConfigurationWithFees.marketFeeCollector();
         require(marketFeeCollector == cfgMarketFeeCollector || marketFeeCollector == owner() , _SMWFZSEC001);
-        // TODO : TEST withdraw fees
-        // TODO : TEST withdraw fees
-        // TODO : TEST withdraw fees
-        // TODO : TEST withdraw fees
-        // TODO : TEST withdraw fees
 
         // IERC20 _collectedFeesTokenAddress = IERC20(_tokenAddress);
         console2.log( "withdrawFees: _tokenAddress= ", address(_collectedFeesTokenAddress) );
