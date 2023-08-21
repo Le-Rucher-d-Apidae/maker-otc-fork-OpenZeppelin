@@ -26,4 +26,3 @@ string constant _MMWFLMT020 = "Market buyFeeRatio fee too high.";
 string constant _MMWFLMT021 = "Market sellFeeRatio fee too high.";
 // Zero address
 string constant _MMWFZ000 = "Fee collector cannot be zero address.";
-

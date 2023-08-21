@@ -20,6 +20,7 @@
 
 pragma solidity ^0.8.21;
 
+
 // S Series = Security
 string constant _S000 = "S000_REENTRANCY_ATTEMPT";
 // A Series = Authorization

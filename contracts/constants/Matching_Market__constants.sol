@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// Restricted_Suspendable_Matching_Market__constants.sol
+/// Matching_Market__constants.sol
 
 // Copyright (C) 2017 - 2021 Dai Foundation
 
@@ -19,6 +19,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 pragma solidity ^0.8.21;
+
 
 // S Series = Security/Authorization
 string constant _RSS001 = "RS001_REENTRANCY";

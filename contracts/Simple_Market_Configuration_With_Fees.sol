@@ -19,7 +19,6 @@
 pragma solidity ^0.8.21;
 
 
-
 import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -27,6 +26,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "./constants/Markets__constants.sol";
 import "./constants/Markets_Fees__constants.sol";
+
 import "./constants/Simple_Market_Configuration_With_Fees__constants.sol";
 
 contract SimpleMarketConfigurationWithFeesEvents {
@@ -95,7 +95,7 @@ contract SimpleMarketConfigurationWithFees is
         uint _sellFeeRatio
     ) private onlyOwner
     {
-        console2.log("SimpleMarketConfigurationWithFees:initialize _marketFee", _marketFee);
+        // console2.log("SimpleMarketConfigurationWithFees:initialize _marketFee", _marketFee);
         require(MARKETMAXFEE <= FEE_ONE_HUNDRED_PERCENT,_MMWFLMT010);
         require( (_marketFee == 0) || (_marketFee >= FEE_SMALLEST),_MMWFLMT000);
         
@@ -118,7 +118,7 @@ contract SimpleMarketConfigurationWithFees is
     }
 
     function setMarketFee(uint256 _marketFee /*, bool _compute*/) public onlyOwner {
-        console2.log("setMarketFee _marketFee", _marketFee);
+        // console2.log("setMarketFee _marketFee", _marketFee);
         require(_marketFee <= MARKETMAXFEE, _MMWFLMT011);
         marketFee = _marketFee;
         setMarketBuyAndSellFeeRatios(buyFeeRatio, sellFeeRatio, true);
@@ -147,15 +147,15 @@ contract SimpleMarketConfigurationWithFees is
         // if (_compute) {
         //     computeMarketBuyAndSellFees();
         // }
-        console2.log("public setMarketBuyAndSellFeeRatios _buyFeeRatio", _buyFeeRatio, "_sellFeeRatio", _sellFeeRatio);
+        // console2.log("public setMarketBuyAndSellFeeRatios _buyFeeRatio", _buyFeeRatio, "_sellFeeRatio", _sellFeeRatio);
 
         setMarketBuyAndSellFeeRatios(_buyFeeRatio, _sellFeeRatio, true);
     }
 
     function setMarketBuyAndSellFeeRatios(uint _buyFeeRatio, uint _sellFeeRatio, bool _compute) internal onlyOwner {
 
-        console2.log("internal setMarketBuyAndSellFeeRatios _buyFeeRatio", _buyFeeRatio, "_sellFeeRatio", _sellFeeRatio);
-        console2.log("internal setMarketBuyAndSellFeeRatios compute", _compute);
+        // console2.log("internal setMarketBuyAndSellFeeRatios _buyFeeRatio", _buyFeeRatio, "_sellFeeRatio", _sellFeeRatio);
+        // console2.log("internal setMarketBuyAndSellFeeRatios compute", _compute);
 
         require(_buyFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT020);
         require(_sellFeeRatio <= FEE_ONE_HUNDRED_PERCENT, _MMWFLMT021);
@@ -175,33 +175,33 @@ contract SimpleMarketConfigurationWithFees is
 
         // buyFeeRatio = _buyFeeRatio;
         // sellFeeRatio = _sellFeeRatio;
-        console2.log("computeMarketBuyAndSellFees--------START");
+        // console2.log("computeMarketBuyAndSellFees--------START");
 
         if (marketFee == 0) {
-            console2.log("computeMarketBuyAndSellFees:marketFee is 0");
+            // console2.log("computeMarketBuyAndSellFees:marketFee is 0");
             buyFee = 0;
             sellFee = 0;
         } else {
             if (buyFeeRatio>0) {
-                console2.log("computeMarketBuyAndSellFees:buyFeeRatio>0: ", buyFeeRatio);
+                // console2.log("computeMarketBuyAndSellFees:buyFeeRatio>0: ", buyFeeRatio);
                 if (sellFeeRatio>0) {
-                    console2.log("computeMarketBuyAndSellFees:sellFeeRatio>0: ", sellFeeRatio);
+                    // console2.log("computeMarketBuyAndSellFees:sellFeeRatio>0: ", sellFeeRatio);
                     uint buyAndSell= buyFeeRatio+sellFeeRatio;
-                    console2.log("computeMarketBuyAndSellFees:buyAndSell: ", buyAndSell);
+                    // console2.log("computeMarketBuyAndSellFees:buyAndSell: ", buyAndSell);
                     buyFee = marketFee * buyFeeRatio / buyAndSell;
-                    console2.log("computeMarketBuyAndSellFees:buyFee: ", buyFee);
+                    // console2.log("computeMarketBuyAndSellFees:buyFee: ", buyFee);
                     sellFee = marketFee * sellFeeRatio / buyAndSell;
-                    console2.log("computeMarketBuyAndSellFees:sellFee: ", sellFee);
+                    // console2.log("computeMarketBuyAndSellFees:sellFee: ", sellFee);
                     // return;
                 } else {
-                    console2.log("computeMarketBuyAndSellFees:sellFeeRatio==0: ", sellFeeRatio);
+                    // console2.log("computeMarketBuyAndSellFees:sellFeeRatio==0: ", sellFeeRatio);
                     buyFee = marketFee; // 100% of marketFee
                     sellFee = 0;
                 }
             } else if (sellFeeRatio>0) {
-                console2.log("sellFeeRatio>0");
-                console2.log("computeMarketBuyAndSellFees:buyFeeRatio==0: ", buyFeeRatio);
-                console2.log("computeMarketBuyAndSellFees:sellFeeRatio>0: ", sellFeeRatio);
+                // console2.log("sellFeeRatio>0");
+                // console2.log("computeMarketBuyAndSellFees:buyFeeRatio==0: ", buyFeeRatio);
+                // console2.log("computeMarketBuyAndSellFees:sellFeeRatio>0: ", sellFeeRatio);
                 buyFee = 0;
                 sellFee = marketFee;
             } else if (marketFee>0) {
@@ -209,24 +209,24 @@ contract SimpleMarketConfigurationWithFees is
             }
         } // marketFee > 0
 
-        console2.log("computeMarketBuyAndSellFees:buyFee: ", buyFee);
-        console2.log("computeMarketBuyAndSellFees:sellFee: ", sellFee);
+        // console2.log("computeMarketBuyAndSellFees:buyFee: ", buyFee);
+        // console2.log("computeMarketBuyAndSellFees:sellFee: ", sellFee);
 
         if (buyFee+sellFee < marketFee) {
             // adjust buyFee or sellFee to make sure buyFee+sellFee = marketFee
             if (buyFee<=sellFee) {
                 buyFee += 1;
-                console2.log("computeMarketBuyAndSellFees:buyFee: ", buyFee);
+                // console2.log("computeMarketBuyAndSellFees:buyFee: ", buyFee);
             } else {
                 sellFee += 1;
-                console2.log("computeMarketBuyAndSellFees:sellFee: ", sellFee);
+                // console2.log("computeMarketBuyAndSellFees:sellFee: ", sellFee);
             }
         }
 
-        console2.log("computeMarketBuyAndSellFees:buyFee+sellFee: ", buyFee+sellFee);
-        console2.log("computeMarketBuyAndSellFees:marketFee: ", marketFee);
+        // console2.log("computeMarketBuyAndSellFees:buyFee+sellFee: ", buyFee+sellFee);
+        // console2.log("computeMarketBuyAndSellFees:marketFee: ", marketFee);
 
-        console2.log("computeMarketBuyAndSellFees--------END");
+        // console2.log("computeMarketBuyAndSellFees--------END");
 
         assert (buyFee+sellFee == marketFee);
     }
@@ -234,32 +234,32 @@ contract SimpleMarketConfigurationWithFees is
    function calculateBuyFee(uint256 amount) external view returns (uint256){
 
     if (marketFeeExemption[msg.sender]) {
-        console2.log("calculateBuyFee: marketFeeExemption[msg.sender] is true: EXEMPTION");
+        // console2.log("calculateBuyFee: marketFeeExemption[msg.sender] is true: EXEMPTION");
         return 0;
     }
     // TODO : TEST EXEMPTION
 
-        console2.log("calculateBuyFee amount: ", amount, " buyFee: ", buyFee);
-        console2.log("amount * buyFee / FEE_ONE_HUNDRED_PERCENT = buy fee amount: ", (amount * buyFee) / FEE_ONE_HUNDRED_PERCENT);
+        // console2.log("calculateBuyFee amount: ", amount, " buyFee: ", buyFee);
+        // console2.log("amount * buyFee / FEE_ONE_HUNDRED_PERCENT = buy fee amount: ", (amount * buyFee) / FEE_ONE_HUNDRED_PERCENT);
         return (amount * buyFee) / FEE_ONE_HUNDRED_PERCENT;
     }
 
    function calculateSellFee(uint256 amount) external view returns (uint256){
-       console2.log("calculateSellFee amount:" , amount, " sellFee: ", sellFee);
+    //    console2.log("calculateSellFee amount:" , amount, " sellFee: ", sellFee);
 
     // TODO : TEST EXEMPTION
 
     if (marketFeeExemption[msg.sender]) {
-        console2.log("calculateSellFee: marketFeeExemption[msg.sender] is true: EXEMPTION");
+        // console2.log("calculateSellFee: marketFeeExemption[msg.sender] is true: EXEMPTION");
         return 0;
     }
 
-        console2.log("amount * sellFee / FEE_ONE_HUNDRED_PERCENT = sell fee amount: ", (amount * sellFee) / FEE_ONE_HUNDRED_PERCENT);
+        // console2.log("amount * sellFee / FEE_ONE_HUNDRED_PERCENT = sell fee amount: ", (amount * sellFee) / FEE_ONE_HUNDRED_PERCENT);
         return (amount * sellFee) / FEE_ONE_HUNDRED_PERCENT;
     }
 
     function setMarketFeeExemption(address _address, bool _exempt) public onlyOwner {
-        console2.log("setMarketFeeExemption: ", _address);
+        // console2.log("setMarketFeeExemption: ", _address);
         emit ExemptMarketFee(_address, _exempt);
         marketFeeExemption[_address] = _exempt;
     }

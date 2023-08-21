@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// Restricted_Suspendable_Matching_Market.sol
+/// Matching_Market.sol
 
 // Copyright (C) 2017 - 2021 Dai Foundation
 
@@ -25,7 +25,7 @@ import "../lib/dapphub/ds-math/src/math.sol";
 
 import "./constants/Matching_Market__constants.sol";
 
-import "./Restricted_Suspendable_Simple_Market.sol";
+import "./Simple_Market.sol";
 import "./oracle/IOracle.sol";
 
 // interface PriceOracleLike {
@@ -46,7 +46,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath {
+contract RestrictedSuspendableMatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
@@ -71,7 +71,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    constructor(IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) SimpleMarket() {
         dustToken = _dustToken;
         dustLimit = _dustLimit;
         priceOracle = _priceOracle;
@@ -256,7 +256,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         uint24 _fee    // Uniswap V3 Pool fee
     )
         public
-        tokenAllowed(pay_gem)
     {
         require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
         // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
