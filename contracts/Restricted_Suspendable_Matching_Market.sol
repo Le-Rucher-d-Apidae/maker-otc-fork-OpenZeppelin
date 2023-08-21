@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// matching_market.sol
+/// Restricted_Suspendable_Matching_Market.sol
 
 // Copyright (C) 2017 - 2021 Dai Foundation
 
