@@ -24,10 +24,10 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./constants/Markets_Fees__constants.sol";
-import "./constants/Matching_Market_Configuration_With_Fees__constants.sol";
+import "../constants/Markets_Fees__constants.sol";
+import "../constants/Matching_Market_Configuration_With_Fees__constants.sol";
 
-import "./Matching_Market_Configuration.sol";
+import "../Matching_Market_Configuration.sol";
 
 contract MatchingMarketConfigurationWithFeesEvents {
     event CollectFee(
