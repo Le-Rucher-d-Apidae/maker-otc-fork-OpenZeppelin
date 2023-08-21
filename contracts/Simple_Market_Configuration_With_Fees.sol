@@ -63,36 +63,8 @@ contract SimpleMarketConfigurationWithFees is
     // Fees collector
     address public marketFeeCollector;
 
+    // TODO : TEST EXEMPTION
     mapping (address => bool) public marketFeeExemption;
-
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
-    // TODO : implement EXEMPTION
 
     // Represents total fee percent that gets taken on each trade
     // uint256 public totalFeePercent;
@@ -262,13 +234,28 @@ contract SimpleMarketConfigurationWithFees is
     }
 
    function calculateBuyFee(uint256 amount) external view returns (uint256){
+
+    if (marketFeeExemption[msg.sender]) {
+        console2.log("calculateBuyFee: marketFeeExemption[msg.sender] is true: EXEMPTION");
+        return 0;
+    }
+    // TODO : TEST EXEMPTION
+
         console2.log("calculateBuyFee amount: ", amount, " buyFee: ", buyFee);
         console2.log("amount * buyFee / FEE_ONE_HUNDRED_PERCENT = buy fee amount: ", (amount * buyFee) / FEE_ONE_HUNDRED_PERCENT);
         return (amount * buyFee) / FEE_ONE_HUNDRED_PERCENT;
     }
 
    function calculateSellFee(uint256 amount) external view returns (uint256){
-        console2.log("calculateSellFee amount:" , amount, " sellFee: ", sellFee);
+       console2.log("calculateSellFee amount:" , amount, " sellFee: ", sellFee);
+
+    // TODO : TEST EXEMPTION
+
+    if (marketFeeExemption[msg.sender]) {
+        console2.log("calculateSellFee: marketFeeExemption[msg.sender] is true: EXEMPTION");
+        return 0;
+    }
+
         console2.log("amount * sellFee / FEE_ONE_HUNDRED_PERCENT = sell fee amount: ", (amount * sellFee) / FEE_ONE_HUNDRED_PERCENT);
         return (amount * sellFee) / FEE_ONE_HUNDRED_PERCENT;
     }
