@@ -64,6 +64,7 @@
     "testFoundrySusp": "forge test -vvv --match-path test/suspendable_simple_market.t.sol",
     "testFoundryRest1": "forge test -vvv --match-path restricted_suspendable_simple_market1.t.sol",
     "testFoundryRest2": "forge test -vvv --match-path restricted_suspendable_simple_market2.t.sol",
+    "testFoundryMM1": "forge test -vvv --match-path test/matching_market1.t.sol",
     "testFoundryRestMM1": "forge test -vvv --match-path test/restricted_suspendable_matching_market1.t.sol",
     "testFoundryRestMM2": "forge test -vvv --match-path test/restricted_suspendable_matching_market2.t.sol",
     "testAll": "npm run testHH && npm run testFoundry",
