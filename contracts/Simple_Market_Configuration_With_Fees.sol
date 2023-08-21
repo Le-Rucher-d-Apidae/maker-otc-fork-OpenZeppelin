@@ -29,8 +29,6 @@ import "./constants/Markets__constants.sol";
 import "./constants/Markets_Fees__constants.sol";
 import "./constants/Simple_Market_Configuration_With_Fees__constants.sol";
 
-import "./Matching_Market_Configuration.sol";
-
 contract SimpleMarketConfigurationWithFeesEvents {
     event CollectFee(
         uint256 amount,
