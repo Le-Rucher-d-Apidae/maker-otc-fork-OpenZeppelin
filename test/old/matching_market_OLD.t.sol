@@ -27,9 +27,9 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/Matching_Market.sol";
+import "../../contracts/old/Matching_Market.sol";
 
-import {VmCheat, DSTokenBase} from "./markets.t.sol";
+import {VmCheat, DSTokenBase} from "../markets.t.sol";
 
 
 
@@ -471,8 +471,7 @@ contract MatchingMarket2_OrderMatchingTest is DSTest, VmCheat, EventfulMarket, M
     function doSetMinSellAmount(IERC20 pay_gem, uint min_amount)
         internal
     {
-        // DummySimplePriceOracle(otc.priceOracle()).setPrice(address(pay_gem), min_amount);
-        DummySimplePriceOracle(otc.configuration().priceOracle()).setPrice(address(pay_gem), min_amount);
+        DummySimplePriceOracle(otc.priceOracle()).setPrice(address(pay_gem), min_amount);
         vm.prank(address(otc), address(otc));
         // otc.setMinSell(pay_gem, FEE_HIGH);
         otc.setMinSell(pay_gem, 10000);

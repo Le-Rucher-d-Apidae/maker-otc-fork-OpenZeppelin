@@ -23,3 +23,7 @@ string constant _MMLMTBLW001 = "dustLimit_ is below threshold";
 
 // Zero address
 string constant _MMDST000 = "Dust token address can not be 0x0.";
+
+string constant _MMPOR000 = "Price oracle address can not be 0x0.";
+
+uint8 constant DUST_LIMIT = 100;

@@ -31,17 +31,23 @@ contract MatchingMarketConfiguration is Ownable {
 
     // address public constant NULL_ADDRESS = address(0x0);
     // dust token address
-    address public dustToken;
+    // address public dustToken;
+    IERC20 public dustToken;
     // limit of dust token
-    uint256 public dustLimit;
+    // uint256 public dustLimit;
+    uint128 public dustLimit;
+    address public priceOracle;
 
-    event DustTokenAddressChanged( address newValue);
-    event ConfigurationChanged(string parameter, uint256 newValue);
+    // event DustTokenAddressChanged( address newValue);
+    event DustTokenAddressChanged( IERC20 newValue );
+    event ConfigurationChanged( string parameter, uint256 newValue );
+    event OracleChanged( address newValue );
 
     constructor (
         IERC20 _dustToken,
-        uint128 _dustLimit ) {
-        initialize( _dustToken, _dustLimit ) ;
+        uint128 _dustLimit,
+        address _priceOracle ) {
+        initialize( _dustToken, _dustLimit, _priceOracle ) ;
     }
 
     /**
@@ -49,20 +55,23 @@ contract MatchingMarketConfiguration is Ownable {
      */
     function initialize(
         IERC20 _dustToken,
-        uint128 _dustLimit ) internal
+        uint128 _dustLimit,
+        address _priceOracle
+         ) internal
     
     {
         setDustToken(_dustToken);
         setDustLimit(_dustLimit);
+        setPriceOracle(_priceOracle);
     }
 
     function setDustLimit (
         uint128 _dustLimit ) public onlyOwner
     {
-        require(_dustLimit <= 100, _MMLMTBLW001);
+        require(_dustLimit <= DUST_LIMIT, _MMLMTBLW001);
         dustLimit = _dustLimit;
         emit ConfigurationChanged("dustLimit", dustLimit);
-        console2.log("dustLimit set to: ", dustLimit);
+        // console2.log("dustLimit set to: ", dustLimit);
     }
 
     function setDustToken(
@@ -71,9 +80,20 @@ contract MatchingMarketConfiguration is Ownable {
     public onlyOwner
     {
         require(address(_dustToken) != NULL_ADDRESS, _MMDST000);
-        dustToken = address(_dustToken);
+        dustToken = _dustToken; // address(_dustToken);
         emit DustTokenAddressChanged(dustToken);
-        console2.log("dustToken set to: ", dustToken);
+        // console2.log("dustToken set to: ", address(dustToken));
+    }
+
+    function setPriceOracle(
+        address _priceOracle
+    )
+    public onlyOwner
+    {
+        require(_priceOracle != NULL_ADDRESS, _MMPOR000);
+        priceOracle = _priceOracle;
+        emit OracleChanged(priceOracle);
+        // console2.log("priceOracle set to: ", priceOracle);
     }
 
 }

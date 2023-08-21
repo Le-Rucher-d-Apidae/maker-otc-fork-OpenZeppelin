@@ -24,6 +24,13 @@ pragma solidity ^0.8.21;
 // S Series = Security/Authorization
 string constant _RSS001 = "RS001_REENTRANCY";
 
+string constant _MM_SEC001 = "No indirect calls please";
+
+string constant _MM_CFG001 = "Can't set dust for the dustToken";
+
 // T Series = Trades/Offers
 string constant _RST001 = "RST001_NOT_OWNER_OR_DUST";
 string constant _RST104 = "RST104_OFFER_AMOUNT_LOW";
+string constant _MM_TRD005 = "not enough offers to fulfill";
+string constant _MM_OFR001 = "offer is already sorted";
+string constant _MM_OFR002 = "offer must be active";

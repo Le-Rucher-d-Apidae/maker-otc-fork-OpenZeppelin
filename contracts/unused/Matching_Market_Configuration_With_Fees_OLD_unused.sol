@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// matchingMarketConfigurationWithFees.sol
+/// Matching_Market_Configuration_With_Fees_OLD_unused.sol
 
 //
 // This program is free software: you can redistribute it and/or modify
@@ -69,7 +69,9 @@ contract MatchingMarketConfigurationWithFees is MatchingMarketConfiguration, Mat
         uint256 _marketFee,
         address _marketFeeCollector,
         uint _buyFee,
-        uint _sellFee ) MatchingMarketConfiguration(_dustToken, _dustLimit) {
+        uint _sellFee ) MatchingMarketConfiguration(_dustToken, _dustLimit, 
+        _marketFeeCollector // Oracle address, set to marketFeeCollector for compiling
+        ) {
 
         MARKETMAXFEE = _marketMaxFee; // immutable must be set in constructor
         initialize( //_marketMaxFee,
