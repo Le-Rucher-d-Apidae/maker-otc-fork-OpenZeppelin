@@ -46,7 +46,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract RestrictedSuspendableMatchingMarket is MatchingEvents, SimpleMarket, DSMath {
+contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
