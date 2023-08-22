@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// Matching_Market.sol
+/// Restricted_Suspendable_Matching_Market.sol
 
 // Copyright (C) 2017 - 2021 Dai Foundation
 
@@ -21,14 +21,12 @@
 pragma solidity ^0.8.21;
 
 
-import "../lib/dapphub/ds-math/src/math.sol";
+import "../../lib/dapphub/ds-math/src/math.sol";
 
-import "./constants/Matching_Market__constants.sol";
+import "../constants/Matching_Market__constants.sol";
 
-import "./Simple_Market.sol";
-import "./oracle/IOracle.sol";
-
-import "./Matching_Market_Configuration.sol";
+import "../Restricted_Suspendable_Simple_Market.sol";
+import "../oracle/IOracle.sol";
 
 // interface PriceOracleLike {
 //   function getPriceFor(address, address, uint256) external view returns (uint256);
@@ -48,7 +46,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
+contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
@@ -61,30 +59,23 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     mapping(uint => uint) public _near;         //next unsorted offer id
     uint _head;                                 //first unsorted offer id
 
-    // // dust management
-    // // address public dustToken;
-    // IERC20 public dustToken;
-    // // uint256 public dustLimit;
-    // uint128 public dustLimit;
-    // address public priceOracle;
-
-    MatchingMarketConfiguration public configuration;
-
-
+    // dust management
+    // address public dustToken;
+    IERC20 public dustToken;
+    // uint256 public dustLimit;
+    uint128 public dustLimit;
+    address public priceOracle;
     uint16 TIME_WEIGHTED_AVERAGE = 1 hours;
 
     // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    constructor(IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) SimpleMarket() {
-        // console2.log("NEW Matching_Market: constructor _dustToken = " , address(_dustToken), " _dustLimit = ", _dustLimit );
-        // console2.log("NEW Matching_Market: constructor _priceOracle = ", _priceOracle );
-        configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
-        // dustToken = _dustToken;
-        // dustLimit = _dustLimit;
-        // priceOracle = _priceOracle;
-        _setMinSell(IERC20(_dustToken), _dustLimit);
+    constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+        dustToken = _dustToken;
+        dustLimit = _dustLimit;
+        priceOracle = _priceOracle;
+        _setMinSell(IERC20(dustToken), dustLimit);
     }
 
     // If owner, can cancel an offer
@@ -228,10 +219,10 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
         public
         returns (bool)
     {
-        require(!locked, _RSS001);
-        require(!isOfferSorted(id), _MM_OFR001);    //make sure offers[id] is not yet sorted
+        require(!locked, "Reentrancy attempt");
+        require(!isOfferSorted(id), "offer is already sorted");    //make sure offers[id] is not yet sorted
         // require(isActive(id));          //make sure offers[id] is active
-        require(isOrderActive(id), _MM_OFR002);          //make sure offers[id] is active
+        require(isOrderActive(id), "offer must be active");          //make sure offers[id] is active
 
         _hide(id);                      //remove offer from unsorted offers list
         _sort(id, pos);                 //put offer into the sorted offers list
@@ -261,31 +252,26 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     //    cost more gas to accept the offer, than the value
     //    of tokens received.
     function setMinSell(
-        IERC20 _pay_gem, //token to assign minimum sell amount to
+        IERC20 pay_gem, //token to assign minimum sell amount to
         uint24 _fee    // Uniswap V3 Pool fee
     )
         public
+        tokenAllowed(pay_gem)
     {
-        // console2.log("NEW Matching_Market: setMinSell");
-        require(msg.sender == tx.origin, _MM_SEC001); // sender must be an EOA
-        // console2.log("NEW Matching_Market: setMinSell 1");
-        // require(address(_pay_gem) != dustToken, "Can't set dust for the dustToken");
-        // require(IERC20(_pay_gem) != dustToken, "Can't set dust for the dustToken");
+        // console2.log("Restricted_Suspendable_Matching_Market: setMinSell");
+        require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
+        // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
+        require(IERC20(pay_gem) != dustToken, "Can't set dust for the dustToken");
 
-        // console2.log( "NEW Matching_Market: address(_pay_gem)", address(_pay_gem) );
-        // console2.log( "NEW Matching_Market: configuration.dustToken()",  address(configuration.dustToken())   );
-        
-        require( IERC20(_pay_gem) != configuration.dustToken(), _MM_CFG001 );
-        // console2.log("NEW Matching_Market: setMinSell 2");
 
-        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(_pay_gem), dustLimit);
-        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(_pay_gem), dustLimit);
-        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(_pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
-        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(_pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
-        uint256 dust = IOracle(configuration.priceOracle()).estimateAmountOut( address(_pay_gem), _fee, configuration.dustLimit(), uint32(TIME_WEIGHTED_AVERAGE) );
-        // console2.log("NEW Matching_Market: setMinSell 3");
-        _setMinSell(_pay_gem, dust);
-        // console2.log("NEW Matching_Market: setMinSell 4");
+        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
+        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
+        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+        uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+
+        // console2.log("Restricted_Suspendable_Matching_Market: setMinSell 3 dust = ", dust);
+
+        _setMinSell(pay_gem, dust);
     }
 
     //returns the minimum sell amount for an offer
@@ -422,7 +408,7 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
             pay_amt -= offers[offerId].buy_amt;    //Decrease amount to pay
             if (pay_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
-                require(offerId != 0, _MM_TRD005);                          //Fails if there are not enough offers to complete
+                require(offerId != 0, "not enough offers to fulfill");                          //Fails if there are not enough offers to complete
             }
         }
         // fill_amt = add(fill_amt, rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9); //Add proportional amount of last offer to buy accumulator
