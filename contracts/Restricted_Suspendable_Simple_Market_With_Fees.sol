@@ -1,0 +1,117 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+/// Restricted_Suspendable_Simple_Market.sol
+
+// fork of expiring_market.sol Dai Foundation
+
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+pragma solidity ^0.8.21;
+
+
+import "forge-std/console2.sol";
+
+import "./constants/Restricted_Suspendable_Simple_Market__constants.sol";
+
+import "./Suspendable_Simple_Market_With_Fees.sol";
+
+// Invalid Trading pair
+// @notice mean mùain token is missing from the pair
+// @param buyToken token to buy.
+// @param sellToken token to sell.
+error InvalidTradingPair(IERC20 buyToken, IERC20 sellToken);
+
+contract RestrictedSuspendableSimpleMarketWithFees is SuspendableSimpleMarketWithFees {
+
+    IERC20 public mainTradableToken; // ApidaeToken
+    mapping (IERC20=>bool) tradableTokens; // mainTradableToken must not be in this list
+
+    
+    /// @notice inherits from SuspendableSimpleMarketWithFees
+    /// @notice mainTradableToken may be null at construction time, but must be set before any offer
+    /// @dev 
+    constructor(IERC20 _mainTradableToken, SimpleMarketConfigurationWithFees _simpleMarketConfigurationWithFees, bool _suspended) SuspendableSimpleMarketWithFees(_simpleMarketConfigurationWithFees, _suspended) {
+        mainTradableToken = _mainTradableToken;
+    }
+
+    // Tokens checks
+    modifier tokenAllowed(IERC20 erc20) {
+        require( erc20==mainTradableToken || tradableTokens[erc20], _RSSM_T000 );
+        _;
+    }
+
+
+    /// @notice overrides checkOfferTokens to enforce only one token to be "mainTradableToken" and the other to be an allowed token
+    /// @dev checkOfferTokens is called by offer function
+    /// @dev no need to check for address(0x0) since tradable tokens are whitelisted
+    /// @dev if mainTradableToken has not been set (address(0x0)), no tradable token may have been set modifier will fail properly (e.g.checkOfferTokens( 0x0, 0x0)) with InvalidTradingPair error
+    /// @param _pay_gem token to check
+    /// @param _buy_gem token to check
+    modifier checkOfferTokens(IERC20 _pay_gem, IERC20 _buy_gem) override {
+        // Since tradable tokens are whitelisted, no need to check for address(0x0)
+        // Check for token : one must be mainTradableToken, other must be tradable
+        // console2.log( "modifier checkOfferTokens:RestrictedSuspendableSimpleMarketWithFees" );
+
+        // Sell mainTradableToken
+        if (_pay_gem==mainTradableToken) {
+            // Buy token must be tradable
+            require(tradableTokens[_buy_gem], _RSSM_T001);
+        // Buy mainTradableToken
+        } else if (_buy_gem==mainTradableToken) {
+            // Sold token must be tradable
+            require(tradableTokens[_pay_gem], _RSSM_T002);
+        } else {
+            // mainTradableToken is neither sold or bought : revert
+            revert InvalidTradingPair(_pay_gem, _buy_gem);
+        }
+        _;
+    }
+
+    function setmainTradableToken(IERC20 _erc20) public onlyOwner {
+        // Allow to set only once
+        if (address(mainTradableToken) == NULL_ADDRESS) {
+            mainTradableToken = _erc20;
+        }
+    }
+
+    /// @notice allows to trade a token
+    /// @notice 1 mainTradableToken must be set (not null) before allowing any other token
+    /// @notice 2 mainTradableToken and at least one tradableTokens must be set before any offer
+    /// @dev 
+    /// @param _erc20 token to check
+    function allowToken(IERC20 _erc20) public onlyOwner {
+        require(address(mainTradableToken) != NULL_ADDRESS, _RSSM_AL100);
+        require(_erc20!=mainTradableToken, _RSSM_AL001);
+        require(!tradableTokens[_erc20],_RSSM_AL010);
+        require(address(_erc20) != NULL_ADDRESS);
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        // TODO: check is ERC20
+        tradableTokens[_erc20] = true;
+    }
+
+    function revokeToken(IERC20 _erc20) public onlyOwner tokenAllowed(_erc20) {
+        require(_erc20!=mainTradableToken, _RSSM_AL000);
+        // Allow to remove all tradable tokens
+        // existing orders will remain active (no checks are made on buys)
+        delete tradableTokens[_erc20];
+    }
+
+    // TODO function offer(uint _pay_amt, ERC20 _pay_gem, uint _buy_amt, ERC20 _buy_gem)
+
+}
