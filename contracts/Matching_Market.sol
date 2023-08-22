@@ -77,14 +77,16 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    constructor(IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) SimpleMarket() {
+    // constructor(IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) SimpleMarket() {
+    constructor(MatchingMarketConfiguration _matchingMarketConfiguration) SimpleMarket() {
         // console2.log("NEW Matching_Market: constructor _dustToken = " , address(_dustToken), " _dustLimit = ", _dustLimit );
         // console2.log("NEW Matching_Market: constructor _priceOracle = ", _priceOracle );
-        configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
+        configuration = _matchingMarketConfiguration;
         // dustToken = _dustToken;
         // dustLimit = _dustLimit;
         // priceOracle = _priceOracle;
-        _setMinSell(IERC20(_dustToken), _dustLimit);
+        // _setMinSell(IERC20(_dustToken), _dustLimit);
+        _setMinSell( configuration.dustToken(), configuration.dustLimit() );
     }
 
     // If owner, can cancel an offer
