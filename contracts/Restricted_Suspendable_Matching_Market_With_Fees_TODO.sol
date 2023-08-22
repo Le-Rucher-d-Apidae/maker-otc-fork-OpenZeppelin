@@ -25,7 +25,7 @@ import "../lib/dapphub/ds-math/src/math.sol";
 
 import "./constants/Matching_Market__constants.sol";
 
-import "./Restricted_Suspendable_Simple_Market.sol";
+import "./Restricted_Suspendable_Simple_Market_With_Fees.sol";
 
 // TODO: USE contracts/Restricted_Suspendable_Simple_Market_With_Fees.sol
 
@@ -50,7 +50,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath {
+contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, RestrictedSuspendableSimpleMarketWithFees, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
@@ -78,12 +78,18 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    constructor(
+        IERC20 _mainTradableToken, SimpleMarketConfigurationWithFees _simpleMarketConfigurationWithFees, bool _suspended,
+        // IERC20 _dustToken, uint128 _dustLimit, address _priceOracle
+        MatchingMarketConfiguration _matchingMarketConfiguration
+        ) RestrictedSuspendableSimpleMarketWithFees(_mainTradableToken, _simpleMarketConfigurationWithFees, _suspended) {
         // dustToken = _dustToken;
         // dustLimit = _dustLimit;
         // priceOracle = _priceOracle;
-        configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
-        _setMinSell(IERC20(_dustToken), _dustLimit);
+        // configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
+        configuration = _matchingMarketConfiguration;
+        // _setMinSell(IERC20(_dustToken), _dustLimit);
+        _setMinSell( configuration.dustToken(), configuration.dustLimit() );
     }
 
     // If owner, can cancel an offer
