@@ -27,6 +27,7 @@ import "./constants/Matching_Market__constants.sol";
 
 import "./Restricted_Suspendable_Simple_Market.sol";
 import "./oracle/IOracle.sol";
+import "./Matching_Market_Configuration.sol";
 
 // interface PriceOracleLike {
 //   function getPriceFor(address, address, uint256) external view returns (uint256);
@@ -61,10 +62,13 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
 
     // dust management
     // address public dustToken;
-    IERC20 public dustToken;
+    // IERC20 public dustToken;
     // uint256 public dustLimit;
-    uint128 public dustLimit;
-    address public priceOracle;
+    // uint128 public dustLimit;
+    // address public priceOracle;
+
+    MatchingMarketConfiguration public configuration;
+
     uint16 TIME_WEIGHTED_AVERAGE = 1 hours;
 
     // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
@@ -72,10 +76,11 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        dustToken = _dustToken;
-        dustLimit = _dustLimit;
-        priceOracle = _priceOracle;
-        _setMinSell(IERC20(dustToken), dustLimit);
+        // dustToken = _dustToken;
+        // dustLimit = _dustLimit;
+        // priceOracle = _priceOracle;
+        configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
+        _setMinSell(IERC20(_dustToken), _dustLimit);
     }
 
     // If owner, can cancel an offer
@@ -252,26 +257,28 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     //    cost more gas to accept the offer, than the value
     //    of tokens received.
     function setMinSell(
-        IERC20 pay_gem, //token to assign minimum sell amount to
+        IERC20 _pay_gem, //token to assign minimum sell amount to
         uint24 _fee    // Uniswap V3 Pool fee
     )
         public
-        tokenAllowed(pay_gem)
+        tokenAllowed(_pay_gem)
     {
-        console2.log("Restricted_Suspendable_Matching_Market: setMinSell");
-        require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
-        // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
-        require(IERC20(pay_gem) != dustToken, "Can't set dust for the dustToken");
+        // console2.log("Restricted_Suspendable_Matching_Market: setMinSell");
+        // require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
+        require(msg.sender == tx.origin, _MM_SEC001); // sender must be an EOA
+        // require(address(_pay_gem) != dustToken, "Can't set dust for the dustToken");
+        // require(IERC20(_pay_gem) != dustToken, "Can't set dust for the dustToken");
+        require( IERC20(_pay_gem) != configuration.dustToken(), _MM_CFG001 );
 
+        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(_pay_gem), dustLimit);
+        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(_pay_gem), dustLimit);
+        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(_pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(_pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+        uint256 dust = IOracle(configuration.priceOracle()).estimateAmountOut( address(_pay_gem), _fee, configuration.dustLimit(), uint32(TIME_WEIGHTED_AVERAGE) );
 
-        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
-        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
-        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
-        uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+        // console2.log("Restricted_Suspendable_Matching_Market: setMinSell 3 dust = ", dust);
 
-        console2.log("Restricted_Suspendable_Matching_Market: setMinSell 3 dust = ", dust);
-
-        _setMinSell(pay_gem, dust);
+        _setMinSell(_pay_gem, dust);
     }
 
     //returns the minimum sell amount for an offer
