@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /// restricted_suspendable_simple_market1.t.sol
+
 /// apply the exact same test found in simple_market.t.sol for the Restricted_Suspendable_Simple_Market.sol
 /// due to tokens restrictions almost all test are moved from test to testFail
 
