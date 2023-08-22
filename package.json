@@ -68,6 +68,8 @@
     "testFoundryRestSuspSmpl2": "forge test -vvv --match-path test/restricted_suspendable_simple_market2.t.sol",
     "testFoundryRestSuspSmpl0Fees1": "forge test -vvv --match-path test/restricted_suspendable_simple_market_with_zero_fees1.t.sol",
     "testFoundryRestSuspSmpl0Fees2": "forge test -vvv --match-path test/restricted_suspendable_simple_market_with_zero_fees2.t.sol",
+    "testFoundryRestSuspSmplWithFees1": "forge test -vvv --match-path test/restricted_suspendable_simple_market_with_some_fees_TODO1.t.sol",
+    "testFoundryRestSuspSmplWithFees2": "forge test -vvv --match-path test/restricted_suspendable_simple_market_with_some_fees_TODO2.t.sol",
     "testFoundryMMCfg": "forge test -vvv --match-path test/matching_market_configuration.t.sol",
     "testFoundryMM": "forge test -vvv --match-path test/matching_market.t.sol",
     "testFoundryMMOLD": "forge test -vvv --match-path test/old/matching_market_OLD.t.sol",
