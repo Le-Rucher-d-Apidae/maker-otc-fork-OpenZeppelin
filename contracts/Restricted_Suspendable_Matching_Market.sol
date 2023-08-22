@@ -75,12 +75,15 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    constructor(IERC20 _mainTradableToken, bool _suspended, MatchingMarketConfiguration _matchingMarketConfiguration) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
         // dustToken = _dustToken;
         // dustLimit = _dustLimit;
         // priceOracle = _priceOracle;
-        configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
-        _setMinSell(IERC20(_dustToken), _dustLimit);
+        // configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
+        configuration = _matchingMarketConfiguration;
+        // _setMinSell(IERC20(_dustToken), _dustLimit);
+        _setMinSell( configuration.dustToken(), configuration.dustLimit() );
     }
 
     // If owner, can cancel an offer

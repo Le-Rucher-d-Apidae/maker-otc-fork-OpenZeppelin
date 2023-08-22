@@ -160,7 +160,10 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingGasTest is DSTest, Vm
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
         // otc = new RestrictedSuspendableMatchingMarket(address(dai), 0, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dai), 0, address(priceOracle));
+        // otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dai), 0, address(priceOracle));
+
+        MatchingMarketConfiguration matchingMarketConfiguration = new MatchingMarketConfiguration( dai, 0, address(priceOracle) );
+        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, matchingMarketConfiguration);
 
         otc.allowToken(mkr);
         otc.allowToken(dgd);
@@ -462,7 +465,10 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
         // otc = new RestrictedSuspendableMatchingMarket(address(dustToken), 10, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dustToken), 10, address(priceOracle));
+
+        // otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dustToken), 10, address(priceOracle));
+        MatchingMarketConfiguration matchingMarketConfiguration = new MatchingMarketConfiguration( dustToken, 10, address(priceOracle) );
+        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, matchingMarketConfiguration );
 
         otc.allowToken(mkr);
         otc.allowToken(dgd);
