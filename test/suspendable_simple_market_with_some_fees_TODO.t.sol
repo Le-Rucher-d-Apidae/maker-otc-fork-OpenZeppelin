@@ -2,7 +2,7 @@
 
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// suspendable_simple_market.t.sol
+/// suspendable_simple_market_with_some_fees_TODO.t.sol
 
 //
 // This program is free software: you can redistribute it and/or modify
@@ -25,17 +25,18 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/console2.sol";
 
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/Suspendable_Simple_Market.sol";
+import "../contracts/Suspendable_Simple_Market_With_Fees.sol";
 
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
 contract MarketTester {
 
-    SuspendableSimpleMarket market;
+    SuspendableSimpleMarketWithFees market;
 
-    constructor(SuspendableSimpleMarket market_) {
+    constructor(SuspendableSimpleMarketWithFees market_) {
         market = market_;
     }
     function doApprove(address spender, uint value, IERC20 token) public {
@@ -49,19 +50,38 @@ contract MarketTester {
     }
 }
 
+
+// TODO
+// TODO
+// TODO
+// TODO
+// TODO
+// TODO
+// TODO
+
 // Exact same test as SimpleMarketTest, but with Suspend & Stop checks added
 
-contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
+/*
+
+contract SuspendableSimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
 
     function setUp() public override {
         super.setUp();
-        console2.log("SuspendableSimpleMarketTest: setUp()");
+        console2.log("SuspendableSimpleMarketWithFeesTest: setUp()");
+        address feeCollector = someUser_22;
 
-        otc = new SuspendableSimpleMarket(false);
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -239,7 +259,6 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
         assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
-
         // // expectEventsExact(address(otc));
         // // emit LogItemUpdate(id);
 
@@ -342,13 +361,22 @@ contract TransferTest_OpenMarket is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_OpenMarket: setUp()");
 
-        otc = new SuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -360,7 +388,7 @@ contract TransferTest_OpenMarket is DSTest, VmCheat {
     }
 }
 
-contract SuspendableSimpleMarket_OfferTransferTestOpened is TransferTest_OpenMarket {
+contract SuspendableSimpleMarketWithSomeFees_OfferTransferTestOpened is TransferTest_OpenMarket {
     function testSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -379,7 +407,7 @@ contract SuspendableSimpleMarket_OfferTransferTestOpened is TransferTest_OpenMar
     }
 }
 
-contract SuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarket {
+contract SuspendableSimpleMarketWithSomeFees_BuyTransferTestOpened is TransferTest_OpenMarket {
     function testSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -418,7 +446,7 @@ contract SuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarke
     }
 }
 
-contract SuspendableSimpleMarket_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
+contract SuspendableSimpleMarketWithSomeFees_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
     function testSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -466,7 +494,7 @@ contract SuspendableSimpleMarket_PartialBuyTransferTestOpened is TransferTest_Op
     }
 }
 
-contract SuspendableSimpleMarket_CancelTransferTestOpened is TransferTest_OpenMarket {
+contract SuspendableSimpleMarketWithSomeFees_CancelTransferTestOpened is TransferTest_OpenMarket {
     function testSuspdblSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -515,13 +543,22 @@ contract TransferTest_SuspendedMarket is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_SuspendedMarket: setUp()");
 
-        otc = new SuspendableSimpleMarket(true);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, true);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -533,7 +570,7 @@ contract TransferTest_SuspendedMarket is DSTest, VmCheat {
     }
 }
 
-contract SuspendableSimpleMarket_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -552,7 +589,7 @@ contract SuspendableSimpleMarket_OfferTransferTestSuspended is TransferTest_Susp
     }
 }
 
-contract SuspendableSimpleMarket_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -591,7 +628,7 @@ contract SuspendableSimpleMarket_BuyTransferTestSuspended is TransferTest_Suspen
     }
 }
 
-contract SuspendableSimpleMarket_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -639,7 +676,7 @@ contract SuspendableSimpleMarket_PartialBuyTransferTestSuspended is TransferTest
     }
 }
 
-contract SuspendableSimpleMarket_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
     function testSuspndSuspdblSmplMrktCancelTransfersFromMarket() public {
         // Unsuspend to allow offer
         otc.unsuspendMarket();
@@ -704,13 +741,22 @@ contract TransferTest_ClosedMarket is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_ClosedMarket: setUp()");
 
-        otc = new SuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
         otc.closeMarket();
         user1 = new MarketTester(otc);
 
@@ -723,7 +769,7 @@ contract TransferTest_ClosedMarket is DSTest, VmCheat {
     }
 }
 
-contract SuspendableSimpleMarket_OfferTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_OfferTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -742,7 +788,7 @@ contract SuspendableSimpleMarket_OfferTransferTestClosed is TransferTest_ClosedM
     }
 }
 
-contract SuspendableSimpleMarket_BuyTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_BuyTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -781,7 +827,7 @@ contract SuspendableSimpleMarket_BuyTransferTestClosed is TransferTest_ClosedMar
     }
 }
 
-contract SuspendableSimpleMarket_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -829,7 +875,7 @@ contract SuspendableSimpleMarket_PartialBuyTransferTestClosed is TransferTest_Cl
     }
 }
 
-contract SuspendableSimpleMarket_CancelTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_CancelTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -923,17 +969,26 @@ contract SuspendableSimpleMarket_CancelTransferTestClosed is TransferTest_Closed
 
 // --- Gas Tests ---
 
-contract SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_OpenMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new SuspendableSimpleMarket(false); // not suspended
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false); // not suspended
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -947,7 +1002,16 @@ contract SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
         public
         logs_gas
     {
-        new SuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
     }
     function testOpndSuspdblSmplMrktNewOffer()
         public
@@ -979,17 +1043,26 @@ contract SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
 
 // Same tests as above, but with the market suspended
 
-contract SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_SuspendedMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
+        address feeCollector = someUser_22;
 
-        otc = new SuspendableSimpleMarket(false);
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1004,7 +1077,17 @@ contract SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
         public
         logs_gas
     {
-        new SuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        new SuspendableSimpleMarketWithFees( simpleMarketConfigurationWithZeroFees, false);
+
     }
     function testFailSuspndSuspdblSmplMrktNewOffer()
         public
@@ -1034,17 +1117,27 @@ contract SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
 
 // Same tests as above, but with the market closed
 
-contract SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_ClosedMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new SuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1059,7 +1152,18 @@ contract SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
         public
         logs_gas
     {
-        new SuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
+
     }
     function testFailClsdSuspdblSmplMrktNewOffer()
         public
@@ -1089,17 +1193,27 @@ contract SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
 
 // Same tests as above, but with the market closed & unsuspended
 
-contract SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_ClosedMarket2 is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    SuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new SuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1116,7 +1230,19 @@ contract SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
         public
         logs_gas
     {
-        new SuspendableSimpleMarket(false);
+
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
+
     }
     function testFail2ClsdSuspdblSmplMrktNewOffer()
         public
@@ -1145,3 +1271,4 @@ contract SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
 }
 
 // ============================================================================
+*/
