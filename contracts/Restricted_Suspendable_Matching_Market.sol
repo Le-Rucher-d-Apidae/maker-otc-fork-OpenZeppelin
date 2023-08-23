@@ -29,16 +29,6 @@ import "./Restricted_Suspendable_Simple_Market.sol";
 import "./oracle/IOracle.sol";
 import "./Matching_Market_Configuration.sol";
 
-// interface PriceOracleLike {
-//   function getPriceFor(address, address, uint256) external view returns (uint256);
-// }
-
-    // function estimateAmountOut(
-    //     address tokenIn,
-    //     uint128 amountIn,
-    //     uint32 secondsAgo
-    // ) external view returns (uint amountOut)
-
 contract MatchingEvents {
     event LogMinSell(address pay_gem, uint min_amount);
     event LogUnsortedOffer(uint id);
@@ -60,36 +50,18 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     mapping(uint => uint) public _near;         //next unsorted offer id
     uint _head;                                 //first unsorted offer id
 
-    // dust management
-    // address public dustToken;
-    // IERC20 public dustToken;
-    // uint256 public dustLimit;
-    // uint128 public dustLimit;
-    // address public priceOracle;
-
     MatchingMarketConfiguration public configuration;
 
     uint16 TIME_WEIGHTED_AVERAGE = 1 hours;
 
-    // constructor(address _dustToken, uint256 _dustLimit, address _priceOracle) public {
-    // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
-    // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     constructor(IERC20 _mainTradableToken, bool _suspended, MatchingMarketConfiguration _matchingMarketConfiguration) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        // dustToken = _dustToken;
-        // dustLimit = _dustLimit;
-        // priceOracle = _priceOracle;
-        // configuration = new MatchingMarketConfiguration(_dustToken, _dustLimit, _priceOracle);
         configuration = _matchingMarketConfiguration;
-        // _setMinSell(IERC20(_dustToken), _dustLimit);
         _setMinSell( configuration.dustToken(), configuration.dustLimit() );
     }
 
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
-        // require(isActive(id), "Offer was deleted or taken, or never existed.");
         require(isOrderActive(id), _T101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
@@ -147,9 +119,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         override
         returns (uint)
     {
-        // require(!locked, "Reentrancy attempt");
         return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
-        // return offer(pay_amt, pay_gem, buy_amt, buy_gem, 0, true);
     }
 
     // Make a new offer. Takes funds from the caller into market escrow.
@@ -181,9 +151,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         guard
         returns (uint)
     {
-        // require(!locked, "Reentrancy attempt");
         require(_dust[address(pay_gem)] <= pay_amt, _RST104);
-
         return _matcho(pay_amt, pay_gem, buy_amt, buy_gem, pos, rounding);
     }
 
@@ -195,7 +163,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         override
         returns (bool)
     {
-        // require(!locked, "Reentrancy attempt");
         return _buys(id, amount);
     }
 
@@ -207,7 +174,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         override
         returns (bool success)
     {
-        // require(!locked, "Reentrancy attempt");
         if (isOfferSorted(id)) {
             require(_unsort(id));
         } else {
@@ -228,9 +194,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         guard
         returns (bool)
     {
-        // require(!locked, "Reentrancy attempt");
         require(!isOfferSorted(id), _MM_OFR001);    //make sure offers[id] is not yet sorted
-        // require(isActive(id));          //make sure offers[id] is active
         require(isOrderActive(id), _MM_OFR002);          //make sure offers[id] is active
 
         _hide(id);                      //remove offer from unsorted offers list
@@ -245,8 +209,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         guard
         returns (bool)
     {
-        // require(!locked, "Reentrancy attempt");
-        // require(!isActive(id) && _rank[id].delb != 0 && _rank[id].delb < block.number - 10);
         require(!isOrderActive(id) && _rank[id].delb != 0 && _rank[id].delb < block.number - 10);
         delete _rank[id];
         emit LogDelete(msg.sender, id);
@@ -267,20 +229,10 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         public
         tokenAllowed(_pay_gem)
     {
-        // console2.log("Restricted_Suspendable_Matching_Market: setMinSell");
-        // require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
         require(msg.sender == tx.origin, _MM_SEC001); // sender must be an EOA
-        // require(address(_pay_gem) != dustToken, "Can't set dust for the dustToken");
-        // require(IERC20(_pay_gem) != dustToken, "Can't set dust for the dustToken");
         require( IERC20(_pay_gem) != configuration.dustToken(), _MM_CFG001 );
 
-        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(_pay_gem), dustLimit);
-        // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(_pay_gem), dustLimit);
-        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(_pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
-        // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(_pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
         uint256 dust = IOracle(configuration.priceOracle()).estimateAmountOut( address(_pay_gem), _fee, configuration.dustLimit(), uint32(TIME_WEIGHTED_AVERAGE) );
-
-        // console2.log("Restricted_Suspendable_Matching_Market: setMinSell 3 dust = ", dust);
 
         _setMinSell(_pay_gem, dust);
     }
@@ -351,7 +303,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         guard
         returns (uint fill_amt)
     {
-        // require(!locked, "Reentrancy attempt");
         uint offerId;
         while (pay_amt > 0) {                           //while there is amount to sell
             offerId = getBestOffer(buy_gem, pay_gem);   //Get the best offer for the token pair
@@ -363,14 +314,11 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
                 break;                                  //We consider that all amount is sold
             }
             if (pay_amt >= offers[offerId].buy_amt) {                       //If amount to sell is higher or equal than current offer amount to buy
-                // fill_amt = add(fill_amt, offers[offerId].pay_amt);          //Add amount bought to acumulator
                 fill_amt = fill_amt + offers[offerId].pay_amt;          //Add amount bought to acumulator
-                // pay_amt = sub(pay_amt, offers[offerId].buy_amt);            //Decrease amount to sell
                 pay_amt = pay_amt - offers[offerId].buy_amt;            //Decrease amount to sell
                 take(bytes32(offerId), uint128(offers[offerId].pay_amt));   //We take the whole offer
             } else { // if lower
                 uint256 baux = rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9;
-                // fill_amt = add(fill_amt, baux);         //Add amount bought to acumulator
                 fill_amt = fill_amt + baux;         //Add amount bought to acumulator
                 take(bytes32(offerId), uint128(baux));  //We take the portion of the offer that we need
                 pay_amt = 0;                            //All amount is sold
@@ -384,7 +332,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         guard
         returns (uint fill_amt)
     {
-        // require(!locked, "Reentrancy attempt");
         uint offerId;
         while (buy_amt > 0) {                           //Meanwhile there is amount to buy
             offerId = getBestOffer(buy_gem, pay_gem);   //Get the best offer for the token pair
@@ -395,13 +342,10 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
                 break;                                  //We consider that all amount is sold
             }
             if (buy_amt >= offers[offerId].pay_amt) {                       //If amount to buy is higher or equal than current offer amount to sell
-                // fill_amt = add(fill_amt, offers[offerId].buy_amt);          //Add amount sold to acumulator
                 fill_amt = fill_amt + offers[offerId].buy_amt;          //Add amount sold to acumulator
-                // buy_amt = sub(buy_amt, offers[offerId].pay_amt);            //Decrease amount to buy
                 buy_amt = buy_amt - offers[offerId].pay_amt;            //Decrease amount to buy
                 take(bytes32(offerId), uint128(offers[offerId].pay_amt));   //We take the whole offer
             } else {                                                        //if lower
-                // fill_amt = add(fill_amt, rmul(buy_amt * 10 ** 9, rdiv(offers[offerId].buy_amt, offers[offerId].pay_amt)) / 10 ** 9); //Add amount sold to acumulator
                 fill_amt = fill_amt + rmul(buy_amt * 10 ** 9, rdiv(offers[offerId].buy_amt, offers[offerId].pay_amt)) / 10 ** 9; //Add amount sold to acumulator
                 take(bytes32(offerId), uint128(buy_amt));                   //We take the portion of the offer that we need
                 buy_amt = 0;                                                //All amount is bought
@@ -413,32 +357,26 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     function getBuyAmount(IERC20 buy_gem, IERC20 pay_gem, uint pay_amt) public view returns (uint fill_amt) {
         uint256 offerId = getBestOffer(buy_gem, pay_gem);           //Get best offer for the token pair
         while (pay_amt > offers[offerId].buy_amt) {
-            // fill_amt = add(fill_amt, offers[offerId].pay_amt);  //Add amount to buy accumulator
             fill_amt += offers[offerId].pay_amt;  //Add amount to buy accumulator
-            // pay_amt = sub(pay_amt, offers[offerId].buy_amt);    //Decrease amount to pay
             pay_amt -= offers[offerId].buy_amt;    //Decrease amount to pay
             if (pay_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
                 require(offerId != 0, "not enough offers to fulfill");                          //Fails if there are not enough offers to complete
             }
         }
-        // fill_amt = add(fill_amt, rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9); //Add proportional amount of last offer to buy accumulator
         fill_amt = fill_amt + rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9; //Add proportional amount of last offer to buy accumulator
     }
 
     function getPayAmount(IERC20 pay_gem, IERC20 buy_gem, uint buy_amt) public view returns (uint fill_amt) {
         uint256 offerId = getBestOffer(buy_gem, pay_gem);           //Get best offer for the token pair
         while (buy_amt > offers[offerId].pay_amt) {
-            // fill_amt = add(fill_amt, offers[offerId].buy_amt);  //Add amount to pay accumulator
             fill_amt = fill_amt + offers[offerId].buy_amt;  //Add amount to pay accumulator
-            // buy_amt = sub(buy_amt, offers[offerId].pay_amt);    //Decrease amount to buy
             buy_amt = buy_amt - offers[offerId].pay_amt;    //Decrease amount to buy
             if (buy_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
                 require(offerId != 0);                          //Fails if there are not enough offers to complete
             }
         }
-        // fill_amt = add(fill_amt, rmul(buy_amt * 10 ** 9, rdiv(offers[offerId].buy_amt, offers[offerId].pay_amt)) / 10 ** 9); //Add proportional amount of last offer to pay accumulator
         fill_amt = fill_amt + rmul(buy_amt * 10 ** 9, rdiv(offers[offerId].buy_amt, offers[offerId].pay_amt)) / 10 ** 9; //Add proportional amount of last offer to pay accumulator
     }
 
@@ -468,7 +406,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         }
         require(super.buy(id, amount));
         // If offer has become dust during buy, we cancel it
-        // if (isActive(id) && offers[id].pay_amt < _dust[address(offers[id].pay_gem)]) {
         if (isOrderActive(id) && offers[id].pay_amt < _dust[address(offers[id].pay_gem)]) {
             cancel(id);
         }
@@ -505,7 +442,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         require(id > 0);
 
         // Look for an active order.
-        // while (pos != 0 && !isActive(pos)) {
         while (pos != 0 && !isOrderActive(pos)) {
             pos = _rank[pos].prev;
         }
@@ -547,8 +483,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         view
         returns (bool)
     {
-        // return mul(offers[low].buy_amt, offers[high].pay_amt)
-        //   >= mul(offers[high].buy_amt, offers[low].pay_amt);
         return offers[low].buy_amt * offers[high].pay_amt
           >= offers[high].buy_amt * offers[low].pay_amt;
     }
@@ -594,9 +528,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
             // of discussion.
             buy(best_maker_id, min(m_pay_amt, t_buy_amt));
             t_buy_amt_old = t_buy_amt;
-            // t_buy_amt = sub(t_buy_amt, min(m_pay_amt, t_buy_amt));
             t_buy_amt = t_buy_amt - min(m_pay_amt, t_buy_amt);
-            // t_pay_amt = mul(t_buy_amt, t_pay_amt) / t_buy_amt_old;
             t_pay_amt = (t_buy_amt * t_pay_amt) / t_buy_amt_old;
 
             if (t_pay_amt == 0 || t_buy_amt == 0) {
@@ -641,7 +573,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     )
         internal
     {
-        // require(isActive(id));
         require(isOrderActive(id));
 
         IERC20 buy_gem = offers[id].buy_gem;
@@ -655,8 +586,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
             _findpos(id, pos);
 
         if (pos != 0) {                                    //offers[id] is not the highest offer
-            //requirement below is satisfied by statements above
-            //require(_isPricedLtOrEq(id, pos));
             prev_id = _rank[pos].prev;
             _rank[pos].prev = id;
             _rank[id].next = pos;
@@ -666,8 +595,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         }
 
         if (prev_id != 0) {                               //if lower offer does exist
-            //requirement below is satisfied by statements above
-            //require(!_isPricedLtOrEq(id, prev_id));
             _rank[prev_id].next = id;
             _rank[id].prev = prev_id;
         }
