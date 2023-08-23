@@ -228,9 +228,10 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
         uint pos   //position to insert into
     )
         public
+        guard
         returns (bool)
     {
-        require(!locked, _RSS001);
+        // require(!locked, _RSS001);
         require(!isOfferSorted(id), _MM_OFR001);    //make sure offers[id] is not yet sorted
         // require(isActive(id));          //make sure offers[id] is active
         require(isOrderActive(id), _MM_OFR002);          //make sure offers[id] is active

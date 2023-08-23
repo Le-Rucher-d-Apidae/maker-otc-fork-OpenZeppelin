@@ -217,12 +217,13 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         uint pos   //position to insert into
     )
         public
+        guard
         returns (bool)
     {
-        require(!locked, "Reentrancy attempt");
-        require(!isOfferSorted(id), "offer is already sorted");    //make sure offers[id] is not yet sorted
+        // require(!locked, "Reentrancy attempt");
+        require(!isOfferSorted(id), _MM_OFR001);    //make sure offers[id] is not yet sorted
         // require(isActive(id));          //make sure offers[id] is active
-        require(isOrderActive(id), "offer must be active");          //make sure offers[id] is active
+        require(isOrderActive(id), _MM_OFR002);          //make sure offers[id] is active
 
         _hide(id);                      //remove offer from unsorted offers list
         _sort(id, pos);                 //put offer into the sorted offers list
