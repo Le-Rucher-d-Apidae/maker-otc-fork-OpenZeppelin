@@ -92,7 +92,10 @@
     "depLocV": "npx hardhat run scripts/deployGreeter.js --network localhost --verbose",
     "depTokenLoc": "npx hardhat deploy --tags Token --network localhost",
     "depOracleLoc": "npx hardhat deploy --tags Oracle --network localhost",
+    "depMatchingMartketConfigLoc": "npx hardhat deploy --tags MatchingMarketConfiguration --network localhost",
+
     "depMatchingMartketLoc": "npx hardhat deploy --tags MatchingMarket --network localhost",
+    "depRestSuspMatchingMartketLoc": "npx hardhat deploy --tags RestrictedSuspendableMatchingMarket --network localhost",
     "depTokenMumb": "npx hardhat deploy --tags Token --network mumbai",
     "depOracleMumb": "npx hardhat deploy --tags Oracle --network mumbai",
     "depMatchingMartketMumb": "npx hardhat deploy --tags MatchingMarket --network mumbai",
