@@ -76,6 +76,11 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
         _;
     }
 
+    modifier isEOA() {
+        require(msg.sender == tx.origin, _MM_SEC001); // sender must be an EOA
+        _;
+    }
+
     // ---- Public entrypoints ---- //
 
     function make (
@@ -234,8 +239,8 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
         uint24 _fee    // Uniswap V3 Pool fee
     )
         public
+        isEOA
     {
-        require(msg.sender == tx.origin, _MM_SEC001); // sender must be an EOA
         require( IERC20(_pay_gem) != configuration.dustToken(), _MM_CFG001 );
         uint256 dust = IOracle(configuration.priceOracle()).estimateAmountOut( address(_pay_gem), _fee, configuration.dustLimit(), uint32(TIME_WEIGHTED_AVERAGE) );
         _setMinSell(_pay_gem, dust);
