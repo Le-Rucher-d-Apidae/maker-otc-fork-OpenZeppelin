@@ -19,7 +19,7 @@
 pragma solidity ^0.8.21;
 
 // Limits
-string constant _MMLMTBLW001 = "dustLimit_ is below threshold";
+string constant _MMLMTBLW001 = "Dust limit is below threshold";
 
 // Zero address
 string constant _MMDST000 = "Dust token address can not be 0x0.";
