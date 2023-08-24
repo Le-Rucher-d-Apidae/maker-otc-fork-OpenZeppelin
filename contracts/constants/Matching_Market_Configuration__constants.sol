@@ -19,11 +19,11 @@
 pragma solidity ^0.8.21;
 
 // Limits
-string constant _MMLMTBLW001 = "Dust limit is below threshold";
+string constant _MMLMTBLW001 = "Dust limit is above threshold";
 
 // Zero address
 string constant _MMDST000 = "Dust token address can not be 0x0.";
 
 string constant _MMPOR000 = "Price oracle address can not be 0x0.";
 
-uint8 constant DUST_LIMIT = 100;
+uint128 constant DUST_LIMIT = 1_000;
