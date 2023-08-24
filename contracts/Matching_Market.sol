@@ -55,7 +55,8 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
 
     uint16 TIME_WEIGHTED_AVERAGE = 1 hours;
 
-    constructor(MatchingMarketConfiguration _matchingMarketConfiguration) SimpleMarket() {
+    constructor(
+        MatchingMarketConfiguration _matchingMarketConfiguration) SimpleMarket() {
         configuration = _matchingMarketConfiguration;
         _setMinSell( configuration.dustToken(), configuration.dustLimit() );
     }
@@ -63,7 +64,7 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
-        require(isOrderActive(id), _T101);
+        require(isOrderActive(id), _MM_OFR101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
             _RST001
@@ -125,9 +126,7 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
         override
         returns (uint)
     {
-        // require(!locked, "Reentrancy attempt");
         return _offeru(pay_amt, pay_gem, buy_amt, buy_gem);
-        // return offer(pay_amt, pay_gem, buy_amt, buy_gem, 0, true);
     }
 
     // Make a new offer. Takes funds from the caller into market escrow.
@@ -155,37 +154,33 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
         bool rounding    //match "close enough" orders?
     )
         public
-        can_offer
         guard
+        can_offer
         returns (uint)
     {
-        // require(!locked, "Reentrancy attempt");
         require(_dust[address(pay_gem)] <= pay_amt, _RST104);
-
         return _matcho(pay_amt, pay_gem, buy_amt, buy_gem, pos, rounding);
     }
 
     //Transfers funds from caller to offer maker, and from market to caller.
     function buy(uint id, uint amount)
         public
-        can_buy(id)
         guard
+        can_buy(id)
         override
         returns (bool)
     {
-        // require(!locked, "Reentrancy attempt");
         return _buys(id, amount);
     }
 
     // Cancel an offer. Refunds offer maker.
     function cancel(uint id)
         public
-        can_cancel(id)
         guard
+        can_cancel(id)
         override
         returns (bool success)
     {
-        // require(!locked, "Reentrancy attempt");
         if (isOfferSorted(id)) {
             require(_unsort(id));
         } else {
@@ -450,7 +445,6 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
         require(id > 0);
 
         // Look for an active order.
-        // while (pos != 0 && !isActive(pos)) {
         while (pos != 0 && !isOrderActive(pos)) {
             pos = _rank[pos].prev;
         }

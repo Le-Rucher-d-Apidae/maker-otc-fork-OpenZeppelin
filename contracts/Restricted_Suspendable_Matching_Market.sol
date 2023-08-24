@@ -27,6 +27,7 @@ import "./constants/Matching_Market__constants.sol";
 
 import "./Restricted_Suspendable_Simple_Market.sol";
 import "./oracle/IOracle.sol";
+
 import "./Matching_Market_Configuration.sol";
 
 contract MatchingEvents {
@@ -54,7 +55,10 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
 
     uint16 TIME_WEIGHTED_AVERAGE = 1 hours;
 
-    constructor(IERC20 _mainTradableToken, bool _suspended, MatchingMarketConfiguration _matchingMarketConfiguration) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    constructor(
+        IERC20 _mainTradableToken,
+        bool _suspended,
+        MatchingMarketConfiguration _matchingMarketConfiguration) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
         configuration = _matchingMarketConfiguration;
         _setMinSell( configuration.dustToken(), configuration.dustLimit() );
     }
@@ -62,7 +66,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
-        require(isOrderActive(id), _T101);
+        require(isOrderActive(id), _MM_OFR101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
             _RST001
@@ -152,8 +156,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         bool rounding    //match "close enough" orders?
     )
         public
-        can_offer
         guard
+        can_offer
         returns (uint)
     {
         require(_dust[address(pay_gem)] <= pay_amt, _RST104);
@@ -163,8 +167,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     //Transfers funds from caller to offer maker, and from market to caller.
     function buy(uint id, uint amount)
         public
-        can_buy(id)
         guard
+        can_buy(id)
         override
         returns (bool)
     {
@@ -174,8 +178,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // Cancel an offer. Refunds offer maker.
     function cancel(uint id)
         public
-        can_cancel(id)
         guard
+        can_cancel(id)
         override
         returns (bool success)
     {
@@ -312,7 +316,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
             require(offerId != 0);                      //Fails if there are not more offers
 
             // There is a chance that pay_amt is smaller than 1 wei of the other token
-            // if (pay_amt * 1 ether < wdiv(offers[offerId].buy_amt, offers[offerId].pay_amt)) {
             if (pay_amt * 1 ether < wdiv(offers[offerId].buy_amt, offers[offerId].pay_amt)) {
                 break;                                  //We consider that all amount is sold
             }
@@ -364,7 +367,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
             pay_amt -= offers[offerId].buy_amt;    //Decrease amount to pay
             if (pay_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
-                require(offerId != 0, "not enough offers to fulfill");                          //Fails if there are not enough offers to complete
+                require(offerId != 0, _MM_TRD005);                          //Fails if there are not enough offers to complete
             }
         }
         fill_amt = fill_amt + rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9; //Add proportional amount of last offer to buy accumulator
@@ -521,7 +524,6 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
             // their "correct" values and m_buy_amt and t_buy_amt at -1.
             // Since (c - 1) * (d - 1) > (a + 1) * (b + 1) is equivalent to
             // c * d > a * b + a + b + c + d, we write...
-            // if (mul(m_buy_amt, t_buy_amt) > mul(t_pay_amt, m_pay_amt) +
             if ( m_buy_amt * t_buy_amt > t_pay_amt * m_pay_amt +
                 (rounding ? m_buy_amt + t_buy_amt + t_pay_amt + m_pay_amt : 0))
             {
@@ -589,6 +591,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
             _findpos(id, pos);
 
         if (pos != 0) {                                    //offers[id] is not the highest offer
+            //requirement below is satisfied by statements above
+            //require(_isPricedLtOrEq(id, pos));
             prev_id = _rank[pos].prev;
             _rank[pos].prev = id;
             _rank[id].next = pos;
@@ -598,6 +602,8 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         }
 
         if (prev_id != 0) {                               //if lower offer does exist
+            //requirement below is satisfied by statements above
+            //require(!_isPricedLtOrEq(id, prev_id));
             _rank[prev_id].next = id;
             _rank[id].prev = prev_id;
         }

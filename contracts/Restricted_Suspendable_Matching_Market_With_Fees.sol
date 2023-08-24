@@ -27,8 +27,8 @@ import "./constants/Matching_Market__constants.sol";
 
 import "./Restricted_Suspendable_Simple_Market_With_Fees.sol";
 import "./oracle/IOracle.sol";
-import "./Matching_Market_Configuration.sol";
 
+import "./Matching_Market_Configuration.sol";
 
 contract MatchingEvents {
     event LogMinSell(address pay_gem, uint min_amount);
@@ -56,7 +56,9 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
     uint16 TIME_WEIGHTED_AVERAGE = 1 hours;
 
     constructor(
-        IERC20 _mainTradableToken, SimpleMarketConfigurationWithFees _simpleMarketConfigurationWithFees, bool _suspended,
+        IERC20 _mainTradableToken,
+        SimpleMarketConfigurationWithFees _simpleMarketConfigurationWithFees,
+        bool _suspended,
         MatchingMarketConfiguration _matchingMarketConfiguration
         ) RestrictedSuspendableSimpleMarketWithFees(_mainTradableToken, _simpleMarketConfigurationWithFees, _suspended) {
         configuration = _matchingMarketConfiguration;
@@ -66,8 +68,7 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
-        // require(isActive(id), "Offer was deleted or taken, or never existed.");
-        require(isOrderActive(id), _T101);
+        require(isOrderActive(id), _MM_OFR101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
             _RST001
@@ -157,37 +158,33 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
         bool rounding    //match "close enough" orders?
     )
         public
-        can_offer
         guard
+        can_offer
         returns (uint)
     {
-        // require(!locked, "Reentrancy attempt");
         require(_dust[address(pay_gem)] <= pay_amt, _RST104);
-
         return _matcho(pay_amt, pay_gem, buy_amt, buy_gem, pos, rounding);
     }
 
     //Transfers funds from caller to offer maker, and from market to caller.
     function buy(uint id, uint amount)
         public
-        can_buy(id)
         guard
+        can_buy(id)
         override
         returns (bool)
     {
-        // require(!locked, "Reentrancy attempt");
         return _buys(id, amount);
     }
 
     // Cancel an offer. Refunds offer maker.
     function cancel(uint id)
         public
-        can_cancel(id)
         guard
+        can_cancel(id)
         override
         returns (bool success)
     {
-        // require(!locked, "Reentrancy attempt");
         if (isOfferSorted(id)) {
             require(_unsort(id));
         } else {
@@ -208,9 +205,7 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
         guard
         returns (bool)
     {
-        // require(!locked, "Reentrancy attempt");
         require(!isOfferSorted(id), _MM_OFR001);    //make sure offers[id] is not yet sorted
-        // require(isActive(id));          //make sure offers[id] is active
         require(isOrderActive(id), _MM_OFR002);          //make sure offers[id] is active
 
         _hide(id);                      //remove offer from unsorted offers list
@@ -225,8 +220,6 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
         guard
         returns (bool)
     {
-        // require(!locked, "Reentrancy attempt");
-        // require(!isActive(id) && _rank[id].delb != 0 && _rank[id].delb < block.number - 10);
         require(!isOrderActive(id) && _rank[id].delb != 0 && _rank[id].delb < block.number - 10);
         delete _rank[id];
         emit LogDelete(msg.sender, id);
@@ -376,7 +369,7 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
             pay_amt -= offers[offerId].buy_amt;    //Decrease amount to pay
             if (pay_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
-                require(offerId != 0, "not enough offers to fulfill");                          //Fails if there are not enough offers to complete
+                require(offerId != 0, _MM_TRD005);                          //Fails if there are not enough offers to complete
             }
         }
         fill_amt = fill_amt + rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9; //Add proportional amount of last offer to buy accumulator
@@ -457,7 +450,6 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
         require(id > 0);
 
         // Look for an active order.
-        // while (pos != 0 && !isActive(pos)) {
         while (pos != 0 && !isOrderActive(pos)) {
             pos = _rank[pos].prev;
         }
@@ -534,7 +526,6 @@ contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, Restrict
             // their "correct" values and m_buy_amt and t_buy_amt at -1.
             // Since (c - 1) * (d - 1) > (a + 1) * (b + 1) is equivalent to
             // c * d > a * b + a + b + c + d, we write...
-            // if (mul(m_buy_amt, t_buy_amt) > mul(t_pay_amt, m_pay_amt) +
             if ( m_buy_amt * t_buy_amt > t_pay_amt * m_pay_amt +
                 (rounding ? m_buy_amt + t_buy_amt + t_pay_amt + m_pay_amt : 0))
             {
