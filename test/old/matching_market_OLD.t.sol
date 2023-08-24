@@ -27,7 +27,7 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../../contracts/old/Matching_Market.sol";
+import "../../contracts/old/Matching_Market_OLD.sol";
 
 import {VmCheat, DSTokenBase} from "../markets.t.sol";
 
@@ -56,8 +56,8 @@ contract DummySimplePriceOracle is IOracle {
 }
 
 contract MarketTester {
-    MatchingMarket market;
-    constructor(MatchingMarket  market_) {
+    MatchingMarket_OLD market;
+    constructor(MatchingMarket_OLD  market_) {
         market = market_;
     }
     function doGetFirstUnsortedOffer()
@@ -127,18 +127,18 @@ contract MarketTester {
     function getMarket()
         public
         view
-        returns (MatchingMarket)
+        returns (MatchingMarket_OLD)
     {
         return market;
     }
 }
 
-contract MatchingMarket2_OrderMatchingGasTest is DSTest, VmCheat {
+contract MatchingMarket_OLD2_OrderMatchingGasTest is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
     IERC20 dgd;
-    MatchingMarket otc;
+    MatchingMarket_OLD otc;
     uint offer_count = 200;
     mapping( uint => uint ) offer;
     mapping( uint => uint ) dai_to_buy;
@@ -157,9 +157,9 @@ contract MatchingMarket2_OrderMatchingGasTest is DSTest, VmCheat {
         dgd = new DSTokenBase(DGD_SUPPLY);
 
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
-        // otc = new MatchingMarket(address(dai), 0, address(priceOracle));
+        // otc = new MatchingMarket_OLD(address(dai), 0, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new MatchingMarket(IERC20(dai), 0, address(priceOracle));
+        otc = new MatchingMarket_OLD(IERC20(dai), 0, address(priceOracle));
 
         // otc.allowToken(mkr);
         // otc.allowToken(dgd);
@@ -436,7 +436,7 @@ contract MatchingMarket2_OrderMatchingTest is DSTest, VmCheat, EventfulMarket, M
     IERC20 dustToken;
     IERC20 mkr;
     IERC20 dgd;
-    MatchingMarket otc;
+    MatchingMarket_OLD otc;
     mapping(uint => uint) offer_id;
     uint buy_val;
     uint sell_val;
@@ -459,9 +459,9 @@ contract MatchingMarket2_OrderMatchingTest is DSTest, VmCheat, EventfulMarket, M
         mkr = new DSTokenBase(MKR_SUPPLY);
         dgd = new DSTokenBase(DGD_SUPPLY);
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
-        // otc = new MatchingMarket(address(dustToken), 10, address(priceOracle));
+        // otc = new MatchingMarket_OLD(address(dustToken), 10, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new MatchingMarket( IERC20(dustToken), 10, address(priceOracle));
+        otc = new MatchingMarket_OLD( IERC20(dustToken), 10, address(priceOracle));
 
         // otc.allowToken(mkr);
         // otc.allowToken(dgd);
