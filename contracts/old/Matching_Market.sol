@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// matching_market.sol
+/// Matching_Market.sol OLD
 
 // Copyright (C) 2017 - 2021 Dai Foundation
 
@@ -18,14 +18,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// pragma solidity ^0.5.12;
-// pragma solidity >= 0.8.18 < 0.9.0;
-// pragma solidity ^0.8.20;
-pragma solidity ^0.8.18; // latest HH supported version
+pragma solidity ^0.8.21;
 
-import "./restricted_suspendable_simple_market.sol";
-import "../lib/dapphub/ds-math/src/math.sol";
-import "./oracle/IOracle.sol";
+
+import "../../lib/dapphub/ds-math/src/math.sol";
+
+import "../constants/Matching_Market__constants.sol";
+
+import "../Simple_Market.sol";
+import "../oracle/IOracle.sol";
 
 // interface PriceOracleLike {
 //   function getPriceFor(address, address, uint256) external view returns (uint256);
@@ -45,16 +46,7 @@ contract MatchingEvents {
     event LogDelete(address keeper, uint id);
 }
 
-contract RestrictedSuspendableMatchingMarketErrorCodes {
-    // S Series = Security/Authorization
-    string internal constant _RSS001 = "RS001_REENTRANCY";
-
-    // T Series = Trades/Offers
-    string internal constant _RST001 = "RST001_NOT_OWNER_OR_DUST";
-    string internal constant _RST104 = "RST104_OFFER_AMOUNT_LOW";
-}
-
-contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspendableSimpleMarket, DSMath, RestrictedSuspendableMatchingMarketErrorCodes {
+contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     struct sortInfo {
         uint next;  //points to id of next higher offer
         uint prev;  //points to id of previous lower offer
@@ -79,7 +71,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // constructor(ERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) SuspendableMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, address _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
     // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-    constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
+    constructor(IERC20 _dustToken, uint128 _dustLimit, address _priceOracle) SimpleMarket() {
         dustToken = _dustToken;
         dustLimit = _dustLimit;
         priceOracle = _priceOracle;
@@ -89,8 +81,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
-        // require(isActive(id), "Offer was deleted or taken, or never existed.");
-        require(isOrderActive(id), _T101);
+        require(isOrderActive(id), _MM_OFR101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
             _RST001
@@ -227,10 +218,10 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         public
         returns (bool)
     {
-        require(!locked, "Reentrancy attempt");
-        require(!isOfferSorted(id), "offer is already sorted");    //make sure offers[id] is not yet sorted
+        require(!locked, _RSS001);
+        require(!isOfferSorted(id), _MM_OFR001);    //make sure offers[id] is not yet sorted
         // require(isActive(id));          //make sure offers[id] is active
-        require(isOrderActive(id), "offer must be active");          //make sure offers[id] is active
+        require(isOrderActive(id), _MM_OFR002);          //make sure offers[id] is active
 
         _hide(id);                      //remove offer from unsorted offers list
         _sort(id, pos);                 //put offer into the sorted offers list
@@ -264,17 +255,21 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
         uint24 _fee    // Uniswap V3 Pool fee
     )
         public
-        tokenAllowed(pay_gem)
     {
-        require(msg.sender == tx.origin, "No indirect calls please"); // sender must be an EOA
+        // console2.log("old Matching_Market: setMinSell");
+        require(msg.sender == tx.origin, _MM_SEC001); // sender must be an EOA
+        // console2.log("old Matching_Market: setMinSell 1");
         // require(address(pay_gem) != dustToken, "Can't set dust for the dustToken");
-        require(IERC20(pay_gem) != dustToken, "Can't set dust for the dustToken");
+        require( IERC20(pay_gem) != dustToken, _MM_CFG001);
+        // console2.log("old Matching_Market: setMinSell 2");
 
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(dustToken, address(pay_gem), dustLimit);
         // uint256 dust = PriceOracleLike(priceOracle).getPriceFor(address(dustToken), address(pay_gem), dustLimit);
         // uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
         uint256 dust = IOracle(priceOracle).estimateAmountOut( address(pay_gem), _fee, dustLimit, uint32(TIME_WEIGHTED_AVERAGE) );
+        // console2.log("old Matching_Market: setMinSell 3");
         _setMinSell(pay_gem, dust);
+        // console2.log("old Matching_Market: setMinSell 4");
     }
 
     //returns the minimum sell amount for an offer
@@ -411,7 +406,7 @@ contract RestrictedSuspendableMatchingMarket is MatchingEvents, RestrictedSuspen
             pay_amt -= offers[offerId].buy_amt;    //Decrease amount to pay
             if (pay_amt > 0) {                                  //If we still need more offers
                 offerId = getWorseOffer(offerId);               //We look for the next best offer
-                require(offerId != 0, "not enough offers to fulfill");                          //Fails if there are not enough offers to complete
+                require(offerId != 0, _MM_TRD005);                          //Fails if there are not enough offers to complete
             }
         }
         // fill_amt = add(fill_amt, rmul(pay_amt * 10 ** 9, rdiv(offers[offerId].pay_amt, offers[offerId].buy_amt)) / 10 ** 9); //Add proportional amount of last offer to buy accumulator

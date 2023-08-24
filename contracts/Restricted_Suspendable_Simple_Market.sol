@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// suspendable_market.sol
+/// Restricted_Suspendable_Simple_Market.sol
 
 // fork of expiring_market.sol Dai Foundation
 
@@ -18,22 +18,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// pragma solidity >= 0.8.18 < 0.9.0;
-// pragma solidity ^0.8.20;
-pragma solidity ^0.8.18; // latest HH supported version
+pragma solidity ^0.8.21;
 
-// import "hardhat/console.sol";
+
 import "forge-std/console2.sol";
 
-import "./suspendable_simple_market.sol";
+import "./constants/Restricted_Suspendable_Simple_Market__constants.sol";
 
-contract RestrictedSuspendableSimpleMarketErrorCodes {
-    // S Series = Security/Authorization
-
-    // T Series = Trades/Offers
-    string internal constant _T001 = "T001_BUY_TOKEN_NOT_ALLOWED";
-    string internal constant _T002 = "T002_SELL_TOKEN_NOT_ALLOWED";
-}
+import "./Suspendable_Simple_Market.sol";
 
 // Invalid Trading pair
 // @notice mean mùain token is missing from the pair
@@ -41,7 +33,7 @@ contract RestrictedSuspendableSimpleMarketErrorCodes {
 // @param sellToken token to sell.
 error InvalidTradingPair(IERC20 buyToken, IERC20 sellToken);
 
-contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, RestrictedSuspendableSimpleMarketErrorCodes {
+contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket {
 
     IERC20 public mainTradableToken; // ApidaeToken
     mapping (IERC20=>bool) tradableTokens; // mainTradableToken must not be in this list
@@ -56,7 +48,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
 
     // Tokens checks
     modifier tokenAllowed(IERC20 erc20) {
-        require(tradableTokens[erc20], "Token not authorized");
+        require( erc20==mainTradableToken || tradableTokens[erc20], _RSSM_T000 );
         _;
     }
 
@@ -75,11 +67,11 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
         // Sell mainTradableToken
         if (_pay_gem==mainTradableToken) {
             // Buy token must be tradable
-            require(tradableTokens[_buy_gem], _T001);
+            require(tradableTokens[_buy_gem], _RSSM_T001);
         // Buy mainTradableToken
         } else if (_buy_gem==mainTradableToken) {
             // Sold token must be tradable
-            require(tradableTokens[_pay_gem], _T002);
+            require(tradableTokens[_pay_gem], _RSSM_T002);
         } else {
             // mainTradableToken is neither sold or bought : revert
             revert InvalidTradingPair(_pay_gem, _buy_gem);
@@ -100,9 +92,9 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     /// @dev 
     /// @param _erc20 token to check
     function allowToken(IERC20 _erc20) public onlyOwner {
-        require(address(mainTradableToken) != NULL_ADDRESS,"mainTradableToken must be set first");
-        require(_erc20!=mainTradableToken,"No need to allow mainTradableToken");
-        require(!tradableTokens[_erc20],"Already allowed");
+        require(address(mainTradableToken) != NULL_ADDRESS, _RSSM_AL100);
+        require(_erc20!=mainTradableToken, _RSSM_AL001);
+        require(!tradableTokens[_erc20],_RSSM_AL010);
         require(address(_erc20) != NULL_ADDRESS);
         // TODO: check is ERC20
         // TODO: check is ERC20
@@ -114,6 +106,7 @@ contract RestrictedSuspendableSimpleMarket is SuspendableSimpleMarket, Restricte
     }
 
     function revokeToken(IERC20 _erc20) public onlyOwner tokenAllowed(_erc20) {
+        require(_erc20!=mainTradableToken, _RSSM_AL000);
         // Allow to remove all tradable tokens
         // existing orders will remain active (no checks are made on buys)
         delete tradableTokens[_erc20];

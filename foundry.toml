@@ -5,4 +5,8 @@ libs = ['node_modules', 'lib']
 test = 'test'
 cache_path  = 'cache_forge'
 
+# via_ir = true
 #no_match_test = "test(Fail)*(Smpl)+.*"
+
+[invariant]
+runs = 100

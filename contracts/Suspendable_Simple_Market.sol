@@ -18,22 +18,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// pragma solidity >= 0.8.18 < 0.9.0;
-// pragma solidity ^0.8.20;
-pragma solidity ^0.8.18; // latest HH supported version
-
-import "./simple_market.sol";
-
-contract SuspendableSimpleMarketErrorCodes {
-    // S Series = Security/Authorization
-    string internal constant _SS201 = "SS201_MARKET_NOT_ACTIVE";
-    string internal constant _SS202 = "SS202_MARKET_ALREADY_UNSUSPENDED";
-    string internal constant _SS203 = "SS203_MARKET_ALREADY_SUSPENDED";
-    string internal constant _SS299 = "SS299_MARKET_ALREADY_CLOSED";
-} // contract SimpleMarketErrorCodes
+pragma solidity ^0.8.21;
 
 
-contract SuspendableSimpleMarket is SimpleMarket,SuspendableSimpleMarketErrorCodes {
+import "./constants/Suspendable_Simple_Market__constants.sol";
+
+import "./Simple_Market.sol";
+
+contract SuspendableSimpleMarket is SimpleMarket {
     bool public closed;
     bool public suspended;
 

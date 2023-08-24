@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// restricted_suspendable_matching_market1.t.sol
+/// matching_market2.t.sol
 
 // Copyright (C) 2017 - 2021 Dai Foundation
 
@@ -27,34 +27,38 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/Restricted_Suspendable_Matching_Market.sol";
+import "../../contracts/old/Matching_Market.sol";
 
-import {VmCheat, DSTokenBase} from "./markets.t.sol";
+import {VmCheat, DSTokenBase} from "../markets.t.sol";
 
 
 
-contract DummySimplePriceOracle {
+contract DummySimplePriceOracle is IOracle {
     uint256 price;
     function setPrice(address, uint256 _price) public {
         price = _price;
     }
 
-    function getPriceFor(address, address, uint256) public view returns (uint256) {
+    // function getPriceFor(address, address, uint256) public view returns (uint256) {
+    //     return price;
+    // }
+
+    function estimateAmountOut(
+        address _tokenIn,
+        uint24 _fee,
+        uint128 _amountIn,
+        uint32 _secondsAgo
+    ) external view returns (uint amountOut)
+    {
+        _tokenIn = address(uint160(_fee * _amountIn * _secondsAgo)); // dummy code to remove compiler warnings: unused vars
         return price;
     }
 }
 
-
-// TODO : update failing tests
-
-/*
-contract MarketTester is DSTest, VmCheat {
-    RestrictedSuspendableMatchingMarket market;
-    // VmCheat vm;
-    constructor(RestrictedSuspendableMatchingMarket  market_ // , VmCheat _vm
-    ) {
+contract MarketTester {
+    MatchingMarket market;
+    constructor(MatchingMarket  market_) {
         market = market_;
-        // vm = _vm;
     }
     function doGetFirstUnsortedOffer()
         public
@@ -105,11 +109,8 @@ contract MarketTester is DSTest, VmCheat {
         public
         returns (uint)
     {
-        // vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
-        uint res = 
-        market.offer(pay_amt, pay_gem,
+        return market.offer(pay_amt, pay_gem,
                   buy_amt, buy_gem, pos);
-        return res;
     }
     function doOffer(uint pay_amt, IERC20 pay_gem,
                     uint buy_amt,  IERC20 buy_gem,
@@ -126,18 +127,18 @@ contract MarketTester is DSTest, VmCheat {
     function getMarket()
         public
         view
-        returns (RestrictedSuspendableMatchingMarket)
+        returns (MatchingMarket)
     {
         return market;
     }
 }
 
-contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, VmCheat {
+contract MatchingMarket2_OrderMatchingGasTest is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
     IERC20 dgd;
-    RestrictedSuspendableMatchingMarket otc;
+    MatchingMarket otc;
     uint offer_count = 200;
     mapping( uint => uint ) offer;
     mapping( uint => uint ) dai_to_buy;
@@ -156,9 +157,12 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         dgd = new DSTokenBase(DGD_SUPPLY);
 
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
-        // otc = new RestrictedSuspendableMatchingMarket(address(dai), 0, address(priceOracle));
+        // otc = new MatchingMarket(address(dai), 0, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dai), 0, address(priceOracle));
+        otc = new MatchingMarket(IERC20(dai), 0, address(priceOracle));
+
+        // otc.allowToken(mkr);
+        // otc.allowToken(dgd);
 
         user1 = new MarketTester(otc);
         dai.transfer(address(user1), (DAI_SUPPLY / 3) * 2);
@@ -207,21 +211,20 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
 
         createOffers(offer_count);
         // dai_buy =  safeMul(offer_count, offer_count + 1) / 2;
-        dai_buy =  (offer_count * ( offer_count + 1)) / 2;
+        dai_buy =  (offer_count* (offer_count + 1)) / 2;
         mkr_sell = dai_buy;
 
         insertOffer(mkr_sell, mkr, dai_buy, dai);
         assertEq(otc.getOfferCount(dai,mkr), 0);
     }
-    // Test the gas usage of inserting one offer.
-    // Creates offer_index amount of offers of decreasing price then it
-    // logs the gas usage of inserting one additional offer. This
-    // function is useful to test the cost of sorting in order to do
-    // offer matching.
+    /*Test the gas usage of inserting one offer.
+    Creates offer_index amount of offers of decreasing price then it
+    logs the gas usage of inserting one additional offer. This
+    function is useful to test the cost of sorting in order to do
+    offer matching.*/
     function execOrderInsertGasTest(uint offer_index, uint kind) public {
         createOffers(offer_index + 1);
         if (kind == 0) {                  // no frontend aid
-        // vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
             insertOffer(1, dai, 1, mkr);
             assertEq(otc.getOfferCount(dai,mkr), offer_index + 2);
         } else if (kind == 1){            // with frontend aid
@@ -353,7 +356,6 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
     }
     function testGasMakeOfferInsertAsFiftiethNoFrontendAid() public {
         uint offer_index = 50 - 1;
-        // vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
         execOrderInsertGasTest(offer_index, 0);
 // uncomment following line to run this test!
 //        assertTrue(false);
@@ -404,12 +406,40 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         uint offer_index = 200 -1;
         execOrderInsertGasTest(offer_index, 0);
 // uncomment following line to run this test!
-//        assertTrue(false);    Test the gas usage of inserting one offer.
-    Creates offer_index amount of offers of decreasing price then it
-    logs the gas usage of inserting one additional offer. This
-    function is useful to test the cost of sorting in order to do
-    offer matching.
+//        assertTrue(false);
+    }
+    function testGasMakeOfferInsertAsTwohundredthWithFrontendAid() public {
+        uint offer_index = 200 -1;
+        execOrderInsertGasTest(offer_index, 1);
+// uncomment following line to run this test!
+//        assertTrue(false);
+    }
+    function testGasMakeOfferInsertAsTwohundredthWithFrontendAidOldPos() public {
+        uint offer_index = 200 -1;
+        execOrderInsertGasTest(offer_index, 2);
+// uncomment following line to run this test!
+//        assertTrue(false);
+    }
+    function testGasMakeOfferInsertAsTwohundredthWithFrontendAidOldPosWorse() public {
+        uint offer_index = 200 -1;
+        execOrderInsertGasTest(offer_index, 3);
+// uncomment following line to run this test!
+//        assertTrue(false);
+    }
+}
 
+
+
+contract MatchingMarket2_OrderMatchingTest is DSTest, VmCheat, EventfulMarket, MatchingEvents {
+    MarketTester user1;
+    IERC20 dai;
+    IERC20 dustToken;
+    IERC20 mkr;
+    IERC20 dgd;
+    MatchingMarket otc;
+    mapping(uint => uint) offer_id;
+    uint buy_val;
+    uint sell_val;
     uint buy_val1;
     uint sell_val1;
     IERC20 sell_token;
@@ -429,9 +459,12 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         mkr = new DSTokenBase(MKR_SUPPLY);
         dgd = new DSTokenBase(DGD_SUPPLY);
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
-        // otc = new RestrictedSuspendableMatchingMarket(address(dustToken), 10, address(priceOracle));
+        // otc = new MatchingMarket(address(dustToken), 10, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dustToken), 10, address(priceOracle));
+        otc = new MatchingMarket( IERC20(dustToken), 10, address(priceOracle));
+
+        // otc.allowToken(mkr);
+        // otc.allowToken(dgd);
 
         user1 = new MarketTester(otc);
     }
@@ -439,29 +472,56 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         internal
     {
         DummySimplePriceOracle(otc.priceOracle()).setPrice(address(pay_gem), min_amount);
-        otc.setMinSell(pay_gem);
+        vm.prank(address(otc), address(otc));
+        // otc.setMinSell(pay_gem, FEE_HIGH);
+        otc.setMinSell(pay_gem, 10000);
+        
     }
     function testGetFirstNextUnsortedOfferOneOffer() public {
         mkr.approve(address(otc), 30);
         offer_id[1] = otc.offer(30, mkr, 100, dai);
+
         assertEq(otc.getFirstUnsortedOffer(), offer_id[1]);
         assertEq(otc.getNextUnsortedOffer(offer_id[1]), 0);
     }
+
     function testGetFirstUnsortedOfferOneOfferBought() public {
         mkr.approve(address(otc), 30);
         dai.transfer(address(user1), 100);
         offer_id[1] = otc.offer(30, mkr, 100, dai);
-        user1.doApprove(address(otc), 100, dai);    Test the gas usage of inserting one offer.
-    Creates offer_index amount of offers of decreasing price then it
-    logs the gas usage of inserting one additional offer. This
-    function is useful to test the cost of sorting in order to do
-    offer matching.
+        user1.doApprove(address(otc), 100, dai);
+        user1.doBuy(offer_id[1], 30);
+        assertEq(otc.getFirstUnsortedOffer(), 0);
+    }
 
+    function testGetFirstNextUnsortedOfferThreeOffers() public {
+        mkr.approve(address(otc), 90);
+        offer_id[1] = otc.offer(30, mkr, 100, dai);
+        offer_id[2] = otc.offer(30, mkr, 100, dai);
+        offer_id[3] = otc.offer(30, mkr, 100, dai);
+
+        assertEq(otc.getFirstUnsortedOffer(), offer_id[3]);
+        assertEq(otc.getNextUnsortedOffer(offer_id[1]), 0);
+        assertEq(otc.getNextUnsortedOffer(offer_id[2]), offer_id[1]);
+        assertEq(otc.getNextUnsortedOffer(offer_id[3]), offer_id[2]);
+    }
+    function testGetFirstNextUnsortedOfferAfterInsertOne() public {
+        mkr.approve(address(otc), 90);
+        offer_id[1] = otc.offer(30, mkr, 100, dai);
+        offer_id[2] = otc.offer(30, mkr, 100, dai);
+        offer_id[3] = otc.offer(30, mkr, 100, dai);
+
+        otc.insert(offer_id[3], 0);
+
+        assertEq(otc.getBestOffer( mkr, dai ), offer_id[3]);
+        assertEq(otc.getFirstUnsortedOffer(), offer_id[2]);
+        assertEq(otc.getNextUnsortedOffer(offer_id[1]), 0);
         assertEq(otc.getNextUnsortedOffer(offer_id[2]), offer_id[1]);
         assertEq(otc.getNextUnsortedOffer(offer_id[3]), 0);
     }
     function testGetFirstNextUnsortedOfferAfterInsertTwo() public {
         mkr.approve(address(otc), 90);
+
         offer_id[1] = otc.offer(30, mkr, 100, dai);
         offer_id[2] = otc.offer(30, mkr, 100, dai);
         offer_id[3] = otc.offer(30, mkr, 100, dai);
@@ -474,6 +534,7 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
     }
     function testGetFirstNextUnsortedOfferAfterInsertTheree() public {
         mkr.approve(address(otc), 90);
+
         offer_id[1] = otc.offer(30, mkr, 100, dai);
         offer_id[2] = otc.offer(30, mkr, 100, dai);
         offer_id[3] = otc.offer(30, mkr, 100, dai);
@@ -485,6 +546,7 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         assertEq(otc.getNextUnsortedOffer(offer_id[2]), 0);
         assertEq(otc.getNextUnsortedOffer(offer_id[3]), 0);
     }
+
     function testFailInsertOfferThatIsAlreadyInTheSortedList() public {
         mkr.approve(address(otc), 30);
         offer_id[1] = otc.offer(30, mkr, 100, dai, 0);
@@ -496,10 +558,12 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         offer_id[1] = otc.offer(30, mkr, 100, dai, 0);
         otc.insert(offer_id[1],7);  //there is no active offer at pos 7
     }
+
     function testSetGetMinSellAmout() public {
         doSetMinSellAmount(mkr, 100);
         assertEq(otc.getMinSell(mkr), 100);
     }
+
     function testFailOfferSellsLessThanRequired() public {
         mkr.approve(address(otc), 30);
         doSetMinSellAmount(mkr, 31);
@@ -509,6 +573,7 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
     function testFailCanNotSetSellAmountForMainTokenSettingDust() public {
         doSetMinSellAmount(dustToken,100);
     }
+
     function testOfferSellsMoreThanOrEqualThanRequired() public {
         mkr.approve(address(otc), 30);
         doSetMinSellAmount(mkr,30);
@@ -519,7 +584,9 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         dustToken.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dustToken);
         mkr.approve(address(otc), 25);
+        // vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, dustToken, mkr ) );
         uint id0 = user1.doOffer(30, dustToken, 30, mkr, 0);
+        // vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dustToken ) );
         uint id1 = otc.offer(25, mkr, 25, dustToken, 0);
         assertTrue(!otc.isOrderActive(id0));
         assertTrue(!otc.isOrderActive(id1));
@@ -528,16 +595,21 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         dustToken.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dustToken);
         mkr.approve(address(otc), 25);
+        // vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dustToken ) );
         uint id0 = otc.offer(25, mkr, 25, dustToken, 0);
+        // vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, dustToken, mkr ) );
         uint id1 = user1.doOffer(30, dustToken, 30, mkr, 0);
         assertTrue(!otc.isOrderActive(id0));
         assertTrue(!otc.isOrderActive(id1));
     }
+
     function testBuyDustOfferCanceled() public {
         dustToken.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dustToken);
         mkr.approve(address(otc), 25);
+        // vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, dustToken,mkr ) );
         uint id0 = user1.doOffer(30, dustToken, 30, mkr, 0);
+        // vm.expectRevert("T101_OFFER_NOT_PRESENT");
         otc.buy(id0, 25);
         assertTrue(!otc.isOrderActive(id0));
     }
@@ -597,12 +669,14 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
 
         // We should have paid a bit more than we offered to pay.
         uint expected_overpay = 651528437;
-        assertEq(dgd.balanceOf(address(user1)) - old_dgd_bal, dgd_buy);    Test the gas usage of inserting one offer.
-    Creates offer_index amount of offers of decreasing price then it
-    logs the gas usage of inserting one additional offer. This
-    function is useful to test the cost of sorting in order to do
-    offer matching.
+        assertEq(dgd.balanceOf(address(user1)) - old_dgd_bal, dgd_buy);
+        assertEq(old_dai_bal - dai.balanceOf(address(user1)), dai_pay + expected_overpay);
+    }
 
+    function testOrderMatchNoRounding() public {
+        // Approvals & user funding
+        mkr.transfer(address(user1), MKR_SUPPLY / 2);
+        dai.transfer(address(user1), DAI_SUPPLY / 2);
         dgd.transfer(address(user1), DGD_SUPPLY / 2);
         user1.doApprove(address(otc), DAI_SUPPLY, dai);
         user1.doApprove(address(otc), DGD_SUPPLY, dgd);
@@ -881,7 +955,6 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
 
         // TODO: migrate Events checks
 
-        // expectEventsExact(address(otc));
         // emit LogItemUpdate(offer_id[1]);
         // emit LogItemUpdate(offer_id[2]);
         // emit LogItemUpdate(offer_id[3]);
@@ -1400,7 +1473,7 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         // LogItemUpdate(offer_id[1]);
         // LogItemUpdate(offer_id[1]);
         // LogItemUpdate(offer_id[2]);
-
+        
     }
     function testOfferMatchOneOnOnePartialSellSendAmounts() public {
         dai.transfer(address(user1), 50);
@@ -1433,6 +1506,7 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         // LogItemUpdate(offer_id[1]);
         // LogItemUpdate(offer_id[1]);
         // LogItemUpdate(offer_id[2]);
+
     }
     function testOfferMatchOneOnOnePartialBuySendAmounts() public {
         dai.transfer(address(user1), 2000);
@@ -1661,13 +1735,18 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         assertTrue(address(sell_token1) != address(0));
         assertTrue(address(buy_token1) != address(0));
     }
+
     function testSellAllDai() public {
         mkr.approve(address(otc), uint(type(uint256).max)); // mkr.approve(address(otc), uint(-1));
         dai.approve(address(otc), uint(type(uint256).max)); // dai.approve(address(otc), uint(-1));
+
+        // Revert somewhere
+
         otc.offer(10 ether, mkr, 3200 ether, dai, 0);
         otc.offer(10 ether, mkr, 2800 ether, dai, 0);
 
         uint expectedResult = 10 ether * 2800 / 2800 + 10 ether * 1200 / 3200;
+
         assertEq(otc.getBuyAmount(mkr, dai, 4000 ether), expectedResult);
         assertEq(otc.sellAllAmount(dai, 4000 ether, mkr, expectedResult), expectedResult);
 
@@ -1682,6 +1761,8 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         otc.offer(10 ether, mkr, 2800 ether, dai, 0);
         // This time we should be able to buy 1 wei MKR more
         expectedResult = 10 ether * 2800 / 2800 + 1;
+
+
         assertEq(otc.getBuyAmount(mkr, dai, 2800 ether + 320), expectedResult);
         assertEq(otc.sellAllAmount(dai, 2800 ether + 320, mkr, expectedResult), expectedResult);
     }
@@ -1689,10 +1770,14 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
     function testSellAllMkr() public {
         mkr.approve(address(otc), uint(type(uint256).max)); // mkr.approve(address(otc), uint(-1));
         dai.approve(address(otc), uint(type(uint256).max)); // dai.approve(address(otc), uint(-1));
+
+        // Revert somewhere
+
         otc.offer(3200 ether, dai, 10 ether, mkr, 0);
         otc.offer(2800 ether, dai, 10 ether, mkr, 0);
 
         uint expectedResult = 3200 ether * 10 / 10 + 2800 ether * 8 / 10;
+
         assertEq(otc.getBuyAmount(dai, mkr, 18 ether), expectedResult);
         assertEq(otc.sellAllAmount(mkr, 18 ether, dai, expectedResult), expectedResult);
     }
@@ -1770,5 +1855,5 @@ contract RestrictedSuspendableMatchingMarket1_OrderMatchingGasTest is DSTest, Vm
         (sellAmt,, buyAmt,,,) = otc.offers(currentId);
         assertTrue(sellAmt == 250 ether && buyAmt == 1 ether);
     }
+
 }
-*/

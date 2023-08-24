@@ -27,9 +27,9 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/Restricted_Suspendable_Matching_Market.sol";
+import "../../contracts/old/Restricted_Suspendable_Matching_Market.sol";
 
-import {VmCheat, DSTokenBase} from "./markets.t.sol";
+import {VmCheat, DSTokenBase} from "../markets.t.sol";
 
 
 

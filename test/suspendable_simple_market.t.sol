@@ -2,9 +2,7 @@
 
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// simple_market.t.sol
-
-// Copyright (C) 2016 - 2021 Dai Foundation
+/// suspendable_simple_market.t.sol
 
 //
 // This program is free software: you can redistribute it and/or modify
@@ -20,19 +18,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// pragma solidity >= 0.8.18 < 0.9.0;
-// pragma solidity ^0.8.20;
-pragma solidity ^0.8.18; // latest HH supported version
+pragma solidity ^0.8.21;
 
 
 import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/console2.sol";
 
-// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/suspendable_simple_market.sol";
+import "../contracts/Suspendable_Simple_Market.sol";
 
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
@@ -95,22 +90,20 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(30, address(mkr), 100, address(dai));
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(30, address(mkr), 100, address(dai));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(30, address(mkr), 100, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
     }
     function testSuspdblSmplMrktPartiallyFilledOrderMkr() public {
         dai.transfer(address(user1), 30);
@@ -142,21 +135,19 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
         assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(10, address(mkr), 25, address(dai));
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(10, address(mkr), 25, address(dai));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(10, address(mkr), 25, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
     }
     function testSuspdblSmplMrktPartiallyFilledOrderDai() public {
         mkr.transfer(address(user1), 10); // Move 10 MKR to user1
@@ -202,22 +193,20 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(10, address(dai), 4, address(mkr));
+        // // emit LogItemUpdate(id);
+
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(10, address(dai), 4, address(mkr));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
-
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(10, address(dai), 4, address(mkr));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
     }
     function testSuspdblSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
         dai.transfer(address(user1), 30);
@@ -251,13 +240,11 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
-        // emit LogItemUpdate(id);
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
+        // vm.expectEmit(true,false,false,false, address(otc));
+        // emit LogItemUpdate(id);
     }
     function testSuspdblSmplMrktInsufficientlyFilledOrder() public {
         mkr.approve(address(otc), 30);
@@ -275,18 +262,16 @@ contract SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
     }
     function testFailSuspdblSmplMrktCancelNotOwner() public {
         mkr.approve(address(otc), 30);

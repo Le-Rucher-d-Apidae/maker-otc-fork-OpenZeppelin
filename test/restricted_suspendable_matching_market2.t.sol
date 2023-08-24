@@ -18,9 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// pragma solidity >= 0.8.18 < 0.9.0;
-// pragma solidity ^0.8.20;
-pragma solidity ^0.8.18; // latest HH supported version
+pragma solidity ^0.8.21;
 
 
 import "forge-std/Test.sol";
@@ -29,19 +27,31 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/restricted_suspendable_matching_market.sol";
+import "../contracts/Restricted_Suspendable_Matching_Market.sol";
+
 
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
 
 
-contract DummySimplePriceOracle {
+contract DummySimplePriceOracle is IOracle {
     uint256 price;
     function setPrice(address, uint256 _price) public {
         price = _price;
     }
 
-    function getPriceFor(address, address, uint256) public view returns (uint256) {
+    // function getPriceFor(address, address, uint256) public view returns (uint256) {
+    //     return price;
+    // }
+
+    function estimateAmountOut(
+        address _tokenIn,
+        uint24 _fee,
+        uint128 _amountIn,
+        uint32 _secondsAgo
+    ) external view returns (uint amountOut)
+    {
+        _tokenIn = address(uint160(_fee * _amountIn * _secondsAgo)); // dummy code to remove compiler warnings: unused vars
         return price;
     }
 }
@@ -150,7 +160,10 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingGasTest is DSTest, Vm
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
         // otc = new RestrictedSuspendableMatchingMarket(address(dai), 0, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dai), 0, address(priceOracle));
+        // otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dai), 0, address(priceOracle));
+
+        MatchingMarketConfiguration matchingMarketConfiguration = new MatchingMarketConfiguration( dai, 0, address(priceOracle) );
+        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, matchingMarketConfiguration);
 
         otc.allowToken(mkr);
         otc.allowToken(dgd);
@@ -452,7 +465,10 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
         DummySimplePriceOracle priceOracle = new DummySimplePriceOracle();
         // otc = new RestrictedSuspendableMatchingMarket(address(dustToken), 10, address(priceOracle));
         // constructor(IERC20 _mainTradableToken, bool _suspended, IERC20 _dustToken, uint256 _dustLimit, address _priceOracle) RestrictedSuspendableSimpleMarket(_mainTradableToken, _suspended) {
-        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dustToken), 10, address(priceOracle));
+
+        // otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, IERC20(dustToken), 10, address(priceOracle));
+        MatchingMarketConfiguration matchingMarketConfiguration = new MatchingMarketConfiguration( dustToken, 10, address(priceOracle) );
+        otc = new RestrictedSuspendableMatchingMarket(IERC20(dai), false, matchingMarketConfiguration );
 
         otc.allowToken(mkr);
         otc.allowToken(dgd);
@@ -462,9 +478,11 @@ contract RestrictedSuspendableMatchingMarket2_OrderMatchingTest is DSTest, VmChe
     function doSetMinSellAmount(IERC20 pay_gem, uint min_amount)
         internal
     {
-        DummySimplePriceOracle(otc.priceOracle()).setPrice(address(pay_gem), min_amount);
+        DummySimplePriceOracle(otc.configuration().priceOracle()).setPrice(address(pay_gem), min_amount);
         vm.prank(address(otc), address(otc));
-        otc.setMinSell(pay_gem);
+        // otc.setMinSell(pay_gem, FEE_HIGH);
+        otc.setMinSell(pay_gem, 10000);
+        
     }
     function testGetFirstNextUnsortedOfferOneOffer() public {
         mkr.approve(address(otc), 30);

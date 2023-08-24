@@ -1,9 +1,8 @@
+
+
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-/// restricted_suspendable_simple_market2.t.sol
-
-/// apply test found in simple_market.t.sol for the Restricted_Suspendable_Simple_Market.sol
-/// and checks for the restrictions of allowed tokens
+/// suspendable_simple_market_with_some_fees_TODO.t.sol
 
 //
 // This program is free software: you can redistribute it and/or modify
@@ -26,16 +25,18 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "forge-std/console2.sol";
 
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/Restricted_Suspendable_Simple_Market.sol";
+import "../contracts/Suspendable_Simple_Market_With_Fees.sol";
+
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
 contract MarketTester {
 
-    RestrictedSuspendableSimpleMarket market;
+    SuspendableSimpleMarketWithFees market;
 
-    constructor(RestrictedSuspendableSimpleMarket market_) {
+    constructor(SuspendableSimpleMarketWithFees market_) {
         market = market_;
     }
     function doApprove(address spender, uint value, IERC20 token) public {
@@ -49,39 +50,46 @@ contract MarketTester {
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
+
+// TODO
+// TODO
+// TODO
+// TODO
+// TODO
+// TODO
+// TODO
+
+// Exact same test as SimpleMarketTest, but with Suspend & Stop checks added
+
+/*
+
+contract SuspendableSimpleMarketWithSomeFees_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
-    IERC20 dai; // main token
-    IERC20 mkr; // authorized token
-    IERC20 mkr2; // AuthorizedToken token
-    IERC20 aave; // UnauthorizedToken token
-    IERC20 crv; // UnauthorizedToken token
-    RestrictedSuspendableSimpleMarket otc;
+    IERC20 dai;
+    IERC20 mkr;
+    SuspendableSimpleMarketWithFees otc;
 
     function setUp() public override {
         super.setUp();
-        console2.log("Restricted2SuspendableSimpleMarket_Test: setUp()");
+        console2.log("SuspendableSimpleMarketWithFeesTest: setUp()");
+        address feeCollector = someUser_22;
 
-        dai = new DSTokenBase(10 ** 9); // MainTradableToken
-        mkr = new DSTokenBase(10 ** 6); // AuthorizedToken
-        mkr2 = new DSTokenBase(10 ** 6); // AuthorizedToken
-
-        otc = new RestrictedSuspendableSimpleMarket(dai, false);
-        otc.allowToken(mkr);
-        otc.allowToken(mkr2);
-
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
         user1 = new MarketTester(otc);
 
-        aave = new DSTokenBase(10 ** 6); // UnauthorizedToken
-        crv = new DSTokenBase(10 ** 6); // UnauthorizedToken
+        dai = new DSTokenBase(10 ** 9);
+        mkr = new DSTokenBase(10 ** 6);
     }
-    function testRstrctdSuspdblSmplMrktBasicTrade() public {
+    function testSuspdblSmplMrktBasicTrade() public {
         dai.transfer(address(user1), 100);
-        // aave.transfer(address(user1), 100);
-        // crv.transfer(address(user1), 100);
         user1.doApprove(address(otc), 100, dai);
-        user1.doApprove(address(otc), 100, aave);
-        // user1.doApprove(address(otc), 100, crv);
         mkr.approve(address(otc), 30);
 
         uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
@@ -102,123 +110,22 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(30, address(mkr), 100, address(dai));
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(30, address(mkr), 100, address(dai));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(30, address(mkr), 100, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
     }
-    function testRstrctdSuspdblSmplMrktBasicTrade2() public {
-        dai.transfer(address(user1), 100);
-        aave.transfer(address(user1), 100);
-        user1.doApprove(address(otc), 100, dai);
-        user1.doApprove(address(otc), 100, aave);
-        aave.approve(address(otc), 30);
-
-        uint256 my_aave_balance_before = aave.balanceOf(address(this));
-        uint256 my_dai_balance_before = dai.balanceOf(address(this));
-        uint256 user1_aave_balance_before = aave.balanceOf(address(user1));
-        uint256 user1_dai_balance_before = dai.balanceOf(address(user1));
-
-        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
-        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
-        uint256 id = otc.offer(30, aave, 100, dai);
-
-        // assertTrue(user1.doBuy(id, 30));
-        vm.expectRevert();
-        user1.doBuy(id, 30);
-
-        uint256 my_aave_balance_after = aave.balanceOf(address(this));
-        uint256 my_dai_balance_after = dai.balanceOf(address(this));
-        uint256 user1_aave_balance_after = aave.balanceOf(address(user1));
-        uint256 user1_dai_balance_after = dai.balanceOf(address(user1));
-        assertEq(0, my_aave_balance_before - my_aave_balance_after);
-        assertEq(0, my_dai_balance_after - my_dai_balance_before);
-        assertEq(0, user1_aave_balance_after - user1_aave_balance_before);
-        assertEq(0, user1_dai_balance_before - user1_dai_balance_after);
-
-        // TODO: migrate Events checks
-
-/* 
-        // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
-        // emit LogItemUpdate(id);
-        // emit LogTrade(30, address(mkr), 100, address(dai));
-        // emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(30, address(mkr), 100, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
-    }
-    function testRstrctdSuspdblSmplMrktBasicTrade3() public {
-        // Test with 2 allowed token (mkr/mkr2) but missing the main one (dai)
-        mkr2.transfer(address(user1), 100);
-        user1.doApprove(address(otc), 100, mkr2);
-        user1.doApprove(address(otc), 100, aave);
-        mkr.approve(address(otc), 30);
-
-        uint256 my_mkr_balance_before = mkr.balanceOf(address(this));
-        uint256 my_mkr2_balance_before = mkr2.balanceOf(address(this));
-        uint256 user1_mkr_balance_before = mkr.balanceOf(address(user1));
-        uint256 user1_mkr2_balance_before = mkr2.balanceOf(address(user1));
-
-        // FAIL. Reason: InvalidTradingPair
-        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, mkr2) );
-        uint256 id = otc.offer(30, mkr, 100, mkr2);
-
-        vm.expectRevert();
-        user1.doBuy(id, 30);
-
-        uint256 my_mkr_balance_after = mkr.balanceOf(address(this));
-        uint256 my_mkr2_balance_after = mkr2.balanceOf(address(this));
-        uint256 user1_mkr_balance_after = mkr.balanceOf(address(user1));
-        uint256 user1_mkr2_balance_after = mkr2.balanceOf(address(user1));
-
-        assertEq(0, my_mkr_balance_before - my_mkr_balance_after);
-        assertEq(0, my_mkr2_balance_after - my_mkr2_balance_before);
-        assertEq(0, user1_mkr_balance_after - user1_mkr_balance_before);
-        assertEq(0, user1_mkr2_balance_before - user1_mkr2_balance_after);
-
-        // TODO: migrate Events checks
-
-/* 
-        // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
-        // emit LogItemUpdate(id);
-        // emit LogTrade(30, address(mkr), 100, address(dai));
-        // emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(30, address(mkr), 100, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
-    }
-
-    // ---
-
-    function testRstrctdSuspdblSmplMrktPartiallyFilledOrderMkr() public {
+    function testSuspdblSmplMrktPartiallyFilledOrderMkr() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
         mkr.approve(address(otc), 200);
@@ -248,23 +155,21 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(10, address(mkr), 25, address(dai));
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(10, address(mkr), 25, address(dai));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(10, address(mkr), 25, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
     }
-    function testRstrctdSuspdblSmplMrktPartiallyFilledOrderDai() public {
+    function testSuspdblSmplMrktPartiallyFilledOrderDai() public {
         mkr.transfer(address(user1), 10); // Move 10 MKR to user1
         user1.doApprove(address(otc), 10, mkr); // user1 approve spending 10 MKR to OTC
         dai.approve(address(otc), 500); // Approve 500 DAI to OTC
@@ -308,24 +213,22 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(10, address(dai), 4, address(mkr));
+        // // emit LogItemUpdate(id);
+
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(10, address(dai), 4, address(mkr));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
-
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(10, address(dai), 4, address(mkr));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
     }
-    function testRstrctdSuspdblSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
+    function testSuspdblSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
         dai.transfer(address(user1), 30);
         user1.doApprove(address(otc), 30, dai);
         mkr.approve(address(otc), 200);
@@ -356,16 +259,13 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         assertTrue(address(buy_token) != NULL_ADDRESS);
 
         // TODO: migrate Events checks
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
 
-/* 
-        // expectEventsExact(address(otc));
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
     }
-    function testRstrctdSuspdblSmplMrktInsufficientlyFilledOrder() public {
+    function testSuspdblSmplMrktInsufficientlyFilledOrder() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 10, dai);
 
@@ -374,49 +274,47 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         bool success = user1.doBuy(id, 1);
         assertTrue(!success);
     }
-    function testRstrctdSuspdblSmplMrktCancel() public {
+    function testSuspdblSmplMrktCancel() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
     }
-    function testFailRstrctdSuspdblSmplMrktCancelNotOwner() public {
+    function testFailSuspdblSmplMrktCancelNotOwner() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         user1.doCancel(id);
     }
-    function testFailRstrctdSuspdblSmplMrktCancelInactive() public {
+    function testFailSuspdblSmplMrktCancelInactive() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
         otc.cancel(id);
     }
-    function testFailRstrctdSuspdblSmplMrktBuyInactive() public {
+    function testFailSuspdblSmplMrktBuyInactive() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(otc.cancel(id));
         otc.buy(id, 0);
     }
-    function testFailRstrctdSuspdblSmplMrktOfferNotEnoughFunds() public {
+    function testFailSuspdblSmplMrktOfferNotEnoughFunds() public {
         mkr.transfer(NULL_ADDRESS, mkr.balanceOf(address(this)) - 29);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(id >= 0);     //ugly hack to stop compiler from throwing a warning for unused var id
     }
-    function testFailRstrctdSuspdblSmplMrktBuyNotEnoughFunds() public {
+    function testFailSuspdblSmplMrktBuyNotEnoughFunds() public {
         uint256 id = otc.offer(30, mkr, 101, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 101, dai);
@@ -426,7 +324,7 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testFailRstrctdSuspdblSmplMrktBuyNotEnoughApproval() public {
+    function testFailSuspdblSmplMrktBuyNotEnoughApproval() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         user1.doApprove(address(otc), 99, dai);
@@ -436,432 +334,49 @@ contract Restricted2SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         emit log_named_uint("user1 dai allowance", dai.allowance(address(user1), address(otc)));
         emit log_named_uint("user1 dai balance after", dai.balanceOf(address(user1)));
     }
-    function testRstrctdSuspdblSmplMrktBuyTooMuch() public {
+    function testFailSuspdblSmplMrktOfferSameToken() public {
+        dai.approve(address(otc), 200);
+        otc.offer(100, dai, 100, dai);
+    }
+    function testSuspdblSmplMrktBuyTooMuch() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         assertTrue(!otc.buy(id, 50));
     }
-    function testFailRstrctdSuspdblSmplMrktOverflow() public {
+    function testFailSuspdblSmplMrktOverflow() public {
         mkr.approve(address(otc), 30);
         uint256 id = otc.offer(30, mkr, 100, dai);
         otc.buy(id, uint(type(uint256).max+1));
     }
-    function testFailRstrctdSuspdblSmplMrktTransferFromEOA() public {
+    function testFailSuspdblSmplMrktTransferFromEOA() public {
         otc.offer(30, IERC20(address(123)), 100, dai);
     }
-
-    // Tokens tests
-
-    // Twice the same token
-    // Main token only: main token is not whitelisted as an authorized token
-    function testRstrctdSuspdblSmplMrktOfferTwiceMainToken() public {
-        dai.approve(address(otc), 200);
-        // FAIL. Reason: T001_BUY_TOKEN_NOT_ALLOWED
-        vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
-        otc.offer(100, dai, 100, dai);
-    }
-    // Twice the same token
-    // Authorized token only: main token missing from offer
-    function testRstrctdSuspdblSmplMrktOfferTwiceAuthorizedToken() public {
-        mkr.approve(address(otc), 200);
-        // FAIL. Reason: InvalidTradingPair
-        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, mkr) );
-        otc.offer(100, mkr, 100, mkr);
-    }
-    // Twice the same token
-    // Unauthorized token
-    function testRstrctdSuspdblSmplMrktOfferTwiceUnauthorizedToken() public {
-        aave.approve(address(otc), 200);
-        // FAIL. Reason: InvalidTradingPair
-        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, aave, aave) );
-        otc.offer(100, aave, 100, aave);
-    }
-
-    // Differents tokens
-    // Main token and authorized token
-    function testRstrctdSuspdblSmplMrktOfferMainTokenAndAuthorizedToken() public {
-        dai.approve(address(otc), 100);
-        mkr2.approve(address(otc), 100);
-        otc.offer(100, dai, 100, mkr2);
-    }
-
-    // Differents tokens
-    // Authorized token and Main token (swap token order)
-    function testRstrctdSuspdblSmplMrktOfferMainTokenAndAuthorizedToken2() public {
-        dai.approve(address(otc), 100);
-        mkr2.approve(address(otc), 100);
-        otc.offer(100, mkr2, 100, dai);
-    }
-
-    // Differents tokens
-    // Main token and unauthorized token
-    function testRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenNoMainToken() public {
-        dai.approve(address(otc), 100);
-        aave.approve(address(otc), 100);
-        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
-        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
-        otc.offer(100, aave, 100, dai);
-    }
-
-    // Differents tokens
-    // Unauthorized token and main token (swap token order)
-    function testRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenNoMainToken2() public {
-        dai.approve(address(otc), 100);
-        aave.approve(address(otc), 100);
-        // FAIL. Reason: T001_BUY_TOKEN_NOT_ALLOWED
-        vm.expectRevert( "T001_BUY_TOKEN_NOT_ALLOWED" );
-        otc.offer(100, dai, 100, aave);
-    }
-
-    // Differents tokens
-    // Authorized token and unauthorized token
-    function testRstrctdSuspdblSmplMrktOfferDifferentUnauthorizedTokenAuthorizedTokenNoMainToken() public {
-        mkr.approve(address(otc), 100);
-        aave.approve(address(otc), 100);
-        // FAIL. Reason: InvalidTradingPair
-        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, aave, mkr) );
-        otc.offer(100, aave, 100, mkr);
-    }
-
-
-    // Differents tokens
-    // Authorized token and Authorized token
-    function testRstrctdSuspdblSmplMrktOfferDifferentAuthorizedTokenAuthorizedTokenNoMainToken() public {
-        mkr.approve(address(otc), 100);
-        mkr2.approve(address(otc), 100);
-        // FAIL. Reason: InvalidTradingPair
-        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr2, mkr) );
-        otc.offer(100, mkr2, 100, mkr);
-    }
-
 }
 
 // ----------------------------------------------------------------------------
 
 // Same tests as Simple market (market is NOT suspended or closed)
 
-
 contract TransferTest_OpenMarket is DSTest, VmCheat {
     MarketTester user1;
-    IERC20 dai; // main token
-    IERC20 mkr; // authorized token
-    IERC20 mkr2; // AuthorizedToken token
-    IERC20 aave; // UnauthorizedToken token
-    IERC20 crv; // UnauthorizedToken token
-    RestrictedSuspendableSimpleMarket otc;
+    IERC20 dai;
+    IERC20 mkr;
+    SuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_OpenMarket: setUp()");
 
-        dai = new DSTokenBase(10 ** 9); // MainTradableToken
-        mkr = new DSTokenBase(10 ** 6); // AuthorizedToken
-        mkr2 = new DSTokenBase(10 ** 6); // AuthorizedToken
-
-        otc = new RestrictedSuspendableSimpleMarket(dai, false);
-        otc.allowToken(mkr);
-        otc.allowToken(mkr2);
-        user1 = new MarketTester(otc);
-
-        dai.transfer(address(user1), 100);
-        user1.doApprove(address(otc), 100, dai);
-        mkr.approve(address(otc), 30);
-        mkr2.approve(address(otc), 30);
-
-        aave = new DSTokenBase(10 ** 6); // UnauthorizedToken
-        crv = new DSTokenBase(10 ** 6); // UnauthorizedToken
-
-        aave.transfer(address(user1), 100);
-        user1.doApprove(address(otc), 100, dai);
-        aave.approve(address(otc), 30);
-    }
-}
-
-contract Restricted2SuspendableSimpleMarket_OfferTransferTestOpened is TransferTest_OpenMarket {
-    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller() public {
-        uint256 balance_before = mkr.balanceOf(address(this));
-        uint256 id = otc.offer(30, mkr, 100, dai);
-        uint256 balance_after = mkr.balanceOf(address(this));
-
-        assertEq(balance_before - balance_after, 30);
-        assertTrue(id > 0);
-    }
-    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller2() public {
-        uint256 balance_before = mkr2.balanceOf(address(this));
-        uint256 id = otc.offer(30, mkr2, 100, dai);
-        uint256 balance_after = mkr2.balanceOf(address(this));
-
-        assertEq(balance_before - balance_after, 30);
-        assertTrue(id > 0);
-    }
-    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller3() public {
-        // Fail because main token is missing from offer
-        uint256 balance_before = mkr2.balanceOf(address(this));
-        // FAIL. Reason: InvalidTradingPair
-        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr2, mkr) );
-        uint256 id = otc.offer(30, mkr2, 100, mkr);
-        uint256 balance_after = mkr2.balanceOf(address(this));
-
-        assertEq(balance_before - balance_after, 0);
-        assertTrue(id == 0);
-    }
-    function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller4() public {
-        // Fail because unauthorized token
-        uint256 balance_before = aave.balanceOf(address(this));
-        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
-        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
-        uint256 id = otc.offer(30, aave, 100, dai);
-        uint256 balance_after = aave.balanceOf(address(this));
-
-        assertEq(balance_before - balance_after, 0);
-        assertTrue(id == 0);
-    }
-
-    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket() public {
-        uint256 balance_before = mkr.balanceOf(address(otc));
-        uint256 id = otc.offer(30, mkr, 100, dai);
-        uint256 balance_after = mkr.balanceOf(address(otc));
-
-        assertEq(balance_after - balance_before, 30);
-        assertTrue(id > 0);
-    }
-    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket2() public {
-        uint256 balance_before = mkr2.balanceOf(address(otc));
-        uint256 id = otc.offer(30, mkr2, 100, dai);
-        uint256 balance_after = mkr2.balanceOf(address(otc));
-
-        assertEq(balance_after - balance_before, 30);
-        assertTrue(id > 0);
-    }
-    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket3() public {
-        // Fail because main token is missing from offer
-        uint256 balance_before = mkr2.balanceOf(address(otc));
-        // FAIL. Reason: InvalidTradingPair
-        vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr2, mkr) );
-        uint256 id = otc.offer(30, mkr2, 100, mkr);
-        uint256 balance_after = mkr2.balanceOf(address(otc));
-
-        assertEq(balance_after - balance_before, 0);
-        assertTrue(id == 0);
-    }
-    function testRstrctdSuspdblSmplMrktOfferTransfersToMarket4() public {
-        // Fail because unauthorized token
-        uint256 balance_before = aave.balanceOf(address(otc));
-        // FAIL. Reason: T002_SELL_TOKEN_NOT_ALLOWED
-        vm.expectRevert( "T002_SELL_TOKEN_NOT_ALLOWED" );
-        uint256 id = otc.offer(30, aave, 100, dai);
-        uint256 balance_after = mkr2.balanceOf(address(otc));
-
-        assertEq(balance_after - balance_before, 0);
-        assertTrue(id == 0);
-    }
-}
-
-
-
-
-
-
-
-
-
-// TODO: add test on unautorized tokens pairs ->
-
-
-
-
-contract Restricted2SuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarket {
-    function testRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = dai.balanceOf(address(user1));
-        user1.doBuy(id, 30);
-        uint256 balance_after = dai.balanceOf(address(user1));
-
-        assertEq(balance_before - balance_after, 100);
-    }
-    function testRstrctdSuspdblSmplMrktBuyTransfersToSeller() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = dai.balanceOf(address(this));
-        user1.doBuy(id, 30);
-        uint256 balance_after = dai.balanceOf(address(this));
-
-        assertEq(balance_after - balance_before, 100);
-    }
-    function testRstrctdSuspdblSmplMrktBuyTransfersFromMarket() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = mkr.balanceOf(address(otc));
-        user1.doBuy(id, 30);
-        uint256 balance_after = mkr.balanceOf(address(otc));
-
-        assertEq(balance_before - balance_after, 30);
-    }
-    function testRstrctdSuspdblSmplMrktBuyTransfersToBuyer() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = mkr.balanceOf(address(user1));
-        user1.doBuy(id, 30);
-        uint256 balance_after = mkr.balanceOf(address(user1));
-
-        assertEq(balance_after - balance_before, 30);
-    }
-}
-
-contract Restricted2SuspendableSimpleMarket_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
-    function testRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = dai.balanceOf(address(user1));
-        user1.doBuy(id, 15);
-        uint256 balance_after = dai.balanceOf(address(user1));
-
-        assertEq(balance_before - balance_after, 50);
-    }
-    function testRstrctdSuspdblSmplMrktBuyTransfersToSeller() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = dai.balanceOf(address(this));
-        user1.doBuy(id, 15);
-        uint256 balance_after = dai.balanceOf(address(this));
-
-        assertEq(balance_after - balance_before, 50);
-    }
-    function testRstrctdSuspdblSmplMrktBuyTransfersFromMarket() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = mkr.balanceOf(address(otc));
-        user1.doBuy(id, 15);
-        uint256 balance_after = mkr.balanceOf(address(otc));
-
-        assertEq(balance_before - balance_after, 15);
-    }
-    function testRstrctdSuspdblSmplMrktBuyTransfersToBuyer() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = mkr.balanceOf(address(user1));
-        user1.doBuy(id, 15);
-        uint256 balance_after = mkr.balanceOf(address(user1));
-
-        assertEq(balance_after - balance_before, 15);
-    }
-    function testRstrctdSuspdblSmplMrktBuyOddTransfersFromBuyer() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = dai.balanceOf(address(user1));
-        user1.doBuy(id, 17);
-        uint256 balance_after = dai.balanceOf(address(user1));
-
-        assertEq(balance_before - balance_after, 56);
-    }
-}
-
-contract Restricted2SuspendableSimpleMarket_CancelTransferTestOpened is TransferTest_OpenMarket {
-    function testRstrctdSuspdblSmplMrktCancelTransfersFromMarket() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = mkr.balanceOf(address(otc));
-        otc.cancel(id);
-        uint256 balance_after = mkr.balanceOf(address(otc));
-
-        assertEq(balance_before - balance_after, 30);
-    }
-    function testRstrctdSuspdblSmplMrktCancelTransfersToSeller() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-
-        uint256 balance_before = mkr.balanceOf(address(this));
-        otc.cancel(id);
-        uint256 balance_after = mkr.balanceOf(address(this));
-
-        assertEq(balance_after - balance_before, 30);
-    }
-    function testRstrctdSuspdblSmplMrktCancelPartialTransfersFromMarket() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-        user1.doBuy(id, 15);
-
-        uint256 balance_before = mkr.balanceOf(address(otc));
-        otc.cancel(id);
-        uint256 balance_after = mkr.balanceOf(address(otc));
-
-        assertEq(balance_before - balance_after, 15);
-    }
-    function testRstrctdSuspdblSmplMrktCancelPartialTransfersToSeller() public {
-        uint256 id = otc.offer(30, mkr, 100, dai);
-        user1.doBuy(id, 15);
-
-        uint256 balance_before = mkr.balanceOf(address(this));
-        otc.cancel(id);
-        uint256 balance_after = mkr.balanceOf(address(this));
-
-        assertEq(balance_after - balance_before, 15);
-    }
-}
-
-
-
-// ----------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// TODO : change tests from testFail to test for checking errors more accurately with expectRevert ->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-// Same tests as above, but with the market suspended
-
-contract TransferTest_SuspendedMarket is DSTest, VmCheat {
-    MarketTester user1;
-    IERC20 dai;
-    IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
-
-    function setUp() public override{
-        super.setUp();
-        console2.log("TransferTest_SuspendedMarket: setUp()");
-
-        otc = new RestrictedSuspendableSimpleMarket(true);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -873,7 +388,189 @@ contract TransferTest_SuspendedMarket is DSTest, VmCheat {
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_OfferTransferTestOpened is TransferTest_OpenMarket {
+    function testSuspdblSmplMrktOfferTransfersFromSeller() public {
+        uint256 balance_before = mkr.balanceOf(address(this));
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        uint256 balance_after = mkr.balanceOf(address(this));
+
+        assertEq(balance_before - balance_after, 30);
+        assertTrue(id > 0);
+    }
+    function testSuspdblSmplMrktOfferTransfersToMarket() public {
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_after - balance_before, 30);
+        assertTrue(id > 0);
+    }
+}
+
+contract SuspendableSimpleMarketWithSomeFees_BuyTransferTestOpened is TransferTest_OpenMarket {
+    function testSuspdblSmplMrktBuyTransfersFromBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(user1));
+        user1.doBuy(id, 30);
+        uint256 balance_after = dai.balanceOf(address(user1));
+
+        assertEq(balance_before - balance_after, 100);
+    }
+    function testSuspdblSmplMrktBuyTransfersToSeller() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(this));
+        user1.doBuy(id, 30);
+        uint256 balance_after = dai.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 100);
+    }
+    function testSuspdblSmplMrktBuyTransfersFromMarket() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        user1.doBuy(id, 30);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 30);
+    }
+    function testSuspdblSmplMrktBuyTransfersToBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(user1));
+        user1.doBuy(id, 30);
+        uint256 balance_after = mkr.balanceOf(address(user1));
+
+        assertEq(balance_after - balance_before, 30);
+    }
+}
+
+contract SuspendableSimpleMarketWithSomeFees_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
+    function testSuspdblSmplMrktBuyTransfersFromBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(user1));
+        user1.doBuy(id, 15);
+        uint256 balance_after = dai.balanceOf(address(user1));
+
+        assertEq(balance_before - balance_after, 50);
+    }
+    function testSuspdblSmplMrktBuyTransfersToSeller() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(this));
+        user1.doBuy(id, 15);
+        uint256 balance_after = dai.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 50);
+    }
+    function testSuspdblSmplMrktBuyTransfersFromMarket() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        user1.doBuy(id, 15);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 15);
+    }
+    function testSuspdblSmplMrktBuyTransfersToBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(user1));
+        user1.doBuy(id, 15);
+        uint256 balance_after = mkr.balanceOf(address(user1));
+
+        assertEq(balance_after - balance_before, 15);
+    }
+    function testSuspdblSmplMrktBuyOddTransfersFromBuyer() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = dai.balanceOf(address(user1));
+        user1.doBuy(id, 17);
+        uint256 balance_after = dai.balanceOf(address(user1));
+
+        assertEq(balance_before - balance_after, 56);
+    }
+}
+
+contract SuspendableSimpleMarketWithSomeFees_CancelTransferTestOpened is TransferTest_OpenMarket {
+    function testSuspdblSmplMrktCancelTransfersFromMarket() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 30);
+    }
+    function testSuspdblSmplMrktCancelTransfersToSeller() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+
+        uint256 balance_before = mkr.balanceOf(address(this));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 30);
+    }
+    function testSuspdblSmplMrktCancelPartialTransfersFromMarket() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        user1.doBuy(id, 15);
+
+        uint256 balance_before = mkr.balanceOf(address(otc));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(otc));
+
+        assertEq(balance_before - balance_after, 15);
+    }
+    function testSuspdblSmplMrktCancelPartialTransfersToSeller() public {
+        uint256 id = otc.offer(30, mkr, 100, dai);
+        user1.doBuy(id, 15);
+
+        uint256 balance_before = mkr.balanceOf(address(this));
+        otc.cancel(id);
+        uint256 balance_after = mkr.balanceOf(address(this));
+
+        assertEq(balance_after - balance_before, 15);
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+// Same tests as above, but with the market suspended
+
+contract TransferTest_SuspendedMarket is DSTest, VmCheat {
+    MarketTester user1;
+    IERC20 dai;
+    IERC20 mkr;
+    SuspendableSimpleMarketWithFees otc;
+
+    function setUp() public override{
+        super.setUp();
+        console2.log("TransferTest_SuspendedMarket: setUp()");
+
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, true);
+        user1 = new MarketTester(otc);
+
+        dai = new DSTokenBase(10 ** 9);
+        mkr = new DSTokenBase(10 ** 6);
+
+        dai.transfer(address(user1), 100);
+        user1.doApprove(address(otc), 100, dai);
+        mkr.approve(address(otc), 30);
+    }
+}
+
+contract SuspendableSimpleMarketWithSomeFees_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -892,7 +589,7 @@ contract Restricted2SuspendableSimpleMarket_OfferTransferTestSuspended is Transf
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -931,7 +628,7 @@ contract Restricted2SuspendableSimpleMarket_BuyTransferTestSuspended is Transfer
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testFailSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -979,7 +676,7 @@ contract Restricted2SuspendableSimpleMarket_PartialBuyTransferTestSuspended is T
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
+contract SuspendableSimpleMarketWithSomeFees_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
     function testSuspndSuspdblSmplMrktCancelTransfersFromMarket() public {
         // Unsuspend to allow offer
         otc.unsuspendMarket();
@@ -1044,13 +741,22 @@ contract TransferTest_ClosedMarket is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_ClosedMarket: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
         otc.closeMarket();
         user1 = new MarketTester(otc);
 
@@ -1063,7 +769,7 @@ contract TransferTest_ClosedMarket is DSTest, VmCheat {
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_OfferTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_OfferTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -1082,7 +788,7 @@ contract Restricted2SuspendableSimpleMarket_OfferTransferTestClosed is TransferT
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_BuyTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_BuyTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -1121,7 +827,7 @@ contract Restricted2SuspendableSimpleMarket_BuyTransferTestClosed is TransferTes
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -1169,7 +875,7 @@ contract Restricted2SuspendableSimpleMarket_PartialBuyTransferTestClosed is Tran
     }
 }
 
-contract Restricted2SuspendableSimpleMarket_CancelTransferTestClosed is TransferTest_ClosedMarket {
+contract SuspendableSimpleMarketWithSomeFees_CancelTransferTestClosed is TransferTest_ClosedMarket {
     function testFailClsdSuspdblSmplMrktCancelTransfersFromMarket() public {
         uint256 id = otc.offer(30, mkr, 100, dai);
 
@@ -1263,17 +969,26 @@ contract Restricted2SuspendableSimpleMarket_CancelTransferTestClosed is Transfer
 
 // --- Gas Tests ---
 
-contract Restricted2SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_OpenMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(false); // not suspended
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false); // not suspended
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1287,7 +1002,16 @@ contract Restricted2SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmChea
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
     }
     function testOpndSuspdblSmplMrktNewOffer()
         public
@@ -1319,17 +1043,26 @@ contract Restricted2SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmChea
 
 // Same tests as above, but with the market suspended
 
-contract Restricted2SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_SuspendedMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
+        address feeCollector = someUser_22;
 
-        otc = new RestrictedSuspendableSimpleMarket(false);
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1344,7 +1077,17 @@ contract Restricted2SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, V
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        new SuspendableSimpleMarketWithFees( simpleMarketConfigurationWithZeroFees, false);
+
     }
     function testFailSuspndSuspdblSmplMrktNewOffer()
         public
@@ -1374,17 +1117,27 @@ contract Restricted2SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, V
 
 // Same tests as above, but with the market closed
 
-contract Restricted2SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_ClosedMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1399,7 +1152,18 @@ contract Restricted2SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCh
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
+
     }
     function testFailClsdSuspdblSmplMrktNewOffer()
         public
@@ -1429,17 +1193,27 @@ contract Restricted2SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCh
 
 // Same tests as above, but with the market closed & unsuspended
 
-contract Restricted2SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
+contract SuspendableSimpleMarketWithSomeFees_GasTest_ClosedMarket2 is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    SuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1449,13 +1223,26 @@ contract Restricted2SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmC
 
         id = otc.offer(30, mkr, 100, dai);
         otc.closeMarket(); // CLOSE
+        vm.expectRevert("SS299_MARKET_ALREADY_CLOSED"); // Closed market
         otc.unsuspendMarket(); // SUSPEND
     }
     function testClsd2SuspdblSmplMrktNewMarket()
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(false);
+
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new SuspendableSimpleMarketWithFees(simpleMarketConfigurationWithZeroFees, false);
+
     }
     function testFail2ClsdSuspdblSmplMrktNewOffer()
         public
@@ -1484,5 +1271,4 @@ contract Restricted2SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmC
 }
 
 // ============================================================================
-
 */

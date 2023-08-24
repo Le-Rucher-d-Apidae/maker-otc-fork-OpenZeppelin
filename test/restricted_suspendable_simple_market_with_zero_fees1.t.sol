@@ -28,14 +28,14 @@ import "forge-std/console2.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../contracts/Restricted_Suspendable_Simple_Market.sol";
+import "../contracts/Restricted_Suspendable_Simple_Market_With_Fees.sol";
 import {VmCheat, DSTokenBase} from "./markets.t.sol";
 
 contract MarketTester {
 
-    RestrictedSuspendableSimpleMarket market;
+    RestrictedSuspendableSimpleMarketWithFees market;
 
-    constructor(RestrictedSuspendableSimpleMarket market_) {
+    constructor(RestrictedSuspendableSimpleMarketWithFees market_) {
         market = market_;
     }
     function doApprove(address spender, uint value, IERC20 token) public {
@@ -49,17 +49,26 @@ contract MarketTester {
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_Test is DSTest, VmCheat, EventfulMarket {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
 
     function setUp() public override {
         super.setUp();
-        console2.log("RestrictedSuspendableSimpleMarket_Test: setUp()");
+        console2.log("RestrictedSuspendableSimpleMarketWithFees_Test: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees,  false);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -94,22 +103,20 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // // expectEventsExact(address(otc)); // deprecated https://github.com/dapphub/dapptools/issues/18 https://dapple.readthedocs.io/en/master/test/
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(30, address(mkr), 100, address(dai));
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(30, address(mkr), 100, address(dai));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(30, address(mkr), 100, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
     }
     function testRstrctdSuspdblSmplMrktPartiallyFilledOrderMkr() public {
         dai.transfer(address(user1), 30);
@@ -144,21 +151,20 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
         assertTrue(address(buy_token) == NULL_ADDRESS);
 
         // TODO: migrate Events checks
-/* 
-        // expectEventsExact(address(otc));
+
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(10, address(mkr), 25, address(dai));
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(10, address(mkr), 25, address(dai));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(10, address(mkr), 25, address(dai));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
     }
     function testRstrctdSuspdblSmplMrktPartiallyFilledOrderDai() public {
         mkr.transfer(address(user1), 10); // Move 10 MKR to user1
@@ -208,22 +214,20 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogTrade(10, address(dai), 4, address(mkr));
+        // // emit LogItemUpdate(id);
+
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,true,true,true, address(otc));
         // emit LogTrade(10, address(dai), 4, address(mkr));
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
-
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,true,true,true, address(otc));
-        emit LogTrade(10, address(dai), 4, address(mkr));
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
     }
     function testRstrctdSuspdblSmplMrktPartiallyFilledOrderMkrExcessQuantity() public {
         dai.transfer(address(user1), 30);
@@ -259,13 +263,11 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
-        // emit LogItemUpdate(id);
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
- */
+        // vm.expectEmit(true,false,false,false, address(otc));
+        // emit LogItemUpdate(id);
     }
     function testRstrctdSuspdblSmplMrktInsufficientlyFilledOrder() public {
         mkr.approve(address(otc), 30);
@@ -292,18 +294,16 @@ contract Restricted1SuspendableSimpleMarket_Test is DSTest, VmCheat, EventfulMar
 
         // TODO: migrate Events checks
 
-/* 
-        // expectEventsExact(address(otc));
+        // // expectEventsExact(address(otc));
+        // // emit LogItemUpdate(id);
+        // // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
+
+        // vm.expectEmit(true,false,false,false, address(otc));
         // emit LogItemUpdate(id);
 
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
-        vm.expectEmit(true,false,false,false, address(otc));
-        emit LogItemUpdate(id);
-
- */
     }
     function testRstrctdSuspdblSmplMrktCancelNotOwner() public {
         mkr.approve(address(otc), 30);
@@ -413,13 +413,22 @@ contract TransferTest_OpenMarket is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_OpenMarket: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -431,7 +440,7 @@ contract TransferTest_OpenMarket is DSTest, VmCheat {
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_OfferTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_OfferTransferTestOpened is TransferTest_OpenMarket {
     function testRstrctdSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         // FAIL. Reason: InvalidTradingPair
@@ -454,7 +463,7 @@ contract Restricted1SuspendableSimpleMarket_OfferTransferTestOpened is TransferT
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_BuyTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_BuyTransferTestOpened is TransferTest_OpenMarket {
     function testRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         // FAIL. Reason: InvalidTradingPair
         vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
@@ -505,7 +514,7 @@ contract Restricted1SuspendableSimpleMarket_BuyTransferTestOpened is TransferTes
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_PartialBuyTransferTestOpened is TransferTest_OpenMarket {
     function testRstrctdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         // FAIL. Reason: InvalidTradingPair
         vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
@@ -568,7 +577,7 @@ contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestOpened is Tran
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_CancelTransferTestOpened is TransferTest_OpenMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_CancelTransferTestOpened is TransferTest_OpenMarket {
     function testRstrctdSuspdblSmplMrktCancelTransfersFromMarket() public {
         // FAIL. Reason: InvalidTradingPair
         vm.expectRevert( abi.encodeWithSelector(InvalidTradingPair.selector, mkr, dai) );
@@ -631,13 +640,22 @@ contract TransferTest_SuspendedMarket is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_SuspendedMarket: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, true);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, true);
         user1 = new MarketTester(otc);
 
         dai = new DSTokenBase(10 ** 9);
@@ -649,7 +667,7 @@ contract TransferTest_SuspendedMarket is DSTest, VmCheat {
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_OfferTransferTestSuspended is TransferTest_SuspendedMarket {
     function testSuspndSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         vm.expectRevert(); // Suspended market
@@ -670,7 +688,7 @@ contract Restricted1SuspendableSimpleMarket_OfferTransferTestSuspended is Transf
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_BuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         vm.expectRevert(); // Suspended market
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -717,7 +735,7 @@ contract Restricted1SuspendableSimpleMarket_BuyTransferTestSuspended is Transfer
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_PartialBuyTransferTestSuspended is TransferTest_SuspendedMarket {
     function testSuspndSuspdblSmplMrktBuyTransfersFromBuyer() public {
         vm.expectRevert(); // Suspended market
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -775,7 +793,7 @@ contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestSuspended is T
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_CancelTransferTestSuspended is TransferTest_SuspendedMarket {
     function testSuspndSuspdblSmplMrktCancelTransfersFromMarket() public {
         // Unsuspend to allow offer
         otc.unsuspendMarket();
@@ -854,13 +872,22 @@ contract TransferTest_ClosedMarket is DSTest, VmCheat {
     MarketTester user1;
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
 
     function setUp() public override{
         super.setUp();
         console2.log("TransferTest_ClosedMarket: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
         otc.closeMarket();
         user1 = new MarketTester(otc);
 
@@ -873,7 +900,7 @@ contract TransferTest_ClosedMarket is DSTest, VmCheat {
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_OfferTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_OfferTransferTestClosed is TransferTest_ClosedMarket {
     function testClsdSuspdblSmplMrktOfferTransfersFromSeller() public {
         uint256 balance_before = mkr.balanceOf(address(this));
         vm.expectRevert(); // Closed market
@@ -894,7 +921,7 @@ contract Restricted1SuspendableSimpleMarket_OfferTransferTestClosed is TransferT
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_BuyTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_BuyTransferTestClosed is TransferTest_ClosedMarket {
     function testClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         vm.expectRevert(); // Closed market
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -941,7 +968,7 @@ contract Restricted1SuspendableSimpleMarket_BuyTransferTestClosed is TransferTes
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_PartialBuyTransferTestClosed is TransferTest_ClosedMarket {
     function testClsdSuspdblSmplMrktBuyTransfersFromBuyer() public {
         vm.expectRevert(); // Closed market
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -999,7 +1026,7 @@ contract Restricted1SuspendableSimpleMarket_PartialBuyTransferTestClosed is Tran
     }
 }
 
-contract Restricted1SuspendableSimpleMarket_CancelTransferTestClosed is TransferTest_ClosedMarket {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_CancelTransferTestClosed is TransferTest_ClosedMarket {
     function testClsdSuspdblSmplMrktCancelTransfersFromMarket() public {
         vm.expectRevert(); // Closed market
         uint256 id = otc.offer(30, mkr, 100, dai);
@@ -1118,17 +1145,26 @@ contract Restricted1SuspendableSimpleMarket_CancelTransferTestClosed is Transfer
 
 // --- Gas Tests ---
 
-contract Restricted1SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_GasTest_OpenMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, false); // not suspended
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false); // not suspended
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1144,7 +1180,16 @@ contract Restricted1SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmChea
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+                address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
     }
     function testOpndSuspdblSmplMrktNewOffer()
         public
@@ -1181,17 +1226,27 @@ contract Restricted1SuspendableSimpleMarket_GasTest_OpenMarket is DSTest, VmChea
 
 // Same tests as above, but with the market suspended
 
-contract Restricted1SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_GasTest_SuspendedMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1208,7 +1263,17 @@ contract Restricted1SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, V
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+                address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
     }
     function testSuspndSuspdblSmplMrktNewOffer()
         public
@@ -1242,17 +1307,27 @@ contract Restricted1SuspendableSimpleMarket_GasTest_SuspendedMarket is DSTest, V
 
 // Same tests as above, but with the market closed
 
-contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_GasTest_ClosedMarket is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1269,7 +1344,17 @@ contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCh
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
     }
     function testClsdSuspdblSmplMrktNewOffer()
         public
@@ -1303,17 +1388,27 @@ contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket is DSTest, VmCh
 
 // Same tests as above, but with the market closed & unsuspended
 
-contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmCheat {
+contract Restricted1SuspendableSimpleMarketWithZeroFees_GasTest_ClosedMarket2 is DSTest, VmCheat {
     IERC20 dai;
     IERC20 mkr;
-    RestrictedSuspendableSimpleMarket otc;
+    RestrictedSuspendableSimpleMarketWithFees otc;
     uint id;
 
     function setUp() public override {
         super.setUp();
         console2.log("GasTest: setUp()");
 
-        otc = new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+
+        otc = new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
 
         dai = new DSTokenBase(10 ** 9);
         mkr = new DSTokenBase(10 ** 6);
@@ -1332,7 +1427,16 @@ contract Restricted1SuspendableSimpleMarket_GasTest_ClosedMarket2 is DSTest, VmC
         public
         logs_gas
     {
-        new RestrictedSuspendableSimpleMarket(NULL_ERC20, false);
+        address feeCollector = someUser_22;
+
+        SimpleMarketConfigurationWithFees simpleMarketConfigurationWithZeroFees = new SimpleMarketConfigurationWithFees(
+            0, // Max fee = 0%
+            0, // Current fee =  0%
+            feeCollector,
+            1000, // buy fee   = 50 % (buy fee/(buy fee+sell fee))
+            1000  // sell fee  = 50 % (sell fee/(buy fee+sell fee))
+        );
+        new RestrictedSuspendableSimpleMarketWithFees(NULL_ERC20, simpleMarketConfigurationWithZeroFees, false);
     }
     function test2ClsdSuspdblSmplMrktNewOffer()
         public

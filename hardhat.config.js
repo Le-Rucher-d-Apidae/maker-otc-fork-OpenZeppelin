@@ -58,7 +58,8 @@ const OPTIMIZER_SETTINGS = {
     optimizer: {
       enabled: true,
       runs: 200
-      }
+      },
+      // viaIR: true,
   }
 
 console.log('-------------------------------------')
@@ -69,7 +70,7 @@ console.log('-------------------------------------')
 const SOLIDITY_VERSIONS = ( process.env.SOLIDITY_VERSIONS !== undefined ? process.env.SOLIDITY_VERSIONS : DEFAULT_SOLIDITY_VERSIONS )
 console.log(`SOLIDITY_VERSIONS = "${SOLIDITY_VERSIONS}"`)
 
-// const COMPILER_VERSIONS = ["0.7.6", "0.8.18"]
+// const COMPILER_VERSIONS = ["0.7.6", "0.8.21"]
 const COMPILER_VERSIONS = SOLIDITY_VERSIONS.replace(/\s/g, "").split(",").sort()
 console.log(`COMPILER_VERSIONS = ${COMPILER_VERSIONS.map((version) => `"${version}"`).join(", ")}`)
 
