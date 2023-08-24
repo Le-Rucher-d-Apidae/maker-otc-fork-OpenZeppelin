@@ -81,8 +81,7 @@ contract MatchingMarket is MatchingEvents, SimpleMarket, DSMath {
     // If owner, can cancel an offer
     // If dust, anyone can cancel an offer
     modifier can_cancel (uint id) override {
-        // require(isActive(id), "Offer was deleted or taken, or never existed.");
-        require(isOrderActive(id), _T101);
+        require(isOrderActive(id), _MM_OFR101);
         require(
             msg.sender == getOwner(id) || offers[id].pay_amt < _dust[address(offers[id].pay_gem)],
             _RST001

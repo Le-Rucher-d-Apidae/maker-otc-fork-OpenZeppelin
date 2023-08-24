@@ -34,3 +34,5 @@ string constant _RST104 = "RST104_OFFER_AMOUNT_LOW";
 string constant _MM_TRD005 = "not enough offers to fulfill";
 string constant _MM_OFR001 = "offer is already sorted";
 string constant _MM_OFR002 = "offer must be active";
+
+string constant _MM_OFR101 = "Offer was deleted or taken, or never existed";
