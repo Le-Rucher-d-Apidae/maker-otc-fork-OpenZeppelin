@@ -27,16 +27,9 @@ import "./constants/Matching_Market__constants.sol";
 
 import "./Restricted_Suspendable_Simple_Market_With_Fees.sol";
 import "./oracle/IOracle.sol";
+import "./Matching_Events.sol";
 
 import "./Matching_Market_Configuration.sol";
-
-contract MatchingEvents {
-    event LogMinSell(address pay_gem, uint min_amount);
-    event LogUnsortedOffer(uint id);
-    event LogSortedOffer(uint id);
-    event LogInsert(address keeper, uint id);
-    event LogDelete(address keeper, uint id);
-}
 
 contract RestrictedSuspendableMatchingMarketWithFees is MatchingEvents, RestrictedSuspendableSimpleMarketWithFees, DSMath {
     struct sortInfo {
